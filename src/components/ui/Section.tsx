@@ -1,7 +1,16 @@
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 
 import { Container } from "@/components/ui/Container";
 
-export function Section({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return <section className={`py-14 sm:py-20 ${className}`}><Container>{children}</Container></section>;
+type SectionProps = HTMLAttributes<HTMLElement> & {
+  children: ReactNode;
+  containerClassName?: string;
+};
+
+export function Section({ children, className = "", containerClassName = "", ...props }: SectionProps) {
+  return (
+    <section className={`py-14 sm:py-20 ${className}`} {...props}>
+      <Container className={containerClassName}>{children}</Container>
+    </section>
+  );
 }
