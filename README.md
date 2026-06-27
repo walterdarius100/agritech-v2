@@ -60,6 +60,8 @@ src/types            Types TypeScript principaux
 docs                 Documentation produit et roadmap
 ```
 
+Pour l’organisation des images, logos, favicons et assets visuels, consulter `docs/ASSETS_GUIDE.md`.
+
 ## Stratégie Supabase
 
 La V2 prépare des clients Supabase côté navigateur, serveur et admin, sans modifier la base distante et sans migration dans cette première étape. La table `articles` de la V1 est représentée par un type TypeScript compatible pour faciliter une intégration progressive.

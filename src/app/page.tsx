@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { ArticleCard } from "@/components/articles/ArticleCard";
-import { CtaSection } from "@/components/common/CtaSection";
 import { FormationCard } from "@/components/formations/FormationCard";
 import { CredibilitySection } from "@/components/home/CredibilitySection";
 import { DomainesSection } from "@/components/home/DomainesSection";
@@ -41,7 +40,6 @@ export default function HomePage() {
         <div className="mt-10 grid gap-5 md:grid-cols-3">{articles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
       </Section>
       <CredibilitySection />
-      <CtaSection />
     </>
   );
 }
