@@ -1,3 +1,8 @@
+export type InterventionPillar = {
+  title: string;
+  description: string;
+};
+
 export type HomeDomain = {
   title: string;
   category: string;
@@ -6,6 +11,29 @@ export type HomeDomain = {
   imageAlt: string;
   href: string;
 };
+
+export const interventionPillars: InterventionPillar[] = [
+  {
+    title: "Élevage",
+    description:
+      "Poulet de chair, poules pondeuses, cuniculture, apiculture, pisciculture et porciculture.",
+  },
+  {
+    title: "Production végétale",
+    description:
+      "Maraîchage, pépinière, irrigation et accompagnement technique des cultures.",
+  },
+  {
+    title: "Technologies agricoles",
+    description:
+      "Écloserie, incubateurs, biogaz, équipements et installations agricoles.",
+  },
+  {
+    title: "Formation & accompagnement",
+    description:
+      "Étude de projet, formation pratique, suivi technique et conseil personnalisé.",
+  },
+];
 
 export const homeDomains: HomeDomain[] = [
   {
@@ -30,7 +58,7 @@ export const homeDomains: HomeDomain[] = [
     title: "Incubateur / Écloserie",
     category: "Technologie",
     description:
-      "Fabrication et accompagnement autour des incubateurs pour production de poussins.",
+      "Fabrication et accompagnement autour des incubateurs pour la production de poussins.",
     image: "/images/services/incubateur.jpg",
     imageAlt: "Incubateur agricole pour la production de poussins",
     href: "/services",

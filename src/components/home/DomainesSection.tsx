@@ -1,14 +1,17 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Leaf, Sprout, Tractor, UsersRound } from "lucide-react";
 
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
-import { homeDomains } from "@/data/home-domains";
+import { homeDomains, interventionPillars } from "@/data/home-domains";
+
+const pillarIcons = [Leaf, Sprout, Tractor, UsersRound];
 
 export function DomainesSection() {
   return (
-    <Section className="bg-gradient-to-b from-amber-50/70 via-white to-emerald-50/60">
+    <Section className="bg-gradient-to-b from-amber-50/80 via-white to-emerald-50/70">
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-700">
           Nos domaines d’intervention
@@ -17,19 +20,45 @@ export function DomainesSection() {
           Des solutions agricoles adaptées au terrain haïtien.
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600">
-          Aperçu de nos principaux domaines. Découvrez l’ensemble de nos
-          interventions et accompagnements sur la page Services.
+          Agri-tech accompagne les porteurs de projets agricoles à travers
+          plusieurs pôles d’intervention : élevage, production végétale,
+          technologies agricoles, formation et suivi technique.
         </p>
       </div>
 
-      <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid gap-4 md:grid-cols-2">
+        {interventionPillars.map((pillar, index) => {
+          const Icon = pillarIcons[index];
+
+          return (
+            <article
+              key={pillar.title}
+              className="flex gap-4 rounded-xl border border-emerald-100 bg-white/90 p-5 shadow-sm shadow-emerald-950/5 transition hover:border-emerald-200 hover:bg-emerald-50/60"
+            >
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200">
+                <Icon aria-hidden="true" className="size-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black tracking-tight text-emerald-950">
+                  {pillar.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  {pillar.description}
+                </p>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+
+      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {homeDomains.map((domain) => (
           <article
             key={domain.title}
-            className="group flex h-full overflow-hidden rounded-[1.75rem] border border-emerald-100 bg-white shadow-sm shadow-emerald-950/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-emerald-950/10"
+            className="group flex h-full overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm shadow-emerald-950/5 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-950/10"
           >
             <div className="flex w-full flex-col">
-              <div className="relative aspect-[4/3] overflow-hidden bg-emerald-100">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-t-xl bg-emerald-100">
                 <Image
                   src={domain.image}
                   alt={domain.imageAlt}
@@ -52,7 +81,7 @@ export function DomainesSection() {
                   href={domain.href}
                   className="mt-6 inline-flex w-fit items-center text-sm font-bold text-emerald-700 transition hover:text-emerald-900"
                 >
-                  Demander ce service{" "}
+                  Découvrir ce domaine{" "}
                   <span
                     aria-hidden="true"
                     className="ml-1 transition group-hover:translate-x-1"
@@ -67,7 +96,7 @@ export function DomainesSection() {
       </div>
 
       <div className="mt-10 flex justify-center">
-        <Button href="/services" size="lg" className="px-7">
+        <Button href="/services" size="lg" className="rounded-xl px-7">
           Voir tous nos services{" "}
           <span aria-hidden="true" className="ml-2">
             →
