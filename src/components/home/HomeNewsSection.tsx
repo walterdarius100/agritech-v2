@@ -1,6 +1,5 @@
 import Image from "next/image";
 
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -29,7 +28,7 @@ export function HomeNewsSection() {
       />
 
       <article className="mt-10 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm ring-1 ring-slate-100 lg:grid lg:grid-cols-[1.05fr_0.95fr]">
-        <div className="relative min-h-72 overflow-hidden bg-emerald-900 sm:min-h-80 lg:min-h-full">
+        <div className="relative h-56 overflow-hidden bg-emerald-900 sm:h-64 lg:h-auto">
           {featuredArticle.cover_image_url ? (
             <Image
               src={featuredArticle.cover_image_url}
@@ -45,14 +44,13 @@ export function HomeNewsSection() {
           </div>
         </div>
 
-        <div className="flex flex-col justify-center p-6 sm:p-8 lg:p-10">
-          <div className="flex flex-wrap items-center gap-3">
-            <Badge tone="orange">{featuredArticle.category}</Badge>
-            <span className="text-sm font-medium text-slate-500">{formatArticleDate(featuredArticle.published_at)}</span>
-          </div>
-          <h2 className="mt-5 text-3xl font-bold tracking-tight text-emerald-950 sm:text-4xl">{featuredArticle.title}</h2>
-          <p className="mt-5 text-base leading-7 text-slate-600">{featuredArticle.excerpt}</p>
-          <Button href={`/articles/${featuredArticle.slug}`} variant="ghost" className="mt-7 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950">
+        <div className="flex flex-col justify-center p-6 sm:p-7 lg:p-8">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
+            {featuredArticle.category} · {formatArticleDate(featuredArticle.published_at)}
+          </p>
+          <h2 className="mt-4 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">{featuredArticle.title}</h2>
+          <p className="mt-4 text-base leading-7 text-slate-600">{featuredArticle.excerpt}</p>
+          <Button href={`/articles/${featuredArticle.slug}`} variant="ghost" className="mt-6 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950">
             Lire l’article →
           </Button>
         </div>
