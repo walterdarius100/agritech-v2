@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
 
-import { ArticleCard } from "@/components/articles/ArticleCard";
 import { CredibilitySection } from "@/components/home/CredibilitySection";
 import { DomainesSection } from "@/components/home/DomainesSection";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeFormationsSection } from "@/components/home/HomeFormationsSection";
+import { HomeNewsSection } from "@/components/home/HomeNewsSection";
 import { ServiceCard } from "@/components/services/ServiceCard";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import { articles } from "@/data/articles";
 import { services } from "@/data/services";
 import { createMetadata } from "@/lib/seo/metadata";
 
@@ -31,11 +30,8 @@ export default function HomePage() {
         <div className="mt-10 grid gap-5 md:grid-cols-3">{services.filter((service) => service.featured).slice(0, 6).map((service) => <ServiceCard key={service.slug} service={service} />)}</div>
       </Section>
       <HomeFormationsSection />
-      <Section>
-        <SectionHeader eyebrow="Actualités" title="Conseils, nouvelles et ressources agricoles" description="Des contenus éducatifs pour mieux préparer les projets, formations et décisions techniques." />
-        <div className="mt-10 grid gap-5 md:grid-cols-3">{articles.map((article) => <ArticleCard key={article.slug} article={article} />)}</div>
-      </Section>
       <CredibilitySection />
+      <HomeNewsSection />
     </>
   );
 }
