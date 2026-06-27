@@ -89,17 +89,6 @@ export function Footer() {
             <li><a href={footerContact.phoneHref} className="flex items-center gap-3 transition hover:text-lime-200"><Phone className="h-4 w-4 shrink-0 text-lime-200" aria-hidden="true" />{footerContact.phone}</a></li>
             <li><a href={footerContact.emailHref} className="flex items-center gap-3 break-all transition hover:text-lime-200"><Mail className="h-4 w-4 shrink-0 text-lime-200" aria-hidden="true" />{footerContact.email}</a></li>
           </ul>
-          <nav aria-label="Liens légaux" className="mt-6 border-t border-white/10 pt-5">
-            <ul className="space-y-3 text-sm font-medium text-white/65">
-              {footerLegalLinks.map((item) => (
-                <li key={item.href}>
-                  <Link href={item.href} className="transition hover:text-lime-200">
-                    {item.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
         </div>
 
         <div>
@@ -115,8 +104,15 @@ export function Footer() {
       </div>
 
       <div className="border-t border-white/10 px-4 py-6">
-        <div className="mx-auto max-w-7xl text-center text-sm text-white/60">
-          <p>© 2026 Agri-tech — Tous droits réservés</p>
+        <div className="mx-auto flex max-w-7xl flex-col gap-4 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
+          <nav aria-label="Liens légaux" className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
+            {footerLegalLinks.map((item) => (
+              <Link key={item.href} href={item.href} className="transition hover:text-lime-200">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <p className="text-center md:text-right">© 2026 Agri-tech — Tous droits réservés</p>
         </div>
       </div>
     </footer>
