@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 
-import { CtaSection } from "@/components/common/CtaSection";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
@@ -46,7 +45,6 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           <div className="mt-10 flex flex-col gap-3 sm:flex-row"><Button href="/contact" variant="secondary">Demander un accompagnement</Button><Button href="/actualites" variant="outline">Retour aux actualités</Button></div>
         </article>
       </Section>
-      <CtaSection />
     </>
   );
 }
