@@ -20,8 +20,6 @@ export function HomeTestimonialsSection() {
     return () => window.clearInterval(interval);
   }, [activeIndex]);
 
-  const activeTestimonial = testimonials[activeIndex];
-
   const goToPrevious = () => {
     setActiveIndex((currentIndex) => (currentIndex - 1 + testimonials.length) % testimonials.length);
   };
@@ -31,15 +29,15 @@ export function HomeTestimonialsSection() {
   };
 
   return (
-    <Section className="bg-[#fbf6ea]">
+    <Section className="bg-[#fbf6ea] py-10 sm:py-14 lg:py-16">
       <SectionHeader
         eyebrow="Témoignages"
         title="Ce que disent les personnes accompagnées."
         description="Des retours qui reflètent la qualité de notre accompagnement."
       />
 
-      <div className="mx-auto mt-10 max-w-4xl">
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white px-6 py-10 text-center shadow-sm ring-1 ring-white/70 sm:px-12 lg:px-20">
+      <div className="mx-auto mt-8 max-w-4xl">
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white px-5 py-7 text-center shadow-sm ring-1 ring-white/70 sm:px-12 sm:py-8 lg:px-18">
           <button
             type="button"
             aria-label="Témoignage précédent"
@@ -58,34 +56,45 @@ export function HomeTestimonialsSection() {
             ›
           </button>
 
-          <div key={activeTestimonial.id} className="mx-auto flex max-w-2xl animate-[testimonial-fade-in_350ms_ease-out] flex-col items-center">
-            <div className="relative size-24 overflow-hidden rounded-full border-4 border-white bg-emerald-50 shadow-md sm:size-28">
-              <Image
-                src={activeTestimonial.imageSrc}
-                alt={activeTestimonial.imageAlt}
-                fill
-                sizes="112px"
-                className="object-cover"
-              />
-            </div>
+          <div className="overflow-hidden">
+            <div
+              className="flex transition-transform duration-500 ease-out"
+              style={{ transform: `translateX(-${activeIndex * 100}%)` }}
+            >
+              {testimonials.map((testimonial) => (
+                <div key={testimonial.id} className="flex min-w-full justify-center px-1">
+                  <div className="flex max-w-2xl flex-col items-center">
+                    <div className="relative size-20 overflow-hidden rounded-full border-4 border-white bg-emerald-50 shadow-md sm:size-24">
+                      <Image
+                        src={testimonial.imageSrc}
+                        alt={testimonial.imageAlt}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    </div>
 
-            <h2 className="mt-6 text-xl font-bold text-emerald-950">{activeTestimonial.profile}</h2>
-            <p className="mt-1 text-sm font-medium text-slate-500">{activeTestimonial.domain}</p>
+                    <h2 className="mt-4 text-lg font-bold text-emerald-950 sm:text-xl">{testimonial.profile}</h2>
+                    <p className="mt-1 text-sm font-medium text-slate-500">{testimonial.domain}</p>
 
-            <div className="mt-4 flex items-center justify-center gap-1" aria-label={`${activeTestimonial.rating} étoiles sur 5`}>
-              {Array.from({ length: activeTestimonial.rating }).map((_, index) => (
-                <span key={index} aria-hidden="true" className="text-xl text-amber-400">
-                  ★
-                </span>
+                    <div className="mt-3 flex items-center justify-center gap-1" aria-label={`${testimonial.rating} étoiles sur 5`}>
+                      {Array.from({ length: testimonial.rating }).map((_, index) => (
+                        <span key={index} aria-hidden="true" className="text-lg text-amber-400">
+                          ★
+                        </span>
+                      ))}
+                    </div>
+
+                    <blockquote className="mt-4 text-base font-medium leading-7 text-slate-700 sm:text-lg sm:leading-8">
+                      “{testimonial.quote}”
+                    </blockquote>
+                  </div>
+                </div>
               ))}
             </div>
-
-            <blockquote className="mt-6 text-lg font-medium leading-8 text-slate-700 sm:text-xl sm:leading-9">
-              “{activeTestimonial.quote}”
-            </blockquote>
           </div>
 
-          <div className="mt-8 flex justify-center gap-3 sm:hidden">
+          <div className="mt-6 flex justify-center gap-3 sm:hidden">
             <button
               type="button"
               aria-label="Témoignage précédent"
@@ -105,7 +114,7 @@ export function HomeTestimonialsSection() {
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-center gap-2" aria-label="Pagination des témoignages">
+        <div className="mt-4 flex items-center justify-center gap-2" aria-label="Pagination des témoignages">
           {testimonials.map((testimonial, index) => {
             const isActive = index === activeIndex;
 
