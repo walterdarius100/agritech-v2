@@ -5,6 +5,7 @@ import { DomainesSection } from "@/components/home/DomainesSection";
 import { HomeHero } from "@/components/home/HomeHero";
 import { HomeFormationsSection } from "@/components/home/HomeFormationsSection";
 import { HomeNewsSection } from "@/components/home/HomeNewsSection";
+import { HomeTestimonialsSection } from "@/components/home/HomeTestimonialsSection";
 import { ServiceCard } from "@/components/services/ServiceCard";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -31,6 +32,7 @@ export default function HomePage() {
       </Section>
       <HomeFormationsSection />
       <CredibilitySection />
+      <HomeTestimonialsSection />
       <HomeNewsSection />
     </>
   );
