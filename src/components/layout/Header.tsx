@@ -45,16 +45,16 @@ export function Header() {
         </nav>
         <button
           type="button"
-          className="group flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-emerald-950/15 text-emerald-950 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-800 focus:ring-offset-2 focus:ring-offset-emerald-50 md:hidden"
+          className="inline-flex h-10 w-10 shrink-0 items-center justify-center text-emerald-950 transition focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-800 md:hidden"
           aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
           aria-expanded={isMenuOpen}
           aria-controls={mobileMenuId}
           onClick={() => setIsMenuOpen((current) => !current)}
         >
           <span className="relative h-5 w-6" aria-hidden="true">
-            <span className={`absolute left-0 top-0 h-0.5 w-6 rounded-full bg-current transition duration-300 ${isMenuOpen ? "translate-y-2 rotate-45" : ""}`} />
-            <span className={`absolute left-0 top-2 h-0.5 w-6 rounded-full bg-current transition duration-300 ${isMenuOpen ? "opacity-0" : "opacity-100"}`} />
-            <span className={`absolute left-0 top-4 h-0.5 w-6 rounded-full bg-current transition duration-300 ${isMenuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
+            <span className={`absolute left-0 top-0 h-0.5 w-6 bg-current transition duration-300 ${isMenuOpen ? "translate-y-2 rotate-45" : ""}`} />
+            <span className={`absolute left-0 top-2 h-0.5 w-6 bg-current transition duration-300 ${isMenuOpen ? "opacity-0" : "opacity-100"}`} />
+            <span className={`absolute left-0 top-4 h-0.5 w-6 bg-current transition duration-300 ${isMenuOpen ? "-translate-y-2 -rotate-45" : ""}`} />
           </span>
         </button>
       </div>
