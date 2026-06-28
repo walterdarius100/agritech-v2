@@ -17,7 +17,7 @@ export const metadata: Metadata = createMetadata({
 
 export default function HomePage() {
   return (
-    <>
+    <main className="overflow-x-hidden">
       <HomeHero />
       <DomainesSection />
       <HomeFormationsSection />
@@ -27,6 +27,6 @@ export default function HomePage() {
         <HomeTestimonialsSection />
       </div>
       <HomeNewsSection />
-    </>
+    </main>
   );
 }

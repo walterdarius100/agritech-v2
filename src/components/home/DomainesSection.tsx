@@ -79,7 +79,7 @@ export function DomainesSection() {
                 </p>
                 <Link
                   href={domain.href}
-                  className="mt-6 inline-flex w-fit items-center text-sm font-bold text-emerald-700 transition hover:text-emerald-900"
+                  className="mt-6 inline-flex min-h-10 w-fit items-center text-sm font-bold text-emerald-700 transition hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
                 >
                   Découvrir ce domaine{" "}
                   <span
@@ -97,7 +97,7 @@ export function DomainesSection() {
 
       <div className="mt-10 flex justify-center">
         <Button href="/services" size="lg" className="rounded-xl px-7">
-          Voir tous nos services{" "}
+          Voir nos domaines{" "}
           <span aria-hidden="true" className="ml-2">
             →
           </span>

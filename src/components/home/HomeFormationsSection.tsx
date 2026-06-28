@@ -7,7 +7,7 @@ export function HomeFormationsSection() {
   return (
     <section className="w-full bg-emerald-950">
       <div className="grid w-full lg:grid-cols-2">
-        <div className="relative min-h-[340px] overflow-hidden sm:min-h-[420px] lg:min-h-[620px]">
+        <div className="relative min-h-[340px] overflow-hidden sm:min-h-[420px] lg:min-h-[560px]">
           <Image
             src="/images/formations/formation-poulet.jpg"
             alt="Formation agricole pratique accompagnée par Agri-tech en Haïti"
@@ -20,7 +20,7 @@ export function HomeFormationsSection() {
           <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/35 via-transparent to-transparent" />
         </div>
 
-        <div className="flex items-center bg-emerald-950 px-6 py-14 sm:px-10 sm:py-16 lg:px-16 lg:py-20 xl:px-24">
+        <div className="flex items-center bg-emerald-950 px-6 py-14 sm:px-10 sm:py-16 lg:px-16 lg:py-18 xl:px-24">
           <div className="max-w-xl">
             <p className="text-xs font-bold uppercase tracking-[0.34em] text-emerald-100/80">
               Formations Agri-tech
@@ -44,7 +44,7 @@ export function HomeFormationsSection() {
               href="/formations"
               className="group mt-9 inline-flex items-center rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-sm font-bold text-white shadow-sm transition hover:border-white/45 hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950"
             >
-              Voir toutes les formations
+              Voir les formations
               <span aria-hidden="true" className="ml-2 transition group-hover:translate-x-1">
                 →
               </span>

@@ -13,12 +13,14 @@ export function HomeTestimonialsSection() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
     const interval = window.setInterval(() => {
       setActiveIndex((currentIndex) => (currentIndex + 1) % testimonials.length);
     }, AUTOPLAY_DELAY);
 
     return () => window.clearInterval(interval);
-  }, [activeIndex]);
+  }, []);
 
   const goToPrevious = () => {
     setActiveIndex((currentIndex) => (currentIndex - 1 + testimonials.length) % testimonials.length);
@@ -37,7 +39,7 @@ export function HomeTestimonialsSection() {
       />
 
       <div className="mx-auto mt-8 max-w-4xl">
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white px-5 py-7 text-center shadow-sm ring-1 ring-white/70 sm:px-12 sm:py-8 lg:px-18">
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-100 bg-white/95 px-5 py-7 text-center shadow-sm ring-1 ring-white/70 sm:px-12 sm:py-8 lg:px-18">
           <button
             type="button"
             aria-label="Témoignage précédent"
