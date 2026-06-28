@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
-import { Mail, MapPin, Phone, Sprout } from "lucide-react";
+import { Mail, MapPin, Phone } from "lucide-react";
 
 import {
   footerBrand,
@@ -65,9 +66,13 @@ export function Footer() {
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.95fr_1.45fr] lg:gap-12 lg:px-8 lg:py-20">
         <div>
           <div className="flex items-center gap-3 text-2xl font-bold">
-            <span className="rounded-full bg-white/10 p-2.5 text-emerald-100 ring-1 ring-white/15">
-              <Sprout size={22} aria-hidden="true" />
-            </span>
+            <Image
+              src="/images/brand/Untitled-1.png"
+              alt="Logo Agri-tech"
+              width={48}
+              height={36}
+              className="h-10 w-auto object-contain"
+            />
             {footerBrand.name}
           </div>
           <p className="mt-6 max-w-sm text-base leading-7 text-white/75">{footerBrand.description}</p>
