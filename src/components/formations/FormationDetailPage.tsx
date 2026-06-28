@@ -50,21 +50,13 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
             fill
             priority
             sizes="58vw"
-            className="object-cover opacity-45 mix-blend-overlay"
+            className="object-cover opacity-60 mix-blend-overlay"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/70 to-emerald-950/20" />
-          <div className="absolute inset-0 bg-emerald-950/20" />
+          <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/60 to-emerald-950/10" />
+          <div className="absolute inset-0 bg-emerald-950/10" />
         </div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(249,115,22,0.22),transparent_26%),radial-gradient(circle_at_80%_12%,rgba(34,197,94,0.16),transparent_30%)]" />
         <Container className="relative z-10">
-          <Button
-            href="/formations"
-            variant="ghost"
-            size="sm"
-            className="mb-8 bg-white/10 text-white hover:bg-white/15"
-          >
-            ← Retour aux formations
-          </Button>
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.72fr]">
             <div className="max-w-3xl">
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">
@@ -76,6 +68,14 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
               <p className="mt-5 max-w-2xl text-lg leading-8 text-white/82">
                 {formation.shortDescription}
               </p>
+              <Button
+                href="/formations"
+                variant="ghost"
+                size="sm"
+                className="mt-7 w-fit px-0 text-white/80 hover:bg-transparent hover:text-white"
+              >
+                ← Retour aux formations
+              </Button>
             </div>
             <div className="relative h-64 overflow-hidden rounded-3xl bg-emerald-900/40 shadow-2xl ring-1 ring-white/10 lg:hidden">
               <Image
@@ -84,27 +84,33 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
                 fill
                 priority
                 sizes="100vw"
-                className="object-cover opacity-65 mix-blend-overlay"
+                className="object-cover opacity-75 mix-blend-overlay"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/55 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/45 to-transparent" />
             </div>
           </div>
         </Container>
       </section>
 
       <Section className="bg-[#f8faf7] bg-[linear-gradient(rgba(6,78,59,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(6,78,59,0.035)_1px,transparent_1px)] bg-[size:36px_36px]">
-        <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
-              Aperçu
-            </p>
-            <h2 className="mt-3 text-3xl font-bold text-emerald-950">
-              Présentation de la formation
-            </h2>
-          </div>
-          <p className="text-base leading-8 text-slate-700">
-            {formation.detailIntro}
+        <div className="max-w-4xl">
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-700">
+            Aperçu
           </p>
+          <h2 className="mt-3 text-3xl font-bold text-emerald-950">
+            Présentation de la formation
+          </h2>
+          <div className="mt-5 space-y-4 text-base leading-8 text-slate-700">
+            <p>{formation.detailIntro}</p>
+            <p>
+              Compétences abordées : {formation.skills.join(", ").toLowerCase()}
+              .
+            </p>
+            <p>
+              Ressources prévues :{" "}
+              {formation.resources.join(", ").toLowerCase()}.
+            </p>
+          </div>
         </div>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-[1.35fr_0.75fr]">
@@ -181,26 +187,7 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
           </div>
         </section>
 
-        <div className="mt-16 grid gap-6 lg:grid-cols-2">
-          <section className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-bold text-emerald-950">
-              Compétences que vous allez développer
-            </h2>
-            <div className="mt-5">
-              <CheckList items={formation.skills} />
-            </div>
-          </section>
-          <section className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-bold text-emerald-950">
-              Ressources incluses
-            </h2>
-            <div className="mt-5">
-              <CheckList items={formation.resources} />
-            </div>
-          </section>
-        </div>
-
-        <section className="mt-12 rounded-3xl bg-emerald-950 p-8 text-white shadow-sm sm:p-10">
+        <section className="mt-16 rounded-3xl bg-emerald-950 p-8 text-white shadow-sm sm:p-10">
           <div className="grid items-center gap-6 lg:grid-cols-[1fr_auto]">
             <div>
               <h2 className="text-3xl font-bold">
