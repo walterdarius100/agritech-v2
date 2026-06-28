@@ -3,31 +3,29 @@
 import { useMemo, useState } from "react";
 
 import { ServiceCard } from "@/components/services/ServiceCard";
-import type { Service } from "@/types/service";
+import type { Service, ServiceFilterCategory } from "@/types/service";
 
-type ServiceFilter = { label: string; categories: string[] };
+type ServiceFilter = { label: "Tous" | ServiceFilterCategory; filterCategory?: ServiceFilterCategory };
 
 const FILTERS: ServiceFilter[] = [
-  { label: "Tous", categories: [] },
-  { label: "Aviculture", categories: ["Aviculture"] },
-  { label: "Élevage", categories: ["Élevage", "Élevage aquacole"] },
-  { label: "Production végétale", categories: ["Production végétale", "Aménagement agricole"] },
-  { label: "Technologies", categories: ["Technologie agricole"] },
-  { label: "Formation", categories: ["Formation"] },
-  { label: "Étude de projet", categories: ["Étude de projet"] },
+  { label: "Tous" },
+  { label: "Élevage", filterCategory: "Élevage" },
+  { label: "Production végétale", filterCategory: "Production végétale" },
+  { label: "Technologie agricole", filterCategory: "Technologie agricole" },
+  { label: "Accompagnement & formation", filterCategory: "Accompagnement & formation" },
 ];
 
 export function ServicesGridFilter({ services }: { services: Service[] }) {
-  const [activeFilter, setActiveFilter] = useState("Tous");
+  const [activeFilter, setActiveFilter] = useState<ServiceFilter["label"]>("Tous");
 
   const filteredServices = useMemo(() => {
     const filter = FILTERS.find((item) => item.label === activeFilter);
 
-    if (!filter || filter.categories.length === 0) {
+    if (!filter?.filterCategory) {
       return services;
     }
 
-    return services.filter((service) => filter.categories.includes(service.category));
+    return services.filter((service) => service.filterCategory === filter.filterCategory);
   }, [activeFilter, services]);
 
   return (
