@@ -65,13 +65,13 @@ export function Footer() {
     <footer className="relative overflow-hidden border-t border-emerald-900 bg-[radial-gradient(circle_at_75%_85%,rgba(132,204,22,0.22),transparent_28%),linear-gradient(135deg,#052e1f_0%,#073b29_45%,#052e1f_100%)] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.95fr_1.45fr] lg:gap-12 lg:px-8 lg:py-20">
         <div>
-          <div className="flex items-center gap-3 text-2xl font-bold">
+          <div className="flex items-center gap-2 text-lg font-bold">
             <Image
               src="/images/brand/Untitled-1.png"
               alt="Logo Agri-tech"
-              width={48}
-              height={36}
-              className="h-10 w-auto object-contain"
+              width={28}
+              height={28}
+              className="h-7 w-auto object-contain"
             />
             {footerBrand.name}
           </div>
