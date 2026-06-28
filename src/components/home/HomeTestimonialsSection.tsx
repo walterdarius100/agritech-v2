@@ -29,7 +29,7 @@ export function HomeTestimonialsSection() {
   };
 
   return (
-    <Section className="bg-[#fbf6ea] py-10 sm:py-14 lg:py-16">
+    <Section className="bg-transparent py-10 sm:py-14 lg:py-16">
       <SectionHeader
         eyebrow="Témoignages"
         title="Ce que disent les personnes accompagnées."

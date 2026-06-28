@@ -11,7 +11,7 @@ const carouselItems = [...partnerships, ...partnerships];
 
 export function HomePartnershipsSection() {
   return (
-    <Section className="overflow-hidden bg-[#fbf6ea] py-12 sm:py-16 lg:py-18">
+    <Section className="overflow-hidden bg-transparent py-12 sm:py-16 lg:py-18">
       <SectionHeader
         eyebrow="PARTENARIATS"
         title="Construisons ensemble des projets agricoles à fort impact"

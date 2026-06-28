@@ -21,9 +21,11 @@ export default function HomePage() {
       <HomeHero />
       <DomainesSection />
       <HomeFormationsSection />
-      <CredibilitySection />
-      <HomePartnershipsSection />
-      <HomeTestimonialsSection />
+      <div className="bg-gradient-to-b from-emerald-50 via-[#f6f8f1] to-white">
+        <CredibilitySection />
+        <HomePartnershipsSection />
+        <HomeTestimonialsSection />
+      </div>
       <HomeNewsSection />
     </>
   );
