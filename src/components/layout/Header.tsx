@@ -6,7 +6,7 @@ import { mainNavigation } from "@/data/navigation";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-950/10 bg-[#F8F4EA] text-emerald-950 shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-emerald-950/10 bg-emerald-50 text-emerald-950 shadow-sm">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
         <Link href="/" className="flex items-center gap-3">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#0E3B2E] shadow-sm">
