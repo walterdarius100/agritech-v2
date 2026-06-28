@@ -32,7 +32,7 @@ export function ServicesGridFilter({ services }: { services: Service[] }) {
 
   return (
     <div className="mt-10">
-      <div className="overflow-x-auto pb-2">
+      <div className="flex max-w-full justify-start overflow-x-auto pb-2 sm:justify-center">
         <div className="inline-flex min-w-max rounded-full border border-emerald-950/10 bg-white/80 p-1 shadow-sm">
           {FILTERS.map((filter) => {
             const isActive = filter.label === activeFilter;

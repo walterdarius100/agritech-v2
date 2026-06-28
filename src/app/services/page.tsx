@@ -16,14 +16,16 @@ export const metadata: Metadata = createMetadata({
 export default function ServicesPage() {
   return (
     <>
-      <section className="bg-[#f8faf7] py-14 sm:py-20">
-        <Container>
-          <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-500">SERVICES AGRI-TECH</p>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight text-emerald-950 sm:text-6xl">Des services agricoles pour concevoir, lancer et suivre vos projets.</h1>
-            <p className="mt-6 text-lg leading-8 text-slate-700">Agri-tech accompagne les porteurs de projets, producteurs, entreprises et organisations dans la mise en place de solutions agricoles adaptées au terrain haïtien.</p>
-          </div>
-        </Container>
+      <section className="bg-[#f8faf7]">
+        <div className="w-full bg-emerald-950 py-14 sm:py-16 lg:py-20">
+          <Container>
+            <div className="max-w-3xl">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">SERVICES AGRI-TECH</p>
+              <h1 className="mt-5 text-4xl font-bold tracking-tight text-white sm:text-6xl">Des services agricoles pour concevoir, lancer et suivre vos projets.</h1>
+              <p className="mt-6 text-lg leading-8 text-white/80">Agri-tech accompagne les porteurs de projets, producteurs, entreprises et organisations dans la mise en place de solutions agricoles adaptées au terrain haïtien.</p>
+            </div>
+          </Container>
+        </div>
       </section>
 
       <Section className="bg-[#f8faf7] pt-0">
