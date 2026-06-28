@@ -65,13 +65,13 @@ export function Footer() {
     <footer className="relative overflow-hidden border-t border-emerald-900 bg-[radial-gradient(circle_at_75%_85%,rgba(132,204,22,0.22),transparent_28%),linear-gradient(135deg,#052e1f_0%,#073b29_45%,#052e1f_100%)] text-white">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 md:grid-cols-2 lg:grid-cols-[1.2fr_0.8fr_0.95fr_1.45fr] lg:gap-12 lg:px-8 lg:py-20">
         <div>
-          <div className="flex items-center gap-2 text-lg font-bold">
+          <div className="flex items-center gap-2 text-lg font-bold leading-none">
             <Image
               src="/images/brand/Untitled-1.png"
               alt="Logo Agri-tech"
-              width={28}
-              height={28}
-              className="h-7 w-auto object-contain"
+              width={24}
+              height={24}
+              className="h-6 w-auto object-contain"
             />
             {footerBrand.name}
           </div>
@@ -102,7 +102,7 @@ export function Footer() {
           <form className="mt-7 flex w-full flex-col gap-3 sm:flex-row lg:max-w-lg" onSubmit={handleNewsletterSubmit}>
             <label className="sr-only" htmlFor="footer-newsletter-email">{footerNewsletter.placeholder}</label>
             <input id="footer-newsletter-email" name="email" type="email" required placeholder={footerNewsletter.placeholder} className="min-h-14 w-full min-w-0 rounded-xl border border-white/10 bg-white px-5 text-base text-emerald-950 outline-none transition placeholder:text-slate-500 focus:border-lime-300 focus:ring-2 focus:ring-lime-300/60 sm:flex-1" />
-            <button type="submit" className="min-h-14 rounded-full border border-white/15 px-7 text-base font-bold text-white transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300 sm:w-auto">{footerNewsletter.buttonLabel}</button>
+            <button type="submit" className="min-h-14 rounded-xl border border-white/15 px-7 text-base font-bold text-white transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300 sm:w-auto">{footerNewsletter.buttonLabel}</button>
           </form>
           {message ? <p className="mt-3 text-sm text-lime-100" role="status">{message}</p> : null}
         </div>
