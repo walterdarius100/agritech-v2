@@ -59,8 +59,8 @@ export function ServiceDetailPage({ service }: { service: Service }) {
             <h2 className="text-3xl font-bold tracking-tight">Vous souhaitez lancer ou structurer ce service ?</h2>
             <p className="mt-4 text-base leading-7 text-emerald-50">Agri-tech peut vous aider à analyser votre besoin, clarifier les étapes et préparer un accompagnement adapté à votre projet.</p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Button href={`/contact?service=${service.slug}`} variant="secondary" size="lg">Demander ce service →</Button>
-              <Button href="/services" variant="outline" size="lg" className="border-white/70 text-white hover:bg-white/10">← Retour aux services</Button>
+              <Button href="/services" variant="outline" size="lg" className="border-white/60 text-white hover:bg-white/10">← Retour aux services</Button>
+              <Button href={`/contact?service=${service.slug}`} variant="primary" size="lg" className="bg-emerald-700 hover:bg-emerald-800">Demander ce service →</Button>
             </div>
           </div>
         </section>
