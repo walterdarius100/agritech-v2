@@ -1,7 +1,6 @@
 import { CourseCard } from "@/components/academy/CourseCard";
 import { CourseProgressCard } from "@/components/academy/CourseProgressCard";
 import { CourseResourceList } from "@/components/academy/CourseResourceList";
-import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { academyCourses } from "@/data/academyCourses";
 
@@ -17,8 +16,6 @@ const recentResources = academyCourses.flatMap((course) =>
 );
 
 export function AcademyDashboard() {
-  const currentCourse = academyCourses[0];
-
   return (
     <main className="bg-[#f8faf7]">
       <section className="relative overflow-hidden bg-emerald-950 py-14 text-white sm:py-16 lg:py-20">
@@ -52,22 +49,8 @@ export function AcademyDashboard() {
           ))}
         </section>
 
-        <section className="mt-12 grid gap-6 lg:grid-cols-[1fr_0.72fr]">
-          <div className="rounded-2xl border border-emerald-100 bg-white p-6 shadow-sm sm:p-8">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">
-              Continuer l’apprentissage
-            </p>
-            <h2 className="mt-3 text-3xl font-bold text-emerald-950">
-              Reprendre le module en cours
-            </h2>
-            <p className="mt-3 leading-7 text-slate-600">
-              {currentCourse.currentLesson} — {currentCourse.title}
-            </p>
-            <Button href={`/academy/cours/${currentCourse.slug}`} className="mt-6">
-              Continuer →
-            </Button>
-          </div>
-          <CourseResourceList resources={recentResources} />
+        <section className="mt-10">
+          <CourseResourceList resources={recentResources} compact />
         </section>
 
         <section className="mt-14">

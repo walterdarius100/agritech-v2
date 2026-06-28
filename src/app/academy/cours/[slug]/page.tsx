@@ -43,10 +43,10 @@ export default async function AcademyCoursePage({ params }: AcademyCoursePagePro
     <main className="bg-[#f8faf7]">
       <section className="border-b border-emerald-100 bg-white py-10 sm:py-12">
         <Container>
-          <Button href="/academy" variant="ghost" size="sm" className="px-0">
+          <Button href="/academy" variant="ghost" size="sm" className="px-0 lg:hidden">
             ← Retour à l’espace étudiant
           </Button>
-          <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_260px] lg:items-end">
+          <div className="mt-7 grid gap-6 lg:mt-0 lg:grid-cols-[1fr_260px] lg:items-end">
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">
                 {course.category}
