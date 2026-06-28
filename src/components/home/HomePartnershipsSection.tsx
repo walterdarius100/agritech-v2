@@ -30,24 +30,24 @@ export function HomePartnershipsSection() {
               <article
                 key={`${partnership.id}-${index}`}
                 aria-hidden={isDuplicate ? "true" : undefined}
-                className="group relative h-[240px] w-[82vw] max-w-[320px] shrink-0 overflow-hidden rounded-xl bg-emerald-950 shadow-md ring-1 ring-emerald-900/10 sm:h-[250px] sm:w-[320px] md:w-[340px] lg:h-[260px] lg:w-[360px]"
+                className="group relative h-[220px] w-[78vw] max-w-[300px] shrink-0 overflow-hidden rounded-xl bg-emerald-950 shadow-md ring-1 ring-emerald-900/10 sm:h-[230px] sm:w-[300px] md:w-[310px] lg:h-[240px] lg:w-[330px]"
               >
                 <Image
                   src={partnership.imageSrc}
                   alt={isDuplicate ? "" : partnership.imageAlt}
                   fill
-                  sizes="(min-width: 1024px) 360px, (min-width: 768px) 340px, (min-width: 640px) 320px, 82vw"
+                  sizes="(min-width: 1024px) 330px, (min-width: 768px) 310px, (min-width: 640px) 300px, 78vw"
                   className="object-cover transition duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/15 via-slate-950/20 to-slate-950/86" />
                 <div className="absolute inset-0 bg-emerald-950/15 mix-blend-multiply" />
 
-                <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-5">
-                  <span className="inline-flex w-fit rounded-lg border border-white/20 bg-white/15 px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.16em] text-white shadow-sm backdrop-blur-md">
+                <div className="absolute inset-x-0 bottom-0 z-10 p-3.5 sm:p-4">
+                  <span className="inline-flex w-fit rounded-lg border border-white/20 bg-white/15 px-2.5 py-1 text-[0.65rem] font-bold uppercase tracking-[0.15em] text-white shadow-sm backdrop-blur-md">
                     {partnership.badge}
                   </span>
 
-                  <p className="mt-3 max-w-[17rem] text-sm font-semibold leading-relaxed text-white drop-shadow-sm sm:text-[0.95rem]">
+                  <p className="mt-2.5 max-w-[16rem] text-[0.82rem] font-semibold leading-relaxed text-white drop-shadow-sm sm:text-sm">
                     {partnership.title}
                   </p>
                 </div>
@@ -59,7 +59,7 @@ export function HomePartnershipsSection() {
 
       <div className="mt-7 flex justify-center">
         <Button href="/contact" className="rounded-xl bg-emerald-800 px-6 hover:bg-emerald-900">
-          Discuter d’un partenariat
+          Discuter d’un partenariat →
         </Button>
       </div>
 
