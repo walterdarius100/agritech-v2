@@ -1,6 +1,5 @@
 import { CourseCard } from "@/components/academy/CourseCard";
 import { CourseProgressCard } from "@/components/academy/CourseProgressCard";
-import { CourseResourceList } from "@/components/academy/CourseResourceList";
 import { Container } from "@/components/ui/Container";
 import { academyCourses } from "@/data/academyCourses";
 
@@ -11,13 +10,10 @@ const prototypeStats = [
   { label: "Progression moyenne", value: "42 %", helper: "Donnée non sauvegardée" },
 ];
 
-const recentResources = academyCourses.flatMap((course) =>
-  course.resources.slice(0, 1).map((resource) => ({ ...resource, title: `${resource.title} — ${course.category}` })),
-);
 
 export function AcademyDashboard() {
   return (
-    <main className="bg-[#f8faf7]">
+    <main className="overflow-x-hidden bg-[#f8faf7]">
       <section className="relative overflow-hidden bg-emerald-950 py-14 text-white sm:py-16 lg:py-20">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(249,115,22,0.22),transparent_26%),radial-gradient(circle_at_86%_15%,rgba(34,197,94,0.2),transparent_28%)]" />
         <Container className="relative">
@@ -49,11 +45,7 @@ export function AcademyDashboard() {
           ))}
         </section>
 
-        <section className="mt-10">
-          <CourseResourceList resources={recentResources} compact />
-        </section>
-
-        <section className="mt-14">
+        <section className="mt-12">
           <div className="max-w-3xl">
             <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">
               Formations accessibles

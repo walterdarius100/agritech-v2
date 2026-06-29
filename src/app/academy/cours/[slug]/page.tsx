@@ -40,7 +40,7 @@ export default async function AcademyCoursePage({ params }: AcademyCoursePagePro
   }
 
   return (
-    <main className="bg-[#f8faf7]">
+    <main className="overflow-x-hidden bg-[#f8faf7]">
       <section className="border-b border-emerald-100 bg-white py-10 sm:py-12">
         <Container>
           <Button href="/academy" variant="ghost" size="sm" className="px-0 lg:hidden">
