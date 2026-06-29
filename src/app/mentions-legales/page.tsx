@@ -5,7 +5,11 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { siteConfig } from "@/config/site";
 import { createMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = createMetadata({ title: "Mentions légales", path: "/mentions-legales" });
+export const metadata: Metadata = createMetadata({
+  title: "Mentions légales",
+  description: "Informations légales provisoires de la version publique Agri-tech.",
+  path: "/mentions-legales",
+});
 
 export default function MentionsLegalesPage() {
   return (

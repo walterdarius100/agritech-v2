@@ -18,9 +18,8 @@ export default function FormationsPage() {
   return (
     <>
       <section className="bg-[#f8faf7]">
-        <div className="relative overflow-hidden bg-emerald-950 py-14 text-white sm:py-16 lg:py-20">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(249,115,22,0.22),transparent_26%),radial-gradient(circle_at_86%_15%,rgba(34,197,94,0.2),transparent_28%)]" />
-          <Container className="relative">
+        <div className="bg-emerald-950 py-14 text-white sm:py-16 lg:py-20">
+          <Container>
             <div className="max-w-4xl">
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">
                 FORMATIONS AGRI-TECH

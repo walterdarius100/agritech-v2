@@ -5,7 +5,12 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { createMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = createMetadata({ title: "Contacter Agri-tech", path: "/contact" });
+export const metadata: Metadata = createMetadata({
+  title: "Contacter Agri-tech",
+  description:
+    "Contactez Agri-tech pour présenter un besoin de service agricole, une demande de formation ou une idée de partenariat.",
+  path: "/contact",
+});
 
 export default function ContactPage() {
   return (

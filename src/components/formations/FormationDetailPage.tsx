@@ -55,7 +55,6 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/60 to-emerald-950/10" />
           <div className="absolute inset-0 bg-emerald-950/10" />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(249,115,22,0.22),transparent_26%),radial-gradient(circle_at_80%_12%,rgba(34,197,94,0.16),transparent_30%)]" />
         <Container className="relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.72fr]">
             <div className="max-w-3xl">
@@ -65,7 +64,7 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
               <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                 {formation.title}
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/82">
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/80">
                 {formation.shortDescription}
               </p>
               <Button
