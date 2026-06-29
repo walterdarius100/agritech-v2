@@ -5,7 +5,12 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { siteConfig } from "@/config/site";
 import { createMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = createMetadata({ title: "Politique de confidentialité", path: "/politique-confidentialite" });
+export const metadata: Metadata = createMetadata({
+  title: "Politique de confidentialité",
+  description:
+    "Base de politique de confidentialité pour la version publique Agri-tech avant activation des futures fonctionnalités connectées.",
+  path: "/politique-confidentialite",
+});
 
 export default function PolitiqueConfidentialitePage() {
   return (

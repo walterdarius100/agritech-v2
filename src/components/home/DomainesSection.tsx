@@ -11,7 +11,7 @@ const pillarIcons = [Leaf, Sprout, Tractor, UsersRound];
 
 export function DomainesSection() {
   return (
-    <Section className="bg-gradient-to-b from-amber-50/80 via-white to-emerald-50/70">
+    <Section className="bg-[#f8faf7]">
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-700">
           Nos domaines d’intervention

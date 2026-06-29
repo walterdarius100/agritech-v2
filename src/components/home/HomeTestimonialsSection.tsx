@@ -44,7 +44,7 @@ export function HomeTestimonialsSection() {
             type="button"
             aria-label="Témoignage précédent"
             onClick={goToPrevious}
-            className="absolute left-3 top-1/2 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-100 bg-white/85 text-3xl leading-none text-emerald-900 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 sm:flex"
+            className="absolute left-3 top-1/2 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-100 bg-white/85 text-xl leading-none text-emerald-900 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 sm:flex"
           >
             ‹
           </button>
@@ -53,7 +53,7 @@ export function HomeTestimonialsSection() {
             type="button"
             aria-label="Témoignage suivant"
             onClick={goToNext}
-            className="absolute right-3 top-1/2 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-100 bg-white/85 text-3xl leading-none text-emerald-900 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 sm:flex"
+            className="absolute right-3 top-1/2 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border border-emerald-100 bg-white/85 text-xl leading-none text-emerald-900 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 sm:flex"
           >
             ›
           </button>
@@ -96,12 +96,12 @@ export function HomeTestimonialsSection() {
             </div>
           </div>
 
-          <div className="mt-6 flex justify-center gap-3 sm:hidden">
+          <div className="mt-6 flex justify-center gap-2 sm:hidden">
             <button
               type="button"
               aria-label="Témoignage précédent"
               onClick={goToPrevious}
-              className="flex size-10 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-2xl leading-none text-emerald-900 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2"
+              className="flex size-9 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-xl leading-none text-emerald-900 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2"
             >
               ‹
             </button>
@@ -109,14 +109,14 @@ export function HomeTestimonialsSection() {
               type="button"
               aria-label="Témoignage suivant"
               onClick={goToNext}
-              className="flex size-10 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-2xl leading-none text-emerald-900 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2"
+              className="flex size-9 items-center justify-center rounded-full border border-emerald-100 bg-emerald-50 text-xl leading-none text-emerald-900 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2"
             >
               ›
             </button>
           </div>
         </div>
 
-        <div className="mt-4 flex items-center justify-center gap-2" aria-label="Pagination des témoignages">
+        <div className="mt-4 flex items-center justify-center gap-1.5" aria-label="Pagination des témoignages">
           {testimonials.map((testimonial, index) => {
             const isActive = index === activeIndex;
 
@@ -127,7 +127,7 @@ export function HomeTestimonialsSection() {
                 aria-label={`Afficher le témoignage ${index + 1}`}
                 aria-current={isActive ? "true" : undefined}
                 onClick={() => setActiveIndex(index)}
-                className={`size-3 rounded-full transition focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 ${
+                className={`size-2 rounded-full transition focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:ring-offset-2 ${
                   isActive ? "bg-emerald-900" : "bg-emerald-200 hover:bg-emerald-300"
                 }`}
               />

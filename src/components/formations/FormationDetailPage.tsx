@@ -43,6 +43,18 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
   return (
     <>
       <section className="relative overflow-hidden bg-emerald-950 py-12 text-white sm:py-16 lg:py-20">
+        <div className="absolute inset-0 lg:hidden">
+          <Image
+            src={formation.image}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-45 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-emerald-950/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/35 via-emerald-950/62 to-emerald-950" />
+        </div>
         <div className="absolute inset-y-0 right-0 hidden w-[58%] lg:block">
           <Image
             src={formation.image}
@@ -55,7 +67,6 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
           <div className="absolute inset-0 bg-gradient-to-r from-emerald-950 via-emerald-950/60 to-emerald-950/10" />
           <div className="absolute inset-0 bg-emerald-950/10" />
         </div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_14%_18%,rgba(249,115,22,0.22),transparent_26%),radial-gradient(circle_at_80%_12%,rgba(34,197,94,0.16),transparent_30%)]" />
         <Container className="relative z-10">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_0.72fr]">
             <div className="max-w-3xl">
@@ -65,7 +76,7 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
               <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
                 {formation.title}
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/82">
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/80">
                 {formation.shortDescription}
               </p>
               <Button
@@ -76,17 +87,6 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
               >
                 ← Retour aux formations
               </Button>
-            </div>
-            <div className="relative h-64 overflow-hidden rounded-3xl bg-emerald-900/40 shadow-2xl ring-1 ring-white/10 lg:hidden">
-              <Image
-                src={formation.image}
-                alt={formation.imageAlt}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover opacity-75 mix-blend-overlay"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/45 to-transparent" />
             </div>
           </div>
         </Container>
