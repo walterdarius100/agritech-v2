@@ -8,7 +8,12 @@ import { Section } from "@/components/ui/Section";
 import { articles } from "@/data/articles";
 import { createMetadata } from "@/lib/seo/metadata";
 
-export const metadata: Metadata = createMetadata({ title: "Actualités agricoles", path: "/actualites" });
+export const metadata: Metadata = createMetadata({
+  title: "Actualités agricoles",
+  description:
+    "Articles, analyses et conseils agricoles d’Agri-tech pour mieux comprendre les réalités du terrain et préparer les projets agricoles.",
+  path: "/actualites",
+});
 
 const featuredArticle = articles.find((article) => article.featured) ?? articles[0];
 const otherArticles = articles.filter((article) => article.slug !== featuredArticle?.slug);

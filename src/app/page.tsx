@@ -17,11 +17,11 @@ export const metadata: Metadata = createMetadata({
 
 export default function HomePage() {
   return (
-    <main className="overflow-x-hidden">
+    <main className="overflow-x-hidden bg-[#f8faf7]">
       <HomeHero />
       <DomainesSection />
       <HomeFormationsSection />
-      <div className="bg-gradient-to-b from-emerald-50 via-[#f6f8f1] to-white">
+      <div className="bg-[#f2f6ed]">
         <CredibilitySection />
         <HomePartnershipsSection />
         <HomeTestimonialsSection />
