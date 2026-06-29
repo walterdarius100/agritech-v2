@@ -138,7 +138,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       <main className="bg-[#f8faf7] pb-16 sm:pb-20">
         {article.cover_image_url ? (
           <Container className="pt-8 sm:pt-10">
-            <div className="mx-auto max-w-6xl rounded-2xl border border-emerald-950/10 bg-white p-2 shadow-sm">
+            <div className="mx-auto max-w-6xl rounded-2xl border border-emerald-950/10 bg-white/60 p-1 shadow-sm">
               <div className="relative h-64 overflow-hidden rounded-xl bg-emerald-900 sm:h-96 lg:h-[30rem]">
                 <Image
                   src={article.cover_image_url}
@@ -154,7 +154,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
         ) : null}
 
         <Container className="pt-10 sm:pt-12">
-          <article className="mx-auto max-w-3xl rounded-3xl border border-emerald-950/10 bg-white p-6 text-lg leading-8 text-slate-700 shadow-sm sm:p-8">
+          <article className="mx-auto max-w-3xl text-lg leading-8 text-slate-700">
             <p>{article.content}</p>
 
             <div
