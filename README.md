@@ -93,3 +93,8 @@ Cette fondation ne construit pas encore l'Academy. Elle prépare l'organisation 
 3. Ajouter le formulaire de contact et la gestion des leads.
 4. Concevoir l'espace admin sécurisé.
 5. Structurer les formations et préparer Agri-tech Academy.
+
+## Documentation Supabase
+
+- Documentation Supabase : [docs/SUPABASE_CONFIGURATION.md](docs/SUPABASE_CONFIGURATION.md)
+- Documentation Articles : [docs/SUPABASE_ARTICLES.md](docs/SUPABASE_ARTICLES.md)
