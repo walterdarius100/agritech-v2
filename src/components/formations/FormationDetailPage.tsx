@@ -43,6 +43,18 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
   return (
     <>
       <section className="relative overflow-hidden bg-emerald-950 py-12 text-white sm:py-16 lg:py-20">
+        <div className="absolute inset-0 lg:hidden">
+          <Image
+            src={formation.image}
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover opacity-45 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-emerald-950/70" />
+          <div className="absolute inset-0 bg-gradient-to-b from-emerald-950/35 via-emerald-950/62 to-emerald-950" />
+        </div>
         <div className="absolute inset-y-0 right-0 hidden w-[58%] lg:block">
           <Image
             src={formation.image}
@@ -75,17 +87,6 @@ export function FormationDetailPage({ formation }: { formation: Formation }) {
               >
                 ← Retour aux formations
               </Button>
-            </div>
-            <div className="relative h-64 overflow-hidden rounded-3xl bg-emerald-900/40 shadow-2xl ring-1 ring-white/10 lg:hidden">
-              <Image
-                src={formation.image}
-                alt={formation.imageAlt}
-                fill
-                priority
-                sizes="100vw"
-                className="object-cover opacity-75 mix-blend-overlay"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-emerald-950 via-emerald-950/45 to-transparent" />
             </div>
           </div>
         </Container>

@@ -20,7 +20,7 @@ function formatArticleDate(date: string | null) {
 
 export function HomeNewsSection() {
   return (
-    <Section className="bg-white">
+    <Section className="bg-[#fbfcf7]">
       <SectionHeader
         eyebrow="Actualités Agri-tech"
         title="Conseils, analyses et nouvelles du secteur agricole."
@@ -45,7 +45,7 @@ export function HomeNewsSection() {
         </div>
 
         <div className="flex flex-col justify-center p-6 sm:p-7 lg:p-8">
-          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">
             {featuredArticle.category} · {formatArticleDate(featuredArticle.published_at)}
           </p>
           <h2 className="mt-4 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">{featuredArticle.title}</h2>
