@@ -17,14 +17,19 @@ function getStaticArticleBySlug(slug: string) {
 export async function getArticleBySlug(slug: string) {
   if (!hasSupabasePublicConfig) {
     console.warn(
-      "Supabase public config is missing. Using static article fallback.",
+      `[articles] Supabase public config is missing. Using static article fallback for slug: ${slug}.`,
     );
     return getStaticArticleBySlug(slug);
   }
 
   const supabase = createSupabaseServerClient();
 
-  if (!supabase) return getStaticArticleBySlug(slug);
+  if (!supabase) {
+    console.warn(
+      `[articles] Unable to create Supabase server client. Using static article fallback for slug: ${slug}.`,
+    );
+    return getStaticArticleBySlug(slug);
+  }
 
   const { data, error } = await supabase
     .from("articles")
@@ -34,7 +39,9 @@ export async function getArticleBySlug(slug: string) {
     .maybeSingle();
 
   if (error) {
-    console.error("Unable to fetch article from Supabase", error.message);
+    console.warn(
+      `[articles] Unable to fetch article from Supabase for slug ${slug}: ${error.message}. Using static article fallback.`,
+    );
     return getStaticArticleBySlug(slug);
   }
 

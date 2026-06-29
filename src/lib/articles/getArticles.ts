@@ -19,11 +19,13 @@ function getStaticPublishedArticles() {
     .sort(sortByPublicationDate);
 }
 
+function warnStaticFallback(reason: string) {
+  console.warn(`[articles] ${reason} Using static articles fallback.`);
+}
+
 function shouldUseStaticFallback() {
   if (!hasSupabasePublicConfig) {
-    console.warn(
-      "Supabase public config is missing. Using static articles fallback.",
-    );
+    warnStaticFallback("Supabase public config is missing.");
     return true;
   }
 
@@ -33,7 +35,10 @@ function shouldUseStaticFallback() {
 async function fetchPublishedArticlesFromSupabase() {
   const supabase = createSupabaseServerClient();
 
-  if (!supabase) return null;
+  if (!supabase) {
+    warnStaticFallback("Unable to create Supabase server client.");
+    return null;
+  }
 
   const { data, error } = await supabase
     .from("articles")
@@ -43,9 +48,8 @@ async function fetchPublishedArticlesFromSupabase() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error(
-      "Unable to fetch published articles from Supabase",
-      error.message,
+    warnStaticFallback(
+      `Unable to fetch published articles from Supabase: ${error.message}.`,
     );
     return null;
   }
