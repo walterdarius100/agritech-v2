@@ -1,19 +1,28 @@
 import Image from "next/image";
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { ArticleShareActions } from "@/components/articles/ArticleShareActions";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { Section } from "@/components/ui/Section";
 import { env } from "@/lib/env";
-import { articles } from "@/data/articles";
+import { getArticleBySlug } from "@/lib/articles/getArticleBySlug";
+import {
+  getArticleImage,
+  getArticleReadingTime,
+  getRelatedArticles,
+  splitArticleContent,
+  formatArticleDate,
+  getPublishedArticles,
+} from "@/lib/articles/getArticles";
 import { createMetadata } from "@/lib/seo/metadata";
 
 type ArticlePageProps = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
+export async function generateStaticParams() {
+  const articles = await getPublishedArticles();
+
   return articles.map((article) => ({ slug: article.slug }));
 }
 
@@ -21,7 +30,7 @@ export async function generateMetadata({
   params,
 }: ArticlePageProps): Promise<Metadata> {
   const { slug } = await params;
-  const article = articles.find((item) => item.slug === slug);
+  const article = await getArticleBySlug(slug);
   return createMetadata({
     title: article?.title ?? "Article Agri-tech",
     description: article?.excerpt ?? undefined,
@@ -30,70 +39,21 @@ export async function generateMetadata({
   });
 }
 
-function formatArticleDate(date: string | null) {
-  if (!date) return "Date à confirmer";
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${date}T00:00:00Z`));
-}
-
-function estimateReadingTime(content: string | null) {
-  if (!content) return "5 min de lecture";
-
-  const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
-  const minutes = Math.max(1, Math.ceil(wordCount / 200));
-
-  return `${minutes} min de lecture`;
-}
-
-function getLatestRelatedArticles(currentSlug: string) {
-  return articles
-    .filter((item) => item.slug !== currentSlug)
-    .sort(
-      (first, second) =>
-        new Date(
-          `${second.published_at ?? second.created_at ?? "1970-01-01"}T00:00:00Z`,
-        ).getTime() -
-        new Date(
-          `${first.published_at ?? first.created_at ?? "1970-01-01"}T00:00:00Z`,
-        ).getTime(),
-    )
-    .slice(0, 3);
-}
-
 export default async function ArticlePage({ params }: ArticlePageProps) {
   const { slug } = await params;
-  const article = articles.find((item) => item.slug === slug);
+  const article = await getArticleBySlug(slug);
 
   if (!article) {
-    return (
-      <Section>
-        <div className="mx-auto max-w-3xl rounded-3xl border border-emerald-100 bg-white p-8 text-center shadow-sm">
-          <Badge tone="slate">Article introuvable</Badge>
-          <h1 className="mt-4 text-3xl font-bold text-emerald-950">
-            Cet article n’est pas encore disponible
-          </h1>
-          <p className="mt-4 text-slate-600">
-            La structure dynamique est prête pour Supabase. Vérifiez le lien ou
-            retournez aux actualités.
-          </p>
-          <Button href="/actualites" className="mt-6">
-            Retour aux actualités
-          </Button>
-        </div>
-      </Section>
-    );
+    notFound();
   }
 
   const articleUrl = new URL(
     `/articles/${article.slug}`,
     env.siteUrl,
   ).toString();
-  const relatedArticles = getLatestRelatedArticles(article.slug);
-  const readingTime = estimateReadingTime(article.content);
+  const relatedArticles = await getRelatedArticles(article.slug, 3);
+  const readingTime = getArticleReadingTime(article);
+  const contentParagraphs = splitArticleContent(article.content);
 
   return (
     <>
@@ -136,26 +96,28 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </section>
 
       <main className="bg-[#f8faf7] pb-16 sm:pb-20">
-        {article.cover_image_url ? (
-          <Container className="pt-8 sm:pt-10">
-            <div className="mx-auto max-w-6xl rounded-2xl border border-emerald-950/10 bg-white/60 p-1 shadow-sm">
-              <div className="relative h-64 overflow-hidden rounded-xl bg-emerald-900 sm:h-96 lg:h-[30rem]">
-                <Image
-                  src={article.cover_image_url}
-                  alt={`Photo principale de l’article : ${article.title}`}
-                  fill
-                  sizes="(min-width: 1024px) 1024px, 100vw"
-                  className="object-cover"
-                  priority
-                />
-              </div>
+        <Container className="pt-8 sm:pt-10">
+          <div className="mx-auto max-w-6xl rounded-2xl border border-emerald-950/10 bg-white/60 p-1 shadow-sm">
+            <div className="relative h-64 overflow-hidden rounded-xl bg-emerald-900 sm:h-96 lg:h-[30rem]">
+              <Image
+                src={getArticleImage(article)}
+                alt={`Photo principale de l’article : ${article.title}`}
+                fill
+                sizes="(min-width: 1024px) 1024px, 100vw"
+                className="object-cover"
+                priority
+              />
             </div>
-          </Container>
-        ) : null}
+          </div>
+        </Container>
 
         <Container className="pt-10 sm:pt-12">
           <article className="mx-auto max-w-3xl text-lg leading-8 text-slate-700">
-            <p>{article.content}</p>
+            {contentParagraphs.map((paragraph) => (
+              <p key={paragraph} className="mt-6 first:mt-0">
+                {paragraph}
+              </p>
+            ))}
 
             <div
               className="mt-10 border-t border-emerald-950/10 pt-10"
