@@ -2,6 +2,7 @@ import type { Article } from "@/types/article";
 
 export const articles: Article[] = [
   {
+    id: "static-article-a-la-une",
     title: "Pourquoi bien préparer un projet agricole avant d’investir ?",
     slug: "article-a-la-une",
     category: "Analyse agricole",
@@ -13,11 +14,13 @@ export const articles: Article[] = [
       "Un projet agricole solide commence par une analyse du terrain, de l’eau disponible, du budget, du marché et des compétences nécessaires. Cette préparation aide à choisir le bon modèle technique, anticiper les charges et éviter les décisions précipitées qui fragilisent la rentabilité.",
     status: "published",
     featured: true,
+    reading_time: "3 min de lecture",
     published_at: "2026-06-20",
     created_at: "2026-06-20",
     updated_at: "2026-06-20",
   },
   {
+    id: "static-erreurs-demarrage-elevage-poulet-chair",
     title: "Poulet de chair : les erreurs fréquentes au démarrage d’un élevage",
     slug: "erreurs-demarrage-elevage-poulet-chair",
     category: "Aviculture",
@@ -29,12 +32,15 @@ export const articles: Article[] = [
       "Le démarrage d’un élevage de poulet de chair demande une préparation rigoureuse du bâtiment, de la litière, des points d’eau et du programme alimentaire. Une observation quotidienne permet de corriger rapidement les écarts et de limiter les pertes.",
     status: "published",
     featured: false,
+    reading_time: "3 min de lecture",
     published_at: "2026-06-12",
     created_at: "2026-06-12",
     updated_at: "2026-06-12",
   },
   {
-    title: "Cuniculture : pourquoi l’alimentation influence directement la rentabilité",
+    id: "static-cuniculture-alimentation-rentabilite",
+    title:
+      "Cuniculture : pourquoi l’alimentation influence directement la rentabilité",
     slug: "cuniculture-alimentation-rentabilite",
     category: "Cuniculture",
     excerpt:
@@ -45,11 +51,13 @@ export const articles: Article[] = [
       "En cuniculture, l’alimentation influence la croissance, la reproduction et la santé digestive. Le suivi des quantités distribuées, de la qualité des fourrages et de l’eau disponible fait partie des leviers essentiels pour stabiliser la rentabilité.",
     status: "published",
     featured: false,
+    reading_time: "3 min de lecture",
     published_at: "2026-06-05",
     created_at: "2026-06-05",
     updated_at: "2026-06-05",
   },
   {
+    id: "static-apiculture-causes-depart-colonie",
     title: "Apiculture : comprendre les causes de départ d’une colonie",
     slug: "apiculture-causes-depart-colonie",
     category: "Apiculture",
@@ -61,6 +69,7 @@ export const articles: Article[] = [
       "Le départ d’une colonie n’est pas toujours un hasard. L’apiculteur doit observer l’environnement, la disponibilité florale, l’ombre, la ventilation et les manipulations réalisées afin de créer des conditions plus stables pour les abeilles.",
     status: "published",
     featured: false,
+    reading_time: "3 min de lecture",
     published_at: "2026-05-28",
     created_at: "2026-05-28",
     updated_at: "2026-05-28",
