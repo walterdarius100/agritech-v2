@@ -14,17 +14,14 @@ import {
   getRelatedArticles,
   splitArticleContent,
   formatArticleDate,
-  getPublishedArticles,
+  getArticleDate,
 } from "@/lib/articles/getArticles";
 import { createMetadata } from "@/lib/seo/metadata";
 
 type ArticlePageProps = { params: Promise<{ slug: string }> };
 
-export async function generateStaticParams() {
-  const articles = await getPublishedArticles();
-
-  return articles.map((article) => ({ slug: article.slug }));
-}
+export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
@@ -69,7 +66,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
             </Button>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-yellow-400">
               {article.category ?? "Article"} ·{" "}
-              {formatArticleDate(article.published_at)} · {readingTime}
+              {formatArticleDate(getArticleDate(article))} · {readingTime}
             </p>
             <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               {article.title}

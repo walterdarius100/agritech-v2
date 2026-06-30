@@ -1,7 +1,11 @@
 import Image from "next/image";
 
 import type { Article } from "@/types/article";
-import { formatArticleDate, getArticleImage } from "@/lib/articles/getArticles";
+import {
+  formatArticleDate,
+  getArticleDate,
+  getArticleImage,
+} from "@/lib/articles/getArticles";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 
@@ -23,7 +27,7 @@ export function ArticleCard({ article }: { article: Article }) {
             {article.category ?? "Article"}
           </span>
           <span className="text-xs font-medium text-slate-500">
-            {formatArticleDate(article.published_at)}
+            {formatArticleDate(getArticleDate(article))}
           </span>
         </div>
         <h2 className="mt-4 text-xl font-bold text-emerald-950">
@@ -32,13 +36,15 @@ export function ArticleCard({ article }: { article: Article }) {
         <p className="mt-3 flex-1 text-sm leading-6 text-slate-600">
           {article.excerpt}
         </p>
-        <Button
-          href={`/articles/${article.slug}`}
-          variant="ghost"
-          className="mt-5 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950"
-        >
-          Lire l’article →
-        </Button>
+        {article.slug ? (
+          <Button
+            href={`/articles/${article.slug}`}
+            variant="ghost"
+            className="mt-5 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950"
+          >
+            Lire l’article →
+          </Button>
+        ) : null}
       </div>
     </Card>
   );
