@@ -42,6 +42,7 @@ NEXT_PUBLIC_SITE_URL=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+ADMIN_EMAILS=
 NEXT_PUBLIC_CLARITY_PROJECT_ID=
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
 ```
@@ -61,6 +62,8 @@ docs                 Documentation produit et roadmap
 ```
 
 Pour l’organisation des images, logos, favicons et assets visuels, consulter `docs/ASSETS_GUIDE.md`.
+
+Pour l’espace admin minimal des articles, consulter `docs/ADMIN_ARTICLES.md`.
 
 ## Stratégie Supabase
 
