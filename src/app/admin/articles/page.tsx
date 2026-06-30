@@ -1,0 +1,12 @@
+import Link from "next/link";
+import { getAdminArticles } from "@/lib/articles/adminArticles";
+import type { ArticleStatus } from "@/types/article";
+
+const filters = [{ label: "Tous", value: "all" }, { label: "Brouillons", value: "draft" }, { label: "Publiés", value: "published" }, { label: "Archivés", value: "archived" }];
+
+export default async function AdminArticlesPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const params = await searchParams;
+  const status = ["draft", "published", "archived"].includes(params.status ?? "") ? (params.status as ArticleStatus) : "all";
+  const articles = await getAdminArticles(status);
+  return <div><div className="flex flex-wrap items-center justify-between gap-4"><div><h1 className="text-3xl font-bold">Articles</h1><p className="mt-2 text-slate-600">Tous les articles, brouillons, publiés et archivés.</p></div><Link className="rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white" href="/admin/articles/new">Nouvel article</Link></div><div className="mt-6 flex flex-wrap gap-2">{filters.map((filter) => <Link className={`rounded-full px-4 py-2 text-sm font-semibold ${status === filter.value ? "bg-emerald-700 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200"}`} href={filter.value === "all" ? "/admin/articles" : `/admin/articles?status=${filter.value}`} key={filter.value}>{filter.label}</Link>)}</div><div className="mt-6 overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200"><table className="w-full min-w-[900px] text-left text-sm"><thead className="bg-slate-100 text-slate-600"><tr><th className="p-4">Titre</th><th>Catégorie</th><th>Statut</th><th>Featured</th><th>Publication</th><th>Modification</th><th>Action</th></tr></thead><tbody>{articles.map((article) => <tr className="border-t border-slate-100" key={article.id}><td className="p-4 font-semibold">{article.title}</td><td>{article.category}</td><td>{article.status}</td><td>{article.featured ? "Oui" : "Non"}</td><td>{article.published_at ? new Date(article.published_at).toLocaleDateString("fr-FR") : "—"}</td><td>{new Date(article.updated_at).toLocaleDateString("fr-FR")}</td><td><Link className="font-semibold text-emerald-800" href={`/admin/articles/${article.id}/edit`}>Modifier</Link></td></tr>)}</tbody></table>{articles.length === 0 ? <p className="p-6 text-slate-500">Aucun article pour ce filtre.</p> : null}</div></div>;
+}
