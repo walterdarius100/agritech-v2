@@ -15,7 +15,6 @@ import {
   splitArticleContent,
   formatArticleDate,
   getArticleDate,
-  getPublishedArticles,
 } from "@/lib/articles/getArticles";
 import { createMetadata } from "@/lib/seo/metadata";
 
@@ -23,12 +22,6 @@ type ArticlePageProps = { params: Promise<{ slug: string }> };
 
 export const revalidate = 60;
 export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  const articles = await getPublishedArticles();
-
-  return articles.map((article) => ({ slug: article.slug }));
-}
 
 export async function generateMetadata({
   params,
