@@ -51,6 +51,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
   const relatedArticles = await getRelatedArticles(article.slug, 3);
   const readingTime = getArticleReadingTime(article);
   const contentParagraphs = splitArticleContent(article.content);
+  const contentHtml = renderArticleContent(article.content);
 
   return (
     <>
@@ -110,11 +111,18 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
         <Container className="pt-10 sm:pt-12">
           <article className="mx-auto max-w-3xl text-lg leading-8 text-slate-700">
-            {contentParagraphs.map((paragraph) => (
-              <p key={paragraph} className="mt-6 first:mt-0">
-                {paragraph}
-              </p>
-            ))}
+            {contentHtml ? (
+              <div
+                className="article-content"
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
+              />
+            ) : (
+              contentParagraphs.map((paragraph) => (
+                <p key={paragraph} className="mt-6 first:mt-0">
+                  {paragraph}
+                </p>
+              ))
+            )}
 
             <div
               className="mt-10 border-t border-emerald-950/10 pt-10"
@@ -177,4 +185,21 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
       </main>
     </>
   );
+}
+
+function isHtmlContent(content: string) {
+  return /<([a-z][\w-]*)(\s[^>]*)?>[\s\S]*<\/\1>|<(br|hr|img)\b[^>]*>/i.test(
+    content,
+  );
+}
+
+function renderArticleContent(content: string) {
+  if (!isHtmlContent(content)) return "";
+
+  return content
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+    .replace(/\s(on\w+)="[^"]*"/gi, "")
+    .replace(/\s(on\w+)='[^']*'/gi, "")
+    .replace(/javascript:/gi, "");
 }
