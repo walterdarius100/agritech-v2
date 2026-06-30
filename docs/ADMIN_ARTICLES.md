@@ -12,6 +12,7 @@ L’admin articles permet à un administrateur Agri-tech de gérer les articles 
 - `/admin/articles/new` : création d’un article.
 - `/admin/articles/[id]/edit` : modification d’un article existant.
 - `/admin/articles/upload-cover` : route serveur sécurisée pour uploader l’image de couverture.
+- `/admin/articles/upload-content-image` : route serveur sécurisée utilisée par TinyMCE pour uploader une image dans le contenu de l’article.
 
 Les pages admin protégées affichent une navigation dédiée, séparée du navbar public : logo Agri-tech, libellé **Administration Agri-tech**, liens **Tableau de bord**, **Articles**, **Nouvel article**, **Voir le site** et bouton **Se déconnecter**. La navigation est responsive et le bouton de déconnexion appelle l’action serveur existante, puis redirige vers `/admin/login`. Le layout global masque explicitement le header/footer publics sur toutes les routes `/admin`, afin d’éviter le double navbar.
 
@@ -53,20 +54,20 @@ Le slug reste modifiable. Le bouton **Générer** remplit le slug depuis le titr
 - Bucket : `article-images`.
 - Formats acceptés : JPG, PNG, WebP.
 - Taille maximale : 4 Mo.
-- Chemin d’upload : `covers/<timestamp>-<uuid>-<nom-nettoye>.<extension>`.
+- Chemins d’upload : `covers/YYYY/MM/<timestamp>-<uuid>-<nom-nettoye>.<extension>` pour la couverture et `content/YYYY/MM/<timestamp>-<uuid>-<nom-nettoye>.<extension>` pour les images insérées dans TinyMCE.
 - Après upload réussi, l’URL publique est automatiquement copiée dans `cover_image_url` et l’aperçu est mis à jour.
 
-La migration `supabase/migrations/20260630_create_article_images_bucket.sql` crée ou met à jour le bucket public avec les limites de taille/type et ajoute une policy de lecture publique. Les uploads ne sont pas ouverts au public : ils passent par la route serveur `/admin/articles/upload-cover`, protégée par `requireAuthorizedAdmin()`.
+La migration `supabase/migrations/20260630_create_article_images_bucket.sql` crée ou met à jour le bucket public avec les limites de taille/type et ajoute une policy de lecture publique. Les uploads ne sont pas ouverts au public : ils passent par les routes serveur `/admin/articles/upload-cover` et `/admin/articles/upload-content-image`, protégées par `requireAuthorizedAdmin()`.
 
 Si la création automatique du bucket est bloquée par votre environnement Supabase, créez manuellement un bucket public `article-images`, limitez les MIME types à `image/jpeg`, `image/png`, `image/webp`, limitez la taille à `4194304` octets et conservez uniquement la lecture publique.
 
 ## Éditeur TinyMCE
 
-La section **Contenu** utilise TinyMCE comme éditeur principal, sans API key obligatoire. La configuration active les blocs de texte, titres, gras, italique, souligné, listes, citation, séparateur horizontal, alignements, liens, insertion d’image par URL, aperçu, code, tableau, annulation/rétablissement et nettoyage de mise en forme. La zone de rédaction est agrandie pour offrir environ 560 px d’espace utile.
+La section **Contenu** utilise TinyMCE comme éditeur principal, sans API key obligatoire. La configuration active les blocs de texte, titres, gras, italique, souligné, listes, citation, séparateur horizontal, alignements, liens, insertion d’image par URL, upload d’image depuis l’ordinateur, aperçu, code, tableau, annulation/rétablissement et nettoyage de mise en forme. La zone de rédaction est agrandie pour offrir environ 560 px d’espace utile.
 
 Le contenu est enregistré en HTML dans le champ existant `articles.content` après une sanitation minimale côté serveur : suppression des scripts, styles, handlers `on*` et URLs `javascript:`. Aucune nouvelle colonne n’est créée.
 
-Les anciens articles en texte simple restent compatibles : la page publique affiche encore les paragraphes texte si `content` ne contient pas de HTML. Les images de couverture restent gérées séparément par `cover_image_url`; les images insérées dans le corps de l’article sont ajoutées dans TinyMCE via URL.
+Les anciens articles en texte simple restent compatibles : la page publique affiche encore les paragraphes texte si `content` ne contient pas de HTML. Les images de couverture restent gérées séparément par `cover_image_url`; les images insérées dans le corps de l’article sont ajoutées dans TinyMCE par URL ou uploadées vers `article-images/content/`. TinyMCE active les captions natives (`image_caption`) : une image avec légende est stockée sous forme de structure `figure > img + figcaption`. Le champ description/alt de TinyMCE doit être rempli pour l’accessibilité et le SEO.
 
 ## Publication
 
@@ -99,7 +100,7 @@ Validations minimales : titre, slug, catégorie, extrait, contenu, statut valide
 - Pas de suppression d’article depuis l’admin.
 - Pas de preview privée pour les brouillons non publiés.
 - TinyMCE est chargé côté client depuis les assets publics TinyMCE, sans API key obligatoire, afin de ne pas casser le build si le package npm n’est pas disponible dans l’environnement.
-- L’upload inline d’images TinyMCE vers Supabase Storage n’est pas inclus : les images de contenu sont insérées par URL.
+- L’upload inline d’images TinyMCE utilise le même bucket `article-images`, mais ne fait pas encore de transformation ou compression automatique en WebP.
 - Pas de table de rôles avancée : la liste `ADMIN_EMAILS` reste la source d’autorisation.
 
 ## Prochaines étapes

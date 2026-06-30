@@ -1,4 +1,4 @@
--- Storage bucket for admin article cover images.
+-- Storage bucket for admin article cover and inline content images.
 -- The bucket is public for reads; uploads are performed only by the server-side
 -- admin upload route with SUPABASE_SERVICE_ROLE_KEY after admin authorization.
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

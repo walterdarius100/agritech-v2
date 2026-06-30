@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   }
 
   const fileName = `${Date.now()}-${crypto.randomUUID()}-${safeName(file.name) || "image"}.${extensionForType(file.type)}`;
-  const path = `covers/${currentStorageFolder()}/${fileName}`;
+  const path = `content/${currentStorageFolder()}/${fileName}`;
   const buffer = Buffer.from(await file.arrayBuffer());
 
   const { error } = await supabase.storage

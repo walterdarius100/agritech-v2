@@ -525,6 +525,55 @@ function ArticleContentEditor({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [isTinyReady, setIsTinyReady] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [imageUploadMessage, setImageUploadMessage] = useState<string | null>(
+    null,
+  );
+
+  async function uploadImageFromEditor(
+    blobInfo: { blob: () => Blob; filename: () => string },
+    progress: (percent: number) => void,
+  ) {
+    const file = new File([blobInfo.blob()], blobInfo.filename(), {
+      type: blobInfo.blob().type,
+    });
+
+    if (!uploadTypes.includes(file.type)) {
+      const message = "Format invalide. Utilisez JPG, PNG ou WebP.";
+      setImageUploadMessage(message);
+      throw new Error(message);
+    }
+
+    if (file.size > maxUploadSize) {
+      const message = "Image trop lourde. Taille maximale : 4 Mo.";
+      setImageUploadMessage(message);
+      throw new Error(message);
+    }
+
+    const body = new FormData();
+    body.append("file", file);
+    setImageUploadMessage("Upload de l’image en cours...");
+    progress(10);
+
+    const response = await fetch("/admin/articles/upload-content-image", {
+      method: "POST",
+      body,
+    });
+    const result = (await response.json().catch(() => ({}))) as {
+      url?: string;
+      error?: string;
+    };
+
+    if (!response.ok || !result.url) {
+      const message =
+        result.error ?? "Erreur pendant l’upload de l’image dans l’article.";
+      setImageUploadMessage(message);
+      throw new Error(message);
+    }
+
+    progress(100);
+    setImageUploadMessage("Image uploadée et insérée dans l’article.");
+    return result.url;
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -576,8 +625,13 @@ function ArticleContentEditor({
           content_style:
             "body { min-height: 520px; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.8; color: #334155; padding: 16px; } img { max-width: 100%; height: auto; }",
           image_title: true,
-          automatic_uploads: false,
+          image_caption: true,
+          image_advtab: true,
+          a11y_advanced_options: true,
+          automatic_uploads: true,
           paste_data_images: false,
+          images_file_types: "jpeg,jpg,png,webp",
+          images_upload_handler: uploadImageFromEditor,
           convert_urls: false,
           autoresize_bottom_margin: 24,
           setup: (editor: {
@@ -625,6 +679,11 @@ function ArticleContentEditor({
       {loadError ? (
         <p className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
           {loadError}
+        </p>
+      ) : null}
+      {imageUploadMessage ? (
+        <p className="mb-3 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
+          {imageUploadMessage}
         </p>
       ) : null}
       <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm ring-1 ring-slate-100">

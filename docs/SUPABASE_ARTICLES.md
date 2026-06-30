@@ -50,7 +50,8 @@ Configuration attendue :
 - lecture publique des objets du bucket ;
 - formats acceptés : `image/jpeg`, `image/png`, `image/webp` ;
 - taille maximale : 4 Mo (`4194304` octets) ;
-- pas d’upload public depuis le navigateur visiteur.
+- pas d’upload public depuis le navigateur visiteur ;
+- dossiers recommandés : `covers/YYYY/MM/` pour les couvertures et `content/YYYY/MM/` pour les images insérées dans TinyMCE.
 
 La migration `supabase/migrations/20260630_create_article_images_bucket.sql` crée ou met à jour le bucket et ajoute la lecture publique :
 
@@ -65,7 +66,7 @@ to public
 using (bucket_id = 'article-images');
 ```
 
-Les uploads admin passent par la route serveur `/admin/articles/upload-cover`. Cette route vérifie l’admin connecté, valide le type et la taille du fichier, utilise `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement, puis retourne l’URL publique à stocker dans `cover_image_url`.
+Les uploads admin passent par les routes serveur `/admin/articles/upload-cover` pour l’image de couverture et `/admin/articles/upload-content-image` pour les images insérées dans TinyMCE. Ces routes vérifient l’admin connecté, valident le type et la taille du fichier, utilisent `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement, puis retournent l’URL publique. Les visiteurs publics ne peuvent pas uploader d’image.
 
 Si votre instance Supabase ne permet pas d’appliquer les migrations Storage via SQL, créez manuellement le bucket `article-images` dans le Dashboard avec les mêmes paramètres.
 
@@ -74,7 +75,7 @@ Si votre instance Supabase ne permet pas d’appliquer les migrations Storage vi
 La page `/articles/[slug]` reste compatible avec deux formats :
 
 - texte simple : rendu en paragraphes, comme auparavant ;
-- HTML généré par TinyMCE dans l’éditeur admin : rendu avec styles typographiques pour paragraphes, titres, listes, citations, liens, images et séparateurs.
+- HTML généré par TinyMCE dans l’éditeur admin : rendu avec styles typographiques pour paragraphes, titres, listes, citations, liens, images, figures, légendes et séparateurs.
 
 Une sanitation minimale est appliquée côté sauvegarde et côté rendu pour supprimer scripts, styles, handlers inline et URLs `javascript:`. Le HTML rendu provient uniquement des administrateurs autorisés ; aucun visiteur public ne peut publier ce contenu.
 
