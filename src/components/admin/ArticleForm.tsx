@@ -49,7 +49,8 @@ declare global {
   }
 }
 
-const tinymceApiKey = process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key";
+const tinymceScriptUrl =
+  "https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js";
 
 const uploadTypes = ["image/jpeg", "image/png", "image/webp"];
 const maxUploadSize = 4 * 1024 * 1024;
@@ -314,7 +315,7 @@ export function ArticleForm({
 
       <Section
         title="Contenu"
-        description="TinyMCE enregistre le contenu en HTML dans le champ Supabase existant content."
+        description="Rédigez le contenu complet de l’article avec TinyMCE. Le HTML est enregistré dans le champ Supabase existant content."
       >
         <input type="hidden" name="content" value={editorHtml} />
         <ArticleContentEditor value={editorHtml} onChange={setEditorHtml} />
@@ -527,7 +528,7 @@ function ArticleContentEditor({
 
   useEffect(() => {
     let cancelled = false;
-    const scriptId = "tinymce-cloud-script";
+    const scriptId = "tinymce-self-hosted-script";
 
     async function initializeTinyMce() {
       try {
@@ -551,7 +552,7 @@ function ArticleContentEditor({
 
             const script = document.createElement("script");
             script.id = scriptId;
-            script.src = `https://cdn.tiny.cloud/1/${tinymceApiKey}/tinymce/7/tinymce.min.js`;
+            script.src = tinymceScriptUrl;
             script.referrerPolicy = "origin";
             script.onload = () => resolve();
             script.onerror = () => reject(new Error("TinyMCE unavailable"));
@@ -563,7 +564,7 @@ function ArticleContentEditor({
 
         await window.tinymce.init({
           target: textareaRef.current,
-          height: 520,
+          height: 620,
           menubar: false,
           branding: false,
           promotion: false,
@@ -573,7 +574,7 @@ function ArticleContentEditor({
           block_formats:
             "Paragraphe=p; Titre 2=h2; Titre 3=h3; Titre 4=h4; Citation=blockquote",
           content_style:
-            "body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.7; color: #334155; } img { max-width: 100%; height: auto; }",
+            "body { min-height: 520px; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.8; color: #334155; padding: 16px; } img { max-width: 100%; height: auto; }",
           image_title: true,
           automatic_uploads: false,
           paste_data_images: false,
@@ -610,6 +611,12 @@ function ArticleContentEditor({
 
   return (
     <div className="md:col-span-2 min-w-0">
+      <label
+        className="mb-2 block text-sm font-semibold text-slate-700"
+        htmlFor={textareaId}
+      >
+        Contenu complet de l’article
+      </label>
       {!isTinyReady && !loadError ? (
         <p className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
           Chargement de l’éditeur TinyMCE...
@@ -620,13 +627,15 @@ function ArticleContentEditor({
           {loadError}
         </p>
       ) : null}
-      <textarea
-        ref={textareaRef}
-        id={textareaId}
-        className="min-h-96 w-full rounded-2xl border border-slate-300 px-4 py-3 text-base leading-8 text-slate-700"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      />
+      <div className="overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm ring-1 ring-slate-100">
+        <textarea
+          ref={textareaRef}
+          id={textareaId}
+          className="min-h-[560px] w-full px-5 py-4 text-base leading-8 text-slate-700 outline-none"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
       <p className="mt-2 text-xs text-slate-500">
         Images dans le contenu : insérez une URL depuis TinyMCE. L’upload de
         couverture reste géré dans la section Image de couverture.

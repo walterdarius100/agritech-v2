@@ -13,7 +13,7 @@ L’admin articles permet à un administrateur Agri-tech de gérer les articles 
 - `/admin/articles/[id]/edit` : modification d’un article existant.
 - `/admin/articles/upload-cover` : route serveur sécurisée pour uploader l’image de couverture.
 
-Les pages admin protégées affichent une navigation dédiée, séparée du navbar public : logo complet Agri-tech, libellé **Administration Agri-tech**, liens **Tableau de bord**, **Articles**, **Nouvel article**, **Voir le site** et bouton **Se déconnecter**. La navigation est responsive et le bouton de déconnexion appelle l’action serveur existante, puis redirige vers `/admin/login`.
+Les pages admin protégées affichent une navigation dédiée, séparée du navbar public : logo Agri-tech, libellé **Administration Agri-tech**, liens **Tableau de bord**, **Articles**, **Nouvel article**, **Voir le site** et bouton **Se déconnecter**. La navigation est responsive et le bouton de déconnexion appelle l’action serveur existante, puis redirige vers `/admin/login`. Le layout global masque explicitement le header/footer publics sur toutes les routes `/admin`, afin d’éviter le double navbar.
 
 ## Variables d’environnement
 
@@ -26,7 +26,7 @@ ADMIN_EMAILS=
 NEXT_PUBLIC_TINYMCE_API_KEY=
 ```
 
-`ADMIN_EMAILS` contient les emails autorisés, séparés par des virgules. `SUPABASE_SERVICE_ROLE_KEY` doit rester strictement côté serveur. `NEXT_PUBLIC_TINYMCE_API_KEY` est une clé publique TinyMCE Cloud utilisée uniquement pour charger l’éditeur dans l’admin ; si elle est absente, l’intégration utilise `no-api-key`, ce qui évite de casser le build mais peut afficher l’avertissement TinyMCE Cloud en développement.
+`ADMIN_EMAILS` contient les emails autorisés, séparés par des virgules. `SUPABASE_SERVICE_ROLE_KEY` doit rester strictement côté serveur. `NEXT_PUBLIC_TINYMCE_API_KEY` reste optionnelle : l’éditeur est chargé sans clé obligatoire depuis les assets TinyMCE publics, et un textarea de secours reste disponible si le script ne charge pas.
 
 ## Sécurité retenue
 
@@ -62,7 +62,7 @@ Si la création automatique du bucket est bloquée par votre environnement Supab
 
 ## Éditeur TinyMCE
 
-La section **Contenu** utilise TinyMCE comme éditeur principal. La configuration active les blocs de texte, titres, gras, italique, souligné, listes, citation, séparateur horizontal, alignements, liens, insertion d’image par URL, aperçu, code, tableau, annulation/rétablissement et nettoyage de mise en forme.
+La section **Contenu** utilise TinyMCE comme éditeur principal, sans API key obligatoire. La configuration active les blocs de texte, titres, gras, italique, souligné, listes, citation, séparateur horizontal, alignements, liens, insertion d’image par URL, aperçu, code, tableau, annulation/rétablissement et nettoyage de mise en forme. La zone de rédaction est agrandie pour offrir environ 560 px d’espace utile.
 
 Le contenu est enregistré en HTML dans le champ existant `articles.content` après une sanitation minimale côté serveur : suppression des scripts, styles, handlers `on*` et URLs `javascript:`. Aucune nouvelle colonne n’est créée.
 
@@ -98,7 +98,7 @@ Validations minimales : titre, slug, catégorie, extrait, contenu, statut valide
 
 - Pas de suppression d’article depuis l’admin.
 - Pas de preview privée pour les brouillons non publiés.
-- TinyMCE est chargé côté client via TinyMCE Cloud/CDN afin de ne pas casser le build si le package npm n’est pas disponible dans l’environnement.
+- TinyMCE est chargé côté client depuis les assets publics TinyMCE, sans API key obligatoire, afin de ne pas casser le build si le package npm n’est pas disponible dans l’environnement.
 - L’upload inline d’images TinyMCE vers Supabase Storage n’est pas inclus : les images de contenu sont insérées par URL.
 - Pas de table de rôles avancée : la liste `ADMIN_EMAILS` reste la source d’autorisation.
 

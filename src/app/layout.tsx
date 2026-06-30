@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
-import { Footer } from "@/components/layout/Footer";
-import { Header } from "@/components/layout/Header";
+import { PublicChrome } from "@/components/layout/PublicChrome";
 import { siteConfig } from "@/config/site";
 import { ClarityScript } from "@/lib/analytics/clarity";
 import { GoogleAnalyticsScript } from "@/lib/analytics/google-analytics";
@@ -38,9 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr-HT">
       <body className="min-h-screen antialiased">
-        <Header />
-        <main>{children}</main>
-        <Footer />
+        <PublicChrome>{children}</PublicChrome>
         <ClarityScript />
         <GoogleAnalyticsScript />
       </body>

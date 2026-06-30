@@ -30,16 +30,14 @@ export default async function AdminLayout({
       <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 lg:flex-row lg:items-center lg:justify-between">
           <Link className="flex items-center gap-3" href="/admin">
-            <span className="relative flex h-12 w-24 shrink-0 items-center overflow-hidden rounded-xl border border-slate-200 bg-white p-1">
-              <Image
-                src="/images/brand/Untitled-1.png"
-                alt="Logo Agri-tech"
-                fill
-                sizes="96px"
-                className="object-contain"
-                priority
-              />
-            </span>
+            <Image
+              src="/images/brand/Untitled-1.png"
+              alt="Logo Agri-tech"
+              width={52}
+              height={52}
+              className="h-12 w-12 shrink-0 object-contain"
+              priority
+            />
             <span>
               <span className="block text-base font-bold text-slate-950">
                 Administration Agri-tech
