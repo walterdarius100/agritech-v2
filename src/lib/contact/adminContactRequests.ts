@@ -66,9 +66,9 @@ export async function updateContactRequest(
     .update({ status, priority, admin_notes: adminNotes })
     .eq("id", id);
 
-  if (error) return { error: "Impossible de mettre à jour la demande." };
+  if (error) return { error: "Impossible de mettre à jour la demande pour le moment." };
 
   revalidatePath("/admin/contact-requests");
   revalidatePath(`/admin/contact-requests/${id}`);
-  return { success: "Demande mise à jour." };
+  return { success: "Demande mise à jour avec succès." };
 }
