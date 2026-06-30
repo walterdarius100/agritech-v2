@@ -65,6 +65,20 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function cleanEditorHtml(value: string) {
+  return value
+    .trim()
+    .replace(
+      /^(?:\s|<p>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>|<div>(?:&nbsp;|\s|<br\s*\/?>)*<\/div>|<br\s*\/?>)+/gi,
+      "",
+    )
+    .replace(
+      /(?:\s|<p>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>|<div>(?:&nbsp;|\s|<br\s*\/?>)*<\/div>|<br\s*\/?>)+$/gi,
+      "",
+    )
+    .trim();
+}
+
 function isLikelyHtml(value: string) {
   return /<([a-z][\w-]*)(\s[^>]*)?>[\s\S]*<\/\1>|<(br|hr|img)\b[^>]*>/i.test(
     value,
@@ -91,9 +105,11 @@ export function ArticleForm({
   const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [editorHtml, setEditorHtml] = useState(() =>
-    isLikelyHtml(defaults.content)
-      ? defaults.content
-      : textToHtml(defaults.content),
+    cleanEditorHtml(
+      isLikelyHtml(defaults.content)
+        ? defaults.content
+        : textToHtml(defaults.content),
+    ),
   );
   const [status, setStatus] = useState<ArticleStatus>(defaults.status);
   const [publishedAt, setPublishedAt] = useState(defaults.published_at);
@@ -317,7 +333,11 @@ export function ArticleForm({
         title="Contenu"
         description="Rédigez le contenu complet de l’article avec TinyMCE. Le HTML est enregistré dans le champ Supabase existant content."
       >
-        <input type="hidden" name="content" value={editorHtml} />
+        <input
+          type="hidden"
+          name="content"
+          value={cleanEditorHtml(editorHtml)}
+        />
         <ArticleContentEditor value={editorHtml} onChange={setEditorHtml} />
       </Section>
 
@@ -348,13 +368,14 @@ export function ArticleForm({
           value={publishedAt}
           onChange={setPublishedAt}
         />
-        <label className="flex items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-700 md:col-span-2">
+        <label className="flex items-center gap-3 text-sm font-semibold text-emerald-950 md:col-span-2">
           <input
+            className="h-4 w-4 rounded border-emerald-900/30 text-emerald-700 focus:ring-emerald-700"
             name="featured"
             type="checkbox"
             defaultChecked={defaults.featured}
-          />{" "}
-          Article à la une
+          />
+          <span>Article à la une</span>
         </label>
         <div className="flex flex-wrap gap-3 pt-2 md:col-span-2">
           {mode === "create" ? (
@@ -622,8 +643,24 @@ function ArticleContentEditor({
             "undo redo | blocks | bold italic underline | bullist numlist blockquote hr | alignleft aligncenter alignright alignjustify | link image | removeformat preview code",
           block_formats:
             "Paragraphe=p; Titre 2=h2; Titre 3=h3; Titre 4=h4; Citation=blockquote",
-          content_style:
-            "body { min-height: 520px; font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.8; color: #334155; padding: 16px; } img { max-width: 100%; height: auto; }",
+          content_style: `
+            body {
+              font-family: Arial, Helvetica, sans-serif;
+              font-size: 16px;
+              line-height: 1.7;
+              color: #334155;
+              margin: 0;
+              padding: 14px 18px;
+            }
+            body > *:first-child { margin-top: 0 !important; }
+            body > *:last-child { margin-bottom: 0 !important; }
+            p { margin: 0 0 1rem; }
+            h2, h3, h4 { margin: 1.5rem 0 0.75rem; }
+            ul, ol { margin: 0 0 1rem 1.25rem; padding-left: 1.25rem; }
+            blockquote { margin: 0 0 1rem; border-left: 4px solid #059669; padding-left: 1rem; color: #065f46; }
+            figure { margin: 0 0 1.25rem; }
+            img { max-width: 100%; height: auto; }
+          `,
           image_title: true,
           image_caption: true,
           image_advtab: true,

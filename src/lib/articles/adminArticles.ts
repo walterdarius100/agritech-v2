@@ -14,13 +14,29 @@ export type ArticleFormState = { error?: string; success?: string };
 const allowedStatuses: ArticleStatus[] = ["draft", "published", "archived"];
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-function sanitizeArticleContent(content: string) {
+function trimEmptyHtmlBlocks(content: string) {
   return content
-    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-    .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
-    .replace(/\s(on\w+)="[^"]*"/gi, "")
-    .replace(/\s(on\w+)='[^']*'/gi, "")
-    .replace(/javascript:/gi, "");
+    .trim()
+    .replace(
+      /^(?:\s|<p>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>|<div>(?:&nbsp;|\s|<br\s*\/?>)*<\/div>|<br\s*\/?>)+/gi,
+      "",
+    )
+    .replace(
+      /(?:\s|<p>(?:&nbsp;|\s|<br\s*\/?>)*<\/p>|<div>(?:&nbsp;|\s|<br\s*\/?>)*<\/div>|<br\s*\/?>)+$/gi,
+      "",
+    )
+    .trim();
+}
+
+function sanitizeArticleContent(content: string) {
+  return trimEmptyHtmlBlocks(
+    content
+      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+      .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, "")
+      .replace(/\s(on\w+)="[^"]*"/gi, "")
+      .replace(/\s(on\w+)='[^']*'/gi, "")
+      .replace(/javascript:/gi, ""),
+  );
 }
 
 function getAdminClientOrThrow() {
