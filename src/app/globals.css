@@ -21,3 +21,83 @@ body {
   outline: 2px solid #047857;
   outline-offset: 3px;
 }
+
+.article-content :where(p) {
+  margin-top: 1.5rem;
+}
+.article-content :where(p:first-child, h2:first-child, h3:first-child) {
+  margin-top: 0;
+}
+.article-content :where(h2) {
+  margin-top: 2rem;
+  font-size: 1.75rem;
+  line-height: 2.25rem;
+  font-weight: 800;
+  color: #052e16;
+}
+.article-content :where(h3) {
+  margin-top: 1.75rem;
+  font-size: 1.35rem;
+  line-height: 2rem;
+  font-weight: 800;
+  color: #064e3b;
+}
+.article-content :where(h4) {
+  margin-top: 1.5rem;
+  font-size: 1.15rem;
+  line-height: 1.75rem;
+  font-weight: 800;
+  color: #064e3b;
+}
+.article-content :where(ul, ol) {
+  margin-top: 1.5rem;
+  padding-left: 1.5rem;
+}
+.article-content :where(ul) {
+  list-style: disc;
+}
+.article-content :where(ol) {
+  list-style: decimal;
+}
+.article-content :where(blockquote) {
+  margin-top: 1.5rem;
+  border-left: 4px solid #059669;
+  padding-left: 1rem;
+  font-weight: 600;
+  color: #065f46;
+}
+.article-content :where(a) {
+  color: #047857;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.article-content :where(a:hover) {
+  color: #065f46;
+}
+.article-content :where(img) {
+  margin-top: 1.5rem;
+  max-width: 100%;
+  border-radius: 1rem;
+}
+.article-content :where(hr) {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid rgba(5, 46, 22, 0.16);
+}
+.article-content :where(figure) {
+  margin: 2rem 0;
+}
+.article-content :where(figure img) {
+  margin-top: 0;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 0.75rem;
+}
+.article-content :where(figcaption) {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 1.5rem;
+  color: #64748b;
+}

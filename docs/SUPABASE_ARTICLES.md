@@ -1,6 +1,6 @@
-# Articles Supabase — lecture publique
+# Articles Supabase — lecture publique et Storage
 
-Cette documentation décrit la connexion des pages publiques d’articles à Supabase. Elle ne couvre pas l’admin articles, l’upload d’images, l’authentification ou les rôles administrateurs.
+Cette documentation décrit la connexion des pages publiques d’articles à Supabase et la configuration Storage utilisée par l’admin.
 
 ## Table `articles`
 
@@ -13,7 +13,7 @@ La migration `supabase/migrations/20260629_create_articles_table.sql` crée la t
 - `excerpt` : court résumé affiché dans les cartes et le hero.
 - `cover_image_url` : URL de l’image principale.
 - `author` : auteur affiché sur la page article.
-- `content` : contenu principal de l’article.
+- `content` : contenu principal de l’article, en texte simple pour les anciens contenus ou en HTML propre depuis l’éditeur admin.
 - `status` : état de publication.
 - `featured` : indique si l’article est à la une.
 - `reading_time` : durée de lecture affichée.
@@ -38,13 +38,46 @@ for select
 using (status = 'published');
 ```
 
-Le public peut lire uniquement les articles publiés. Les brouillons et les articles archivés ne doivent pas être visibles. Aucune policy publique d’insertion, de mise à jour ou de suppression n’est créée : le public ne peut donc pas créer, modifier ou supprimer des articles.
+Le public peut lire uniquement les articles publiés. Aucune policy publique d’insertion, de mise à jour ou de suppression n’est créée.
 
-## Images des articles
+## Supabase Storage pour les images
 
-`cover_image_url` contient l’URL de l’image principale de l’article. Au début, cette URL peut pointer vers une image publique existante. Plus tard, les images pourront être gérées via Supabase Storage depuis l’admin. Si `cover_image_url` est vide, le site utilise un placeholder agricole local.
+Bucket utilisé : `article-images`.
 
-Si les images viennent de Supabase Storage, le domaine Supabase doit être autorisé pour `next/image`. Dans ce projet, `next.config.ts` lit `NEXT_PUBLIC_SUPABASE_URL` et limite l’autorisation au chemin public Supabase Storage.
+Configuration attendue :
+
+- bucket public pour permettre l’affichage des images sur le site ;
+- lecture publique des objets du bucket ;
+- formats acceptés : `image/jpeg`, `image/png`, `image/webp` ;
+- taille maximale : 4 Mo (`4194304` octets) ;
+- pas d’upload public depuis le navigateur visiteur ;
+- dossiers recommandés : `covers/YYYY/MM/` pour les couvertures et `content/YYYY/MM/` pour les images insérées dans TinyMCE.
+
+La migration `supabase/migrations/20260630_create_article_images_bucket.sql` crée ou met à jour le bucket et ajoute la lecture publique :
+
+```sql
+insert into storage.buckets (...)
+values ('article-images', 'article-images', true, 4194304, array['image/jpeg', 'image/png', 'image/webp'])
+on conflict (id) do update ...;
+
+create policy "Public read access for article images"
+on storage.objects for select
+to public
+using (bucket_id = 'article-images');
+```
+
+Les uploads admin passent par les routes serveur `/admin/articles/upload-cover` pour l’image de couverture et `/admin/articles/upload-content-image` pour les images insérées dans TinyMCE. Ces routes vérifient l’admin connecté, valident le type et la taille du fichier, utilisent `SUPABASE_SERVICE_ROLE_KEY` côté serveur uniquement, puis retournent l’URL publique. Les visiteurs publics ne peuvent pas uploader d’image.
+
+Si votre instance Supabase ne permet pas d’appliquer les migrations Storage via SQL, créez manuellement le bucket `article-images` dans le Dashboard avec les mêmes paramètres.
+
+## Rendu public du contenu
+
+La page `/articles/[slug]` reste compatible avec deux formats :
+
+- texte simple : rendu en paragraphes, comme auparavant ;
+- HTML généré par TinyMCE dans l’éditeur admin : rendu avec styles typographiques pour paragraphes, titres, listes, citations, liens, images, figures, légendes et séparateurs.
+
+Une sanitation minimale est appliquée côté sauvegarde et côté rendu pour supprimer scripts, styles, handlers inline et URLs `javascript:`. Le HTML rendu provient uniquement des administrateurs autorisés ; aucun visiteur public ne peut publier ce contenu.
 
 ## Fonctions de lecture publiques
 
@@ -62,14 +95,8 @@ Ces fonctions utilisent la clé anon côté serveur et s’appuient sur RLS. Si 
 - `/actualites` : affiche l’article à la une et la liste des autres articles publiés.
 - `/articles/[slug]` : affiche l’article complet, les actions de partage et la section “À lire aussi”.
 
-## SEO dynamique
-
-La page `/actualites` expose un titre et une description dédiés aux actualités agricoles en Haïti. La page `/articles/[slug]` utilise le titre, l’extrait et l’image de couverture de l’article pour ses métadonnées et Open Graph quand ces données sont disponibles.
-
 ## Prochaines étapes
 
-1. Valider la lecture publique des articles depuis Supabase.
-2. Créer l’admin articles.
-3. Ajouter l’upload d’images.
-4. Ajouter la gestion brouillon / publié / archivé depuis l’admin.
-5. Préparer les rôles administrateurs.
+1. Ajouter une preview privée pour les brouillons.
+2. Ajouter une gestion de suppression ou d’archivage avancée.
+3. Ajouter des rôles administrateurs plus granulaires si nécessaire.
