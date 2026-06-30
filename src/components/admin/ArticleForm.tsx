@@ -640,26 +640,58 @@ function ArticleContentEditor({
           promotion: false,
           plugins: "lists link image preview code table autoresize",
           toolbar:
-            "undo redo | blocks | bold italic underline | bullist numlist blockquote hr | alignleft aligncenter alignright alignjustify | link image | removeformat preview code",
+            "undo redo | blocks | bold italic underline | bullist numlist blockquote hr | alignleft aligncenter alignright alignjustify | link image | forecolor backcolor | removeformat preview code",
+          color_map: [
+            "0f3d2e",
+            "Vert foncé Agri-tech",
+            "047857",
+            "Vert Agri-tech",
+            "10b981",
+            "Vert clair",
+            "f2b705",
+            "Jaune Agri-tech",
+            "10251b",
+            "Texte principal",
+            "64748b",
+            "Gris texte",
+            "b91c1c",
+            "Rouge alerte",
+          ],
+          custom_colors: false,
           block_formats:
             "Paragraphe=p; Titre 2=h2; Titre 3=h3; Titre 4=h4; Citation=blockquote",
           content_style: `
             body {
               font-family: Arial, Helvetica, sans-serif;
               font-size: 16px;
-              line-height: 1.7;
-              color: #334155;
+              line-height: 1.75;
+              color: #10251b;
               margin: 0;
-              padding: 14px 18px;
+              padding: 20px 32px;
             }
             body > *:first-child { margin-top: 0 !important; }
             body > *:last-child { margin-bottom: 0 !important; }
             p { margin: 0 0 1rem; }
+            h1, h2, h3, h4 {
+              color: #0f3d2e;
+              font-weight: 800;
+              line-height: 1.25;
+            }
             h2, h3, h4 { margin: 1.5rem 0 0.75rem; }
+            a {
+              color: #047857;
+              font-weight: 700;
+              text-decoration: underline;
+              text-underline-offset: 3px;
+            }
+            a:hover { color: #065f46; }
             ul, ol { margin: 0 0 1rem 1.25rem; padding-left: 1.25rem; }
             blockquote { margin: 0 0 1rem; border-left: 4px solid #059669; padding-left: 1rem; color: #065f46; }
             figure { margin: 0 0 1.25rem; }
             img { max-width: 100%; height: auto; }
+            @media (max-width: 640px) {
+              body { padding: 16px 18px; }
+            }
           `,
           image_title: true,
           image_caption: true,

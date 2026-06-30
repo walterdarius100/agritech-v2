@@ -42,6 +42,13 @@ body {
   font-weight: 800;
   color: #064e3b;
 }
+.article-content :where(h4) {
+  margin-top: 1.5rem;
+  font-size: 1.15rem;
+  line-height: 1.75rem;
+  font-weight: 800;
+  color: #064e3b;
+}
 .article-content :where(ul, ol) {
   margin-top: 1.5rem;
   padding-left: 1.5rem;
@@ -63,6 +70,10 @@ body {
   color: #047857;
   font-weight: 700;
   text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.article-content :where(a:hover) {
+  color: #065f46;
 }
 .article-content :where(img) {
   margin-top: 1.5rem;
