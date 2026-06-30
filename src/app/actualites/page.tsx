@@ -7,11 +7,13 @@ import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import {
   formatArticleDate,
+  getArticleDate,
   getArticleImage,
-  getFeaturedArticle,
   getPublishedArticles,
 } from "@/lib/articles/getArticles";
 import { createMetadata } from "@/lib/seo/metadata";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = createMetadata({
   title: "Actualités agricoles en Haïti",
@@ -21,13 +23,12 @@ export const metadata: Metadata = createMetadata({
 });
 
 export default async function ActualitesPage() {
-  const [articles, featuredArticle] = await Promise.all([
-    getPublishedArticles(),
-    getFeaturedArticle(),
-  ]);
+  const articles = await getPublishedArticles();
+  const featuredArticle =
+    articles.find((article) => article.featured) ?? articles[0] ?? null;
   const otherArticles = featuredArticle
     ? articles.filter((article) => article.slug !== featuredArticle.slug)
-    : [];
+    : articles;
 
   return (
     <>
@@ -76,7 +77,7 @@ export default async function ActualitesPage() {
             <div className="flex flex-col justify-center p-6 sm:p-7 lg:p-8">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
                 {featuredArticle.category} ·{" "}
-                {formatArticleDate(featuredArticle.published_at)}
+                {formatArticleDate(getArticleDate(featuredArticle))}
               </p>
               <h2 className="mt-4 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">
                 {featuredArticle.title}
