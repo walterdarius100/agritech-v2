@@ -4,14 +4,16 @@
 
 L’admin articles permet à un administrateur Agri-tech de gérer les articles Supabase depuis une interface claire, sans modifier directement la base de données et sans exposer la clé service role côté navigateur.
 
-## Routes
+## Routes et navigation admin
 
-- `/admin/login` : connexion admin par email et mot de passe.
+- `/admin/login` : connexion admin par email et mot de passe dans une seule carte claire.
 - `/admin` : mini dashboard avec compteurs d’articles.
 - `/admin/articles` : liste de tous les articles avec filtres par statut.
 - `/admin/articles/new` : création d’un article.
 - `/admin/articles/[id]/edit` : modification d’un article existant.
 - `/admin/articles/upload-cover` : route serveur sécurisée pour uploader l’image de couverture.
+
+Les pages admin protégées affichent une navigation dédiée, séparée du navbar public : logo complet Agri-tech, libellé **Administration Agri-tech**, liens **Tableau de bord**, **Articles**, **Nouvel article**, **Voir le site** et bouton **Se déconnecter**. La navigation est responsive et le bouton de déconnexion appelle l’action serveur existante, puis redirige vers `/admin/login`.
 
 ## Variables d’environnement
 
@@ -21,9 +23,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
 NEXT_PUBLIC_SITE_URL=
 ADMIN_EMAILS=
+NEXT_PUBLIC_TINYMCE_API_KEY=
 ```
 
-`ADMIN_EMAILS` contient les emails autorisés, séparés par des virgules. `SUPABASE_SERVICE_ROLE_KEY` doit rester strictement côté serveur.
+`ADMIN_EMAILS` contient les emails autorisés, séparés par des virgules. `SUPABASE_SERVICE_ROLE_KEY` doit rester strictement côté serveur. `NEXT_PUBLIC_TINYMCE_API_KEY` est une clé publique TinyMCE Cloud utilisée uniquement pour charger l’éditeur dans l’admin ; si elle est absente, l’intégration utilise `no-api-key`, ce qui évite de casser le build mais peut afficher l’avertissement TinyMCE Cloud en développement.
 
 ## Sécurité retenue
 
@@ -40,7 +43,7 @@ Le formulaire de création/modification est organisé en quatre sections :
 
 1. **Informations de l’article** : titre, slug, catégorie, résumé/extrait, auteur et durée de lecture.
 2. **Image de couverture** : URL publique, upload Supabase Storage et aperçu.
-3. **Contenu** : éditeur riche léger basé sur `contentEditable`, avec stockage HTML dans le champ `content`.
+3. **Contenu** : éditeur TinyMCE chargé côté client, avec stockage HTML dans le champ `content`.
 4. **Publication** : statut, date de publication, article à la une et actions.
 
 Le slug reste modifiable. Le bouton **Générer** remplit le slug depuis le titre uniquement sur action volontaire.
@@ -57,11 +60,13 @@ La migration `supabase/migrations/20260630_create_article_images_bucket.sql` cr�
 
 Si la création automatique du bucket est bloquée par votre environnement Supabase, créez manuellement un bucket public `article-images`, limitez les MIME types à `image/jpeg`, `image/png`, `image/webp`, limitez la taille à `4194304` octets et conservez uniquement la lecture publique.
 
-## Éditeur de contenu
+## Éditeur TinyMCE
 
-L’éditeur admin propose : paragraphe, titre, gras, italique, listes, citation, séparateur, lien, image et nettoyage du format. Le contenu est enregistré en HTML dans `content` après une sanitation minimale côté serveur : suppression des scripts, styles, handlers `on*` et URLs `javascript:`.
+La section **Contenu** utilise TinyMCE comme éditeur principal. La configuration active les blocs de texte, titres, gras, italique, souligné, listes, citation, séparateur horizontal, alignements, liens, insertion d’image par URL, aperçu, code, tableau, annulation/rétablissement et nettoyage de mise en forme.
 
-Les anciens articles en texte simple restent compatibles : la page publique affiche encore les paragraphes texte si `content` ne contient pas de HTML.
+Le contenu est enregistré en HTML dans le champ existant `articles.content` après une sanitation minimale côté serveur : suppression des scripts, styles, handlers `on*` et URLs `javascript:`. Aucune nouvelle colonne n’est créée.
+
+Les anciens articles en texte simple restent compatibles : la page publique affiche encore les paragraphes texte si `content` ne contient pas de HTML. Les images de couverture restent gérées séparément par `cover_image_url`; les images insérées dans le corps de l’article sont ajoutées dans TinyMCE via URL.
 
 ## Publication
 
@@ -93,7 +98,8 @@ Validations minimales : titre, slug, catégorie, extrait, contenu, statut valide
 
 - Pas de suppression d’article depuis l’admin.
 - Pas de preview privée pour les brouillons non publiés.
-- L’éditeur riche reste volontairement léger pour éviter une dépendance lourde.
+- TinyMCE est chargé côté client via TinyMCE Cloud/CDN afin de ne pas casser le build si le package npm n’est pas disponible dans l’environnement.
+- L’upload inline d’images TinyMCE vers Supabase Storage n’est pas inclus : les images de contenu sont insérées par URL.
 - Pas de table de rôles avancée : la liste `ADMIN_EMAILS` reste la source d’autorisation.
 
 ## Prochaines étapes

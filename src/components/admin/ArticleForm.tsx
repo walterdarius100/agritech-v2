@@ -3,7 +3,14 @@
 /* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
-import { useActionState, useMemo, useRef, useState } from "react";
+import {
+  useActionState,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import type { ReactNode } from "react";
 
 import type { ArticleFormState } from "@/lib/articles/adminArticles";
@@ -32,6 +39,17 @@ type ArticleFormProps = {
   submitLabel: string;
   mode?: "create" | "edit";
 };
+
+declare global {
+  interface Window {
+    tinymce?: {
+      init: (options: Record<string, unknown>) => Promise<unknown[]>;
+      get: (id: string) => { remove: () => void } | null;
+    };
+  }
+}
+
+const tinymceApiKey = process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key";
 
 const uploadTypes = ["image/jpeg", "image/png", "image/webp"];
 const maxUploadSize = 4 * 1024 * 1024;
@@ -78,7 +96,6 @@ export function ArticleForm({
   );
   const [status, setStatus] = useState<ArticleStatus>(defaults.status);
   const [publishedAt, setPublishedAt] = useState(defaults.published_at);
-  const editorRef = useRef<HTMLDivElement>(null);
   const previewHref = useMemo(
     () =>
       defaults.slug && defaults.status === "published"
@@ -86,18 +103,6 @@ export function ArticleForm({
         : "",
     [defaults.slug, defaults.status],
   );
-
-  function runCommand(command: string, value?: string) {
-    editorRef.current?.focus();
-    document.execCommand(command, false, value);
-    setEditorHtml(editorRef.current?.innerHTML ?? "");
-  }
-
-  function runPromptCommand(command: "createLink" | "insertImage") {
-    const label = command === "createLink" ? "URL du lien" : "URL de l’image";
-    const value = window.prompt(label);
-    if (value) runCommand(command, value);
-  }
 
   async function handleUpload(file: File | null) {
     setUploadError(null);
@@ -309,52 +314,10 @@ export function ArticleForm({
 
       <Section
         title="Contenu"
-        description="Le contenu est enregistré en HTML propre et reste compatible avec les anciens articles en texte simple."
+        description="TinyMCE enregistre le contenu en HTML dans le champ Supabase existant content."
       >
         <input type="hidden" name="content" value={editorHtml} />
-        <div className="md:col-span-2 overflow-hidden rounded-2xl border border-slate-200 bg-white">
-          <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-50 p-3">
-            <ToolButton onClick={() => runCommand("formatBlock", "p")}>
-              Paragraphe
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("formatBlock", "h2")}>
-              Titre
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("bold")}>Gras</ToolButton>
-            <ToolButton onClick={() => runCommand("italic")}>
-              Italique
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("insertUnorderedList")}>
-              Puces
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("insertOrderedList")}>
-              Numérotée
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("formatBlock", "blockquote")}>
-              Citation
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("insertHorizontalRule")}>
-              Séparateur
-            </ToolButton>
-            <ToolButton onClick={() => runPromptCommand("createLink")}>
-              Lien
-            </ToolButton>
-            <ToolButton onClick={() => runPromptCommand("insertImage")}>
-              Image
-            </ToolButton>
-            <ToolButton onClick={() => runCommand("removeFormat")}>
-              Nettoyer
-            </ToolButton>
-          </div>
-          <div
-            ref={editorRef}
-            className="min-h-96 px-5 py-4 text-base leading-8 text-slate-700 outline-none"
-            contentEditable
-            suppressContentEditableWarning
-            onInput={(event) => setEditorHtml(event.currentTarget.innerHTML)}
-            dangerouslySetInnerHTML={{ __html: editorHtml }}
-          />
-        </div>
+        <ArticleContentEditor value={editorHtml} onChange={setEditorHtml} />
       </Section>
 
       <Section title="Publication">
@@ -550,20 +513,124 @@ function Textarea({
     </div>
   );
 }
-function ToolButton({
-  children,
-  onClick,
+function ArticleContentEditor({
+  value,
+  onChange,
 }: {
-  children: ReactNode;
-  onClick: () => void;
+  value: string;
+  onChange: (value: string) => void;
 }) {
+  const textareaId = useId().replace(/:/g, "-");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [isTinyReady, setIsTinyReady] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const scriptId = "tinymce-cloud-script";
+
+    async function initializeTinyMce() {
+      try {
+        if (!window.tinymce) {
+          await new Promise<void>((resolve, reject) => {
+            const existingScript = document.getElementById(
+              scriptId,
+            ) as HTMLScriptElement | null;
+
+            if (existingScript) {
+              existingScript.addEventListener("load", () => resolve(), {
+                once: true,
+              });
+              existingScript.addEventListener(
+                "error",
+                () => reject(new Error("TinyMCE unavailable")),
+                { once: true },
+              );
+              return;
+            }
+
+            const script = document.createElement("script");
+            script.id = scriptId;
+            script.src = `https://cdn.tiny.cloud/1/${tinymceApiKey}/tinymce/7/tinymce.min.js`;
+            script.referrerPolicy = "origin";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("TinyMCE unavailable"));
+            document.head.appendChild(script);
+          });
+        }
+
+        if (cancelled || !textareaRef.current || !window.tinymce) return;
+
+        await window.tinymce.init({
+          target: textareaRef.current,
+          height: 520,
+          menubar: false,
+          branding: false,
+          promotion: false,
+          plugins: "lists link image preview code table autoresize",
+          toolbar:
+            "undo redo | blocks | bold italic underline | bullist numlist blockquote hr | alignleft aligncenter alignright alignjustify | link image | removeformat preview code",
+          block_formats:
+            "Paragraphe=p; Titre 2=h2; Titre 3=h3; Titre 4=h4; Citation=blockquote",
+          content_style:
+            "body { font-family: Arial, Helvetica, sans-serif; font-size: 16px; line-height: 1.7; color: #334155; } img { max-width: 100%; height: auto; }",
+          image_title: true,
+          automatic_uploads: false,
+          paste_data_images: false,
+          convert_urls: false,
+          autoresize_bottom_margin: 24,
+          setup: (editor: {
+            on: (eventName: string, callback: () => void) => void;
+            getContent: () => string;
+          }) => {
+            editor.on("init", () => {
+              if (!cancelled) setIsTinyReady(true);
+            });
+            editor.on("change keyup undo redo setcontent", () => {
+              onChange(editor.getContent());
+            });
+          },
+        });
+      } catch {
+        if (!cancelled) {
+          setLoadError(
+            "TinyMCE n’a pas pu être chargé. Le textarea de secours reste disponible.",
+          );
+        }
+      }
+    }
+
+    void initializeTinyMce();
+
+    return () => {
+      cancelled = true;
+      window.tinymce?.get(textareaId)?.remove();
+    };
+  }, [onChange, textareaId]);
+
   return (
-    <button
-      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 hover:border-emerald-300 hover:text-emerald-800"
-      type="button"
-      onClick={onClick}
-    >
-      {children}
-    </button>
+    <div className="md:col-span-2 min-w-0">
+      {!isTinyReady && !loadError ? (
+        <p className="mb-3 rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+          Chargement de l’éditeur TinyMCE...
+        </p>
+      ) : null}
+      {loadError ? (
+        <p className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          {loadError}
+        </p>
+      ) : null}
+      <textarea
+        ref={textareaRef}
+        id={textareaId}
+        className="min-h-96 w-full rounded-2xl border border-slate-300 px-4 py-3 text-base leading-8 text-slate-700"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <p className="mt-2 text-xs text-slate-500">
+        Images dans le contenu : insérez une URL depuis TinyMCE. L’upload de
+        couverture reste géré dans la section Image de couverture.
+      </p>
+    </div>
   );
 }

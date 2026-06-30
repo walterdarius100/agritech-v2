@@ -74,9 +74,9 @@ Si votre instance Supabase ne permet pas d’appliquer les migrations Storage vi
 La page `/articles/[slug]` reste compatible avec deux formats :
 
 - texte simple : rendu en paragraphes, comme auparavant ;
-- HTML généré par l’éditeur admin : rendu avec styles typographiques pour paragraphes, titres, listes, citations, liens, images et séparateurs.
+- HTML généré par TinyMCE dans l’éditeur admin : rendu avec styles typographiques pour paragraphes, titres, listes, citations, liens, images et séparateurs.
 
-Une sanitation minimale est appliquée côté rendu pour supprimer scripts, styles, handlers inline et URLs `javascript:`.
+Une sanitation minimale est appliquée côté sauvegarde et côté rendu pour supprimer scripts, styles, handlers inline et URLs `javascript:`. Le HTML rendu provient uniquement des administrateurs autorisés ; aucun visiteur public ne peut publier ce contenu.
 
 ## Fonctions de lecture publiques
 
