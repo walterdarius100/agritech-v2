@@ -12,7 +12,12 @@ export const metadata: Metadata = createMetadata({
   path: "/contact",
 });
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string; formation?: string }>;
+}) {
+  const params = await searchParams;
   return (
     <>
       <section className="bg-emerald-950 py-14 text-white sm:py-18">
@@ -28,7 +33,7 @@ export default function ContactPage() {
       </section>
       <Section>
         <div className="mx-auto max-w-4xl">
-          <ContactFormShell />
+          <ContactFormShell formationSlug={params.formation} serviceSlug={params.service} />
         </div>
       </Section>
     </>

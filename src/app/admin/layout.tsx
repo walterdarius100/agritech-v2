@@ -8,6 +8,7 @@ import { getCurrentAdminUser } from "@/lib/auth/adminAuth";
 const adminLinks = [
   { href: "/admin", label: "Tableau de bord" },
   { href: "/admin/articles", label: "Articles" },
+  { href: "/admin/contact-requests", label: "Demandes" },
   { href: "/admin/articles/new", label: "Nouvel article" },
   { href: "/", label: "Voir le site" },
 ];
