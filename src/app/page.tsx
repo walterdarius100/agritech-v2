@@ -9,9 +9,12 @@ import { HomePartnershipsSection } from "@/components/home/HomePartnershipsSecti
 import { HomeTestimonialsSection } from "@/components/home/HomeTestimonialsSection";
 import { createMetadata } from "@/lib/seo/metadata";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = createMetadata({
   title: "Votre projet agricole, bien accompagné",
-  description: "Services techniques, formations pratiques et contenus éducatifs pour accompagner les projets agricoles en Haïti.",
+  description:
+    "Services techniques, formations pratiques et contenus éducatifs pour accompagner les projets agricoles en Haïti.",
   path: "/",
 });
 
