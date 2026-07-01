@@ -44,3 +44,27 @@ Si Marie ne voit pas `Cuniculture pratique` après attribution :
 6. ne pas ajouter Marie dans `ADMIN_EMAILS`, car cette variable concerne seulement l’administration.
 
 Le bouton `Continuer` doit ensuite pointer vers `/academy/cours/cuniculture-pratique/apprendre`.
+
+## Scénario contenu pédagogique — Cuniculture pratique
+
+1. Ouvrir `/admin/academy/courses`.
+2. Trouver `Cuniculture pratique` puis cliquer **Contenu**.
+3. Créer le module `Introduction à la cuniculture` en `published`, position `1`.
+4. Créer la leçon `Présentation de l’élevage de lapins`, associer le module, ajouter du contenu écrit, une URL vidéo et le statut `published`.
+5. Créer la ressource `Guide de démarrage en cuniculture` en type `pdf` ou `document`, avec `external_url` ou `file_url`.
+6. Se connecter comme Marie Lovelie, déjà inscrite avec enrollment `active` ou `completed`.
+7. Ouvrir `/academy/mes-cours`, cliquer **Continuer** puis vérifier `/academy/cours/cuniculture-pratique/apprendre`.
+8. Vérifier que les modules et leçons sont triés par `position`, que le contenu écrit, la vidéo et les ressources apparaissent.
+9. Cliquer **Marquer comme terminé**, rafraîchir la page et vérifier que la progression reste sauvegardée dans `academy_lesson_progress`.
+
+Exemple complet recommandé :
+
+- Module 1 : Introduction à la cuniculture
+  - Leçon 1 : Présentation de l’élevage de lapins
+  - Leçon 2 : Les avantages de la cuniculture
+  - Leçon 3 : Les erreurs fréquentes au démarrage
+- Module 2 : Logement et matériel
+  - Leçon 1 : Choisir l’emplacement du clapier
+  - Leçon 2 : Matériel de base
+  - Leçon 3 : Hygiène et sécurité
+- Ressources : Guide de démarrage en cuniculture, Liste du matériel nécessaire.

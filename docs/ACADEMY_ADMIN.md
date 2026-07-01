@@ -29,3 +29,9 @@ completed
 ```
 
 Les statuts `pending`, `rejected` et `expired` ne sont pas affichés dans le dashboard étudiant. Vérifier aussi que le `student_id` sélectionné correspond bien à l’id du profil/student Supabase de l’étudiant, et que le `course_id` correspond au cours attendu, par exemple `cuniculture-pratique`.
+
+## Gestion du contenu des cours
+
+La liste `/admin/academy/courses` propose maintenant les actions **Modifier**, **Contenu** et **Voir**. **Contenu** ouvre `/admin/academy/courses/[id]/content` pour gérer modules, leçons, vidéos par URL et ressources pédagogiques.
+
+La page d’édition d’un cours contient aussi le lien **Gérer le contenu du cours**. Les actions d’archivage utilisent le statut `archived` pour les modules et leçons afin d’éviter une suppression brutale des données.
