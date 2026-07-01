@@ -30,3 +30,18 @@ RLS : les cours publiés sont publics, les leçons publiques sont limitées aux 
 Variables nécessaires : `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_SITE_URL`, `ADMIN_EMAILS`.
 
 Limites : pas de paiement automatique, pas d’upload Storage obligatoire et pas de PDF généré automatiquement.
+
+## Debug accès étudiant après enrollment
+
+Quand un cours validé n’apparaît pas côté étudiant, vérifier dans `academy_enrollments` :
+
+```txt
+student_id = id Supabase Auth de l’étudiant
+course_id = id du cours dans academy_courses
+status in ('active', 'completed')
+expires_at vide ou dans le futur
+```
+
+Le dashboard et `/academy/mes-cours` lisent les enrollments côté serveur avec la service role, puis chargent explicitement les cours par `course_id`. Cette lecture en deux étapes évite de dépendre d’une relation PostgREST implicite entre `academy_enrollments` et `academy_courses`.
+
+`ADMIN_EMAILS` ne concerne pas les étudiants. Il sert uniquement à autoriser `/admin/*`.

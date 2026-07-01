@@ -1,14 +1,12 @@
+import { enrollmentGrantsAccess, getActiveStudentEnrollments, getStudentCourseAccess, getStudentEnrollments as getStudentEnrollmentsForAccess } from "@/lib/academy/enrollments";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 import type {
   AcademyCourse,
-  AcademyEnrollment,
   AcademyLesson,
   AcademyModule,
   AcademyResource,
   LessonProgress,
 } from "@/types/academy";
-
-const ACTIVE_ENROLLMENT_STATUSES = ["active", "completed"] as const;
 
 export async function getPublishedAcademyCourses() {
   const supabase = createSupabaseServerClient();
@@ -63,42 +61,16 @@ export async function getPublicCourseProgram(courseId: string) {
 }
 
 export async function hasActiveEnrollment(studentId: string, courseId: string) {
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return false;
-
-  const { data } = await supabase
-    .from("academy_enrollments")
-    .select("id,status,expires_at")
-    .eq("student_id", studentId)
-    .eq("course_id", courseId)
-    .in("status", [...ACTIVE_ENROLLMENT_STATUSES])
-    .maybeSingle();
-
-  return Boolean(data && (!data.expires_at || new Date(data.expires_at) > new Date()));
+  const enrollments = await getStudentEnrollmentsForAccess(studentId);
+  return enrollments.some((enrollment) => enrollment.course_id === courseId && enrollmentGrantsAccess(enrollment));
 }
 
 export async function getStudentEnrollments(studentId: string) {
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return [] as AcademyEnrollment[];
-
-  const { data } = await supabase
-    .from("academy_enrollments")
-    .select("*, academy_courses(*)")
-    .eq("student_id", studentId)
-    .order("created_at", { ascending: false });
-
-  return (data ?? []) as AcademyEnrollment[];
+  return getStudentEnrollmentsForAccess(studentId);
 }
 
 export async function getActiveStudentCourses(studentId: string) {
-  const enrollments = await getStudentEnrollments(studentId);
-  return enrollments.filter((enrollment) => {
-    const isActive = ACTIVE_ENROLLMENT_STATUSES.includes(
-      enrollment.status as (typeof ACTIVE_ENROLLMENT_STATUSES)[number],
-    );
-    const isNotExpired = !enrollment.expires_at || new Date(enrollment.expires_at) > new Date();
-    return isActive && isNotExpired && enrollment.academy_courses;
-  });
+  return getActiveStudentEnrollments(studentId);
 }
 
 export async function getProgressForCourses(studentId: string, courseIds: string[]) {
@@ -143,13 +115,12 @@ export async function getLearningPayload(studentId: string, slug: string) {
   const supabase = createSupabaseAdminClient();
   if (!supabase) return null;
 
-  const { data: course } = await supabase.from("academy_courses").select("*").eq("slug", slug).maybeSingle();
-  if (!course) return null;
+  const access = await getStudentCourseAccess(studentId, slug);
+  if (!access.course) return null;
 
-  const allowed = await hasActiveEnrollment(studentId, course.id);
-  if (!allowed) {
+  if (!access.hasAccess) {
     return {
-      course: course as AcademyCourse,
+      course: access.course,
       allowed: false,
       modules: [] as AcademyModule[],
       lessons: [] as AcademyLesson[],
@@ -157,6 +128,8 @@ export async function getLearningPayload(studentId: string, slug: string) {
       progress: [] as LessonProgress[],
     };
   }
+
+  const course = access.course;
 
   const [{ data: modules }, { data: lessons }, { data: resources }, { data: progress }] = await Promise.all([
     supabase.from("academy_modules").select("*").eq("course_id", course.id).eq("status", "published").order("position"),

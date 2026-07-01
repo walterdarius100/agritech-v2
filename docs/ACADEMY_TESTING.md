@@ -31,3 +31,16 @@ Slug : cuniculture-pratique
 ## Données seedées
 
 La migration `20260701_seed_academy_courses_from_formations.sql` insère les slugs publics existants dans `academy_courses` sans écraser les cours déjà modifiés par l’admin (`on conflict (slug) do nothing`). Elle ajoute aussi des modules/leçons/ressources de base pour `cuniculture-pratique` afin de tester le parcours jusqu’à la progression.
+
+## Debug accès étudiant après enrollment
+
+Si Marie ne voit pas `Cuniculture pratique` après attribution :
+
+1. ouvrir Supabase et vérifier une ligne `academy_enrollments` avec `student_id` = id Auth de Marie ;
+2. vérifier que `course_id` pointe vers `academy_courses.slug = cuniculture-pratique` ;
+3. vérifier `status = active` ou `completed` ;
+4. vérifier que `expires_at` est vide ou futur ;
+5. rafraîchir `/academy/dashboard` ou `/academy/mes-cours` ;
+6. ne pas ajouter Marie dans `ADMIN_EMAILS`, car cette variable concerne seulement l’administration.
+
+Le bouton `Continuer` doit ensuite pointer vers `/academy/cours/cuniculture-pratique/apprendre`.

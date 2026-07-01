@@ -16,3 +16,16 @@ La navigation admin principale contient un lien `Academy`. Toutes les pages `/ad
 6. Ajouter une référence de paiement si un paiement externe a été reçu.
 
 Cette V1 ne fait pas de paiement automatique. MonCash, NatCash ou virement restent gérés hors plateforme puis validés manuellement.
+
+## Debug accès étudiant après enrollment
+
+Dans `/admin/academy/enrollments`, le formulaire fait un upsert sur le couple `student_id + course_id`. Si l’inscription existe déjà, elle est mise à jour au lieu de créer un doublon.
+
+Pour qu’un étudiant voie le cours immédiatement après refresh, le statut doit être :
+
+```txt
+active
+completed
+```
+
+Les statuts `pending`, `rejected` et `expired` ne sont pas affichés dans le dashboard étudiant. Vérifier aussi que le `student_id` sélectionné correspond bien à l’id du profil/student Supabase de l’étudiant, et que le `course_id` correspond au cours attendu, par exemple `cuniculture-pratique`.

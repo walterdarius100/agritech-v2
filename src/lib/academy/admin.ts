@@ -41,6 +41,7 @@ export async function createEnrollment(formData: FormData) {
   );
 
   revalidatePath("/admin/academy/enrollments");
+  redirect("/admin/academy/enrollments?success=1");
 }
 
 export async function createCourse(formData: FormData) {
