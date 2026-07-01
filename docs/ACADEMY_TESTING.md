@@ -68,3 +68,16 @@ Exemple complet recommandé :
   - Leçon 2 : Matériel de base
   - Leçon 3 : Hygiène et sécurité
 - Ressources : Guide de démarrage en cuniculture, Liste du matériel nécessaire.
+
+## Vérification UX de la page d’apprentissage
+
+Pour `/academy/cours/cuniculture-pratique/apprendre` avec un étudiant inscrit :
+
+1. vérifier que seul le titre du cours et la progression sont visibles dans l’en-tête ;
+2. vérifier que la sidebar modules/leçons est à gauche sur desktop et reste lisible sur mobile ;
+3. ouvrir et fermer plusieurs modules ;
+4. cliquer une leçon et vérifier que la zone vidéo change sans afficher de texte parasite avant le lecteur ;
+5. tester une vidéo YouTube, un lien MP4 direct et un lien externe ;
+6. vérifier les onglets **À propos de ce module**, **Formateur de la leçon** et **Ressources** ;
+7. vérifier que les ressources globales du cours et celles de la leçon active apparaissent proprement ;
+8. cliquer **Marquer comme terminé**, rafraîchir et confirmer que la progression reste sauvegardée.

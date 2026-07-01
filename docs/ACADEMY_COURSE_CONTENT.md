@@ -45,3 +45,7 @@ Les modules, leçons et ressources sont triés par `position`. Seules les leçon
 - Pas d’upload vidéo.
 - Les ressources acceptent des URLs ; l’upload Supabase Storage `academy-resources` reste une prochaine étape si le bucket n’est pas configuré.
 - Pas de quiz, devoirs, commentaires, certificats PDF ou paiement automatique dans cette étape.
+
+## Affichage côté étudiant
+
+La page d’apprentissage affiche maintenant le contenu dans une structure proche d’une plateforme e-learning : sidebar modules/leçons, lecteur vidéo prioritaire, bouton de progression dans la zone de lecture et onglets sous la vidéo. Les ressources globales du cours et les ressources liées à la leçon active sont disponibles dans l’onglet **Ressources**.
