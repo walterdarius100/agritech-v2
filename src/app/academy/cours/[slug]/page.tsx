@@ -45,7 +45,6 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
           />
         ) : null}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(250,204,21,0.20),transparent_24%),linear-gradient(110deg,rgba(2,44,34,0.98)_0%,rgba(2,44,34,0.92)_46%,rgba(6,78,59,0.74)_100%)]" aria-hidden="true" />
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f8faf7] to-transparent" aria-hidden="true" />
         <Container className="relative z-10">
           <div className="max-w-4xl">
             <p className="text-sm font-bold uppercase tracking-widest text-yellow-400">{course.category}</p>
