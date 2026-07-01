@@ -64,6 +64,11 @@ export async function createCourse(formData: FormData) {
     price_currency: String(formData.get("priceCurrency") || "HTG"),
     is_free: formData.get("isFree") === "on",
     published_at: nullableString(formData.get("publishedAt")) ?? (status === "published" ? new Date().toISOString() : null),
+    certification_description: nullableString(formData.get("certificationDescription")),
+    instructor_name: nullableString(formData.get("instructorName")),
+    instructor_role: nullableString(formData.get("instructorRole")),
+    instructor_bio: nullableString(formData.get("instructorBio")),
+    instructor_image_url: nullableString(formData.get("instructorImageUrl")),
   });
 
   revalidatePath("/admin/academy/courses");
@@ -94,6 +99,11 @@ export async function updateCourse(formData: FormData) {
       price_currency: String(formData.get("priceCurrency") || "HTG"),
       is_free: formData.get("isFree") === "on",
       published_at: nullableString(formData.get("publishedAt")) ?? (status === "published" ? new Date().toISOString() : null),
+    certification_description: nullableString(formData.get("certificationDescription")),
+    instructor_name: nullableString(formData.get("instructorName")),
+    instructor_role: nullableString(formData.get("instructorRole")),
+    instructor_bio: nullableString(formData.get("instructorBio")),
+    instructor_image_url: nullableString(formData.get("instructorImageUrl")),
     })
     .eq("id", id);
 

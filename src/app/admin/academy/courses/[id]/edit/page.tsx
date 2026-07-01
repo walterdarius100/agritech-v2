@@ -110,6 +110,27 @@ export default async function EditAcademyCoursePage({ params, searchParams }: Ed
           Description complète
           <textarea name="description" defaultValue={course.description ?? ""} className="min-h-40 rounded-xl border border-slate-200 p-3 font-normal" />
         </label>
+
+        <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+          Texte certification / conditions
+          <textarea name="certificationDescription" defaultValue={course.certification_description ?? ""} className="min-h-28 rounded-xl border border-slate-200 p-3 font-normal" />
+        </label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">
+          Nom du formateur principal
+          <input name="instructorName" defaultValue={course.instructor_name ?? ""} className="rounded-xl border border-slate-200 p-3 font-normal" />
+        </label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700">
+          Titre ou rôle du formateur
+          <input name="instructorRole" defaultValue={course.instructor_role ?? ""} className="rounded-xl border border-slate-200 p-3 font-normal" />
+        </label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+          Image du formateur
+          <input name="instructorImageUrl" defaultValue={course.instructor_image_url ?? ""} className="rounded-xl border border-slate-200 p-3 font-normal" />
+        </label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+          Bio courte du formateur
+          <textarea name="instructorBio" defaultValue={course.instructor_bio ?? ""} className="min-h-28 rounded-xl border border-slate-200 p-3 font-normal" />
+        </label>
         <button className="rounded-xl bg-emerald-700 px-5 py-3 font-semibold text-white md:col-span-2" type="submit">
           Sauvegarder
         </button>
