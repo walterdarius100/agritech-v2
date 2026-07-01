@@ -86,10 +86,11 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
     return { ok: false, message: "Type de demande invalide." };
   }
 
-  const finalRequestType = formationSlug
-    ? "formation"
-    : serviceSlug
-      ? "service"
+  // Si service_slug et formation_slug arrivent ensemble, le service est prioritaire.
+  const finalRequestType = serviceSlug
+    ? "service"
+    : formationSlug
+      ? "formation"
       : requestType;
 
   return {
