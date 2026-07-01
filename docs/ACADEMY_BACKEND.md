@@ -2,6 +2,18 @@
 
 Cette étape ajoute les tables `profiles`, `academy_courses`, `academy_modules`, `academy_lessons`, `academy_resources`, `academy_enrollments`, `academy_lesson_progress` et `academy_certificates` via `supabase/migrations/20260701_create_academy_tables.sql`.
 
+La migration `supabase/migrations/20260701_seed_academy_courses_from_formations.sql` relie les formations publiques existantes à Academy avec les mêmes slugs :
+
+```txt
+elevage-poulets-de-chair
+elevage-poules-pondeuses
+cuniculture-pratique
+apiculture-pratique
+pisciculture
+production-vegetale
+gestion-projet-agricole
+```
+
 Schéma :
 
 ```txt
