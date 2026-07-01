@@ -1,5 +1,5 @@
 import { formations } from "@/data/formations";
-import type { AcademyCourse, AcademyCourseModule } from "@/types/academy";
+import type { AcademyPrototypeCourse, AcademyCourseModule } from "@/types/academy";
 
 const academyCourseSlugs = [
   "elevage-poulets-de-chair",
@@ -26,7 +26,7 @@ function getPrototypeModuleStatus(index: number): AcademyCourseModule["status"] 
 }
 
 // Données temporaires pour le prototype visuel de l’espace étudiant Academy.
-export const academyCourses: AcademyCourse[] = academyCourseSlugs.map((slug) => {
+export const academyCourses: AcademyPrototypeCourse[] = academyCourseSlugs.map((slug) => {
   const formation = formations.find((item) => item.slug === slug);
 
   if (!formation) {

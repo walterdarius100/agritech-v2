@@ -1,9 +1,9 @@
 import { Button } from "@/components/ui/Button";
 import { CourseModuleList } from "@/components/academy/CourseModuleList";
 import { CourseResourceList } from "@/components/academy/CourseResourceList";
-import type { AcademyCourse } from "@/types/academy";
+import type { AcademyPrototypeCourse } from "@/types/academy";
 
-export function CoursePlayerLayout({ course }: { course: AcademyCourse }) {
+export function CoursePlayerLayout({ course }: { course: AcademyPrototypeCourse }) {
   return (
     <div className="grid max-w-full gap-6 overflow-x-hidden lg:grid-cols-[340px_minmax(0,1fr)] xl:grid-cols-[360px_minmax(0,1fr)]">
       <aside className="order-2 lg:sticky lg:top-24 lg:order-1 lg:h-[calc(100vh-6rem)] lg:overflow-x-hidden lg:overflow-y-auto lg:pr-2">
