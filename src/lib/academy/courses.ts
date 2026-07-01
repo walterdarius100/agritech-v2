@@ -36,10 +36,10 @@ export async function getAcademyCourseBySlug(slug: string) {
 }
 
 export async function getPublicCourseProgram(courseId: string) {
-  const supabase = createSupabaseServerClient();
-  if (!supabase) return { modules: [], lessons: [] };
+  const supabase = createSupabaseAdminClient() ?? createSupabaseServerClient();
+  if (!supabase) return { modules: [], lessons: [], resources: [] };
 
-  const [{ data: modules }, { data: lessons }] = await Promise.all([
+  const [{ data: modules }, { data: lessons }, { data: resources }] = await Promise.all([
     supabase
       .from("academy_modules")
       .select("*")
@@ -52,11 +52,17 @@ export async function getPublicCourseProgram(courseId: string) {
       .eq("course_id", courseId)
       .eq("status", "published")
       .order("position"),
+    supabase
+      .from("academy_resources")
+      .select("id,course_id,lesson_id,title,description,file_url,external_url,resource_type,is_downloadable,position")
+      .eq("course_id", courseId)
+      .order("position"),
   ]);
 
   return {
     modules: (modules ?? []) as AcademyModule[],
     lessons: (lessons ?? []) as AcademyLesson[],
+    resources: (resources ?? []) as AcademyResource[],
   };
 }
 

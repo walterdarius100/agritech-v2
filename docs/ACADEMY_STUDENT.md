@@ -1,17 +1,25 @@
-# Espace étudiant Academy
+# Academy — expérience étudiant
 
-Routes : `/academy/register`, `/academy/login`, `/academy/dashboard`, `/academy/mes-cours`, `/academy/cours/[slug]/apprendre`, `/academy/certificats`.
+L’espace étudiant conserve la logique existante d’accès validé, de modules, de leçons, de ressources et de progression.
 
-Un étudiant crée un compte Supabase Auth, un profil `student` est créé, puis il voit uniquement ses inscriptions. La page d’apprentissage vérifie une inscription `active` ou `completed` avant d’afficher les leçons et ressources.
+## Page d’apprentissage
 
-## Nouvelle expérience d’apprentissage
+La page `/academy/cours/[slug]/apprendre` garde :
 
-La page `/academy/cours/[slug]/apprendre` est organisée comme une interface LMS :
+- sidebar modules/leçons ;
+- lecteur vidéo responsive ;
+- onglets À propos, Formateur, Ressources ;
+- bouton de progression de leçon.
 
-- un en-tête simple avec le titre du cours et la progression réelle ;
-- une sidebar à gauche listant les modules et les leçons publiées ;
-- des modules repliables/dépliables pour naviguer sans scroll horizontal ;
-- une zone vidéo prioritaire à droite ;
-- des onglets sous la vidéo : **À propos de ce module**, **Formateur de la leçon** et **Ressources**.
+## Ajustements UX
 
-La sélection d’une leçon se fait dans la sidebar. La vidéo, les informations du module, le formateur et les ressources affichées changent selon la leçon active. Le bouton **Marquer comme terminé** reste dans la zone de lecture et continue d’écrire dans `academy_lesson_progress`.
+- Le lecteur vidéo utilise un cadre léger et occupe davantage la largeur utile de sa carte.
+- Les marges internes autour de la vidéo ont été réduites pour une intégration plus proche du conteneur.
+- Dans l’onglet Ressources, le bouton séparé “Ouvrir/Voir” reste supprimé.
+- Le titre de la ressource est directement cliquable.
+- Le lien pointe vers `external_url` si disponible, sinon vers `file_url`.
+- Les liens s’ouvrent dans un nouvel onglet avec `rel="noopener noreferrer"`.
+
+## Limites
+
+Les ressources restent celles enregistrées en base. Aucun système d’upload, paiement automatique ou génération PDF de certificat n’est ajouté par cette amélioration.

@@ -59,20 +59,15 @@ function formatModuleMeta(lessons: AcademyLesson[]) {
 }
 
 function ResourceCard({ resource }: { resource: AcademyResource }) {
-  const href = resource.file_url ?? resource.external_url ?? "#";
+  const href = resource.external_url ?? resource.file_url ?? "#";
   return (
-    <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h4 className="break-words font-bold text-emerald-950">{resource.title}</h4>
-          <p className="mt-1 text-sm font-semibold text-emerald-700">
-            {resource.resource_type.toUpperCase()} — {resource.is_downloadable ? "Téléchargeable" : "Consultation"}
-          </p>
-        </div>
-        <a className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800" href={href} target="_blank" rel="noreferrer">
-          Ouvrir
-        </a>
-      </div>
+    <article className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition hover:border-emerald-100">
+      <a className="break-words font-bold text-emerald-700 underline-offset-4 hover:text-emerald-800 hover:underline" href={href} target="_blank" rel="noopener noreferrer">
+        {resource.title}
+      </a>
+      <p className="mt-1 text-sm font-semibold text-slate-600">
+        {resource.resource_type.toUpperCase()} — {resource.is_downloadable ? "Téléchargeable" : "Consultation"}
+      </p>
       {resource.description ? <p className="mt-3 whitespace-pre-line text-sm leading-6 text-slate-600">{resource.description}</p> : null}
     </article>
   );
@@ -200,9 +195,9 @@ export function LearningExperience({ course, modules, lessons, resources, progre
           </aside>
 
           <section className="min-w-0 space-y-5">
-            <div className="overflow-hidden rounded-3xl border border-emerald-100 bg-white shadow-sm">
-              <div className="bg-emerald-950 p-3 sm:p-4">
-                <div className="aspect-video overflow-hidden rounded-2xl bg-black">
+            <div className="overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-sm">
+              <div className="bg-slate-950 p-0.5 sm:p-1">
+                <div className="aspect-video overflow-hidden rounded-[1.35rem] bg-black">
                   {embedUrl ? <iframe className="h-full w-full" src={embedUrl} title={activeLesson?.title ?? course.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /> : null}
                   {!embedUrl && isMp4Url(activeLesson?.video_url) ? <video className="h-full w-full" src={activeLesson?.video_url ?? undefined} controls /> : null}
                   {!embedUrl && activeLesson?.video_url && !isMp4Url(activeLesson.video_url) ? (
