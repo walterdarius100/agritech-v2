@@ -54,7 +54,7 @@ export default async function CoursesAdmin() {
               <th>Slug</th>
               <th>Statut</th>
               <th>Prix</th>
-              <th>Action</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -64,9 +64,15 @@ export default async function CoursesAdmin() {
                 <td>{course.slug}</td>
                 <td>{course.status}</td>
                 <td>{course.is_free ? "Gratuit" : `${course.price_amount ?? "—"} ${course.price_currency ?? "HTG"}`}</td>
-                <td>
+                <td className="space-x-3">
                   <Link className="font-semibold text-emerald-800" href={`/admin/academy/courses/${course.id}/edit`}>
                     Modifier
+                  </Link>
+                  <Link className="font-semibold text-emerald-800" href={`/admin/academy/courses/${course.id}/content`}>
+                    Contenu
+                  </Link>
+                  <Link className="font-semibold text-emerald-800" href={`/academy/cours/${course.slug}`}>
+                    Voir
                   </Link>
                 </td>
               </tr>

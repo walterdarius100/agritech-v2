@@ -44,3 +44,40 @@ Si Marie ne voit pas `Cuniculture pratique` après attribution :
 6. ne pas ajouter Marie dans `ADMIN_EMAILS`, car cette variable concerne seulement l’administration.
 
 Le bouton `Continuer` doit ensuite pointer vers `/academy/cours/cuniculture-pratique/apprendre`.
+
+## Scénario contenu pédagogique — Cuniculture pratique
+
+1. Ouvrir `/admin/academy/courses`.
+2. Trouver `Cuniculture pratique` puis cliquer **Contenu**.
+3. Créer le module `Introduction à la cuniculture` en `published`, position `1`.
+4. Créer la leçon `Présentation de l’élevage de lapins`, associer le module, ajouter du contenu écrit, une URL vidéo et le statut `published`.
+5. Créer la ressource `Guide de démarrage en cuniculture` en type `pdf` ou `document`, avec `external_url` ou `file_url`.
+6. Se connecter comme Marie Lovelie, déjà inscrite avec enrollment `active` ou `completed`.
+7. Ouvrir `/academy/mes-cours`, cliquer **Continuer** puis vérifier `/academy/cours/cuniculture-pratique/apprendre`.
+8. Vérifier que les modules et leçons sont triés par `position`, que le contenu écrit, la vidéo et les ressources apparaissent.
+9. Cliquer **Marquer comme terminé**, rafraîchir la page et vérifier que la progression reste sauvegardée dans `academy_lesson_progress`.
+
+Exemple complet recommandé :
+
+- Module 1 : Introduction à la cuniculture
+  - Leçon 1 : Présentation de l’élevage de lapins
+  - Leçon 2 : Les avantages de la cuniculture
+  - Leçon 3 : Les erreurs fréquentes au démarrage
+- Module 2 : Logement et matériel
+  - Leçon 1 : Choisir l’emplacement du clapier
+  - Leçon 2 : Matériel de base
+  - Leçon 3 : Hygiène et sécurité
+- Ressources : Guide de démarrage en cuniculture, Liste du matériel nécessaire.
+
+## Vérification UX de la page d’apprentissage
+
+Pour `/academy/cours/cuniculture-pratique/apprendre` avec un étudiant inscrit :
+
+1. vérifier que seul le titre du cours et la progression sont visibles dans l’en-tête ;
+2. vérifier que la sidebar modules/leçons est à gauche sur desktop et reste lisible sur mobile ;
+3. ouvrir et fermer plusieurs modules ;
+4. cliquer une leçon et vérifier que la zone vidéo change sans afficher de texte parasite avant le lecteur ;
+5. tester une vidéo YouTube, un lien MP4 direct et un lien externe ;
+6. vérifier les onglets **À propos de ce module**, **Formateur de la leçon** et **Ressources** ;
+7. vérifier que les ressources globales du cours et celles de la leçon active apparaissent proprement ;
+8. cliquer **Marquer comme terminé**, rafraîchir et confirmer que la progression reste sauvegardée.
