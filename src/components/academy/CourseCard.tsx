@@ -1,9 +1,9 @@
 import Image from "next/image";
 
 import { Button } from "@/components/ui/Button";
-import type { AcademyCourse } from "@/types/academy";
+import type { AcademyPrototypeCourse } from "@/types/academy";
 
-export function CourseCard({ course }: { course: AcademyCourse }) {
+export function CourseCard({ course }: { course: AcademyPrototypeCourse }) {
   return (
     <article className="group overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-md">
       <div className="relative h-48 overflow-hidden bg-emerald-50">

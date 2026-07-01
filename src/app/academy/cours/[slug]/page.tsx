@@ -1,80 +1,9 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
-
-import { CoursePlayerLayout } from "@/components/academy/CoursePlayerLayout";
-import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
-import { academyCourses, getAcademyCourseBySlug } from "@/data/academyCourses";
+import { getCurrentStudentUser } from "@/lib/academy/auth";
+import { getAcademyCourseBySlug, getPublicCourseProgram, hasActiveEnrollment } from "@/lib/academy/courses";
 import { createMetadata } from "@/lib/seo/metadata";
-
-type AcademyCoursePageProps = {
-  params: Promise<{ slug: string }>;
-};
-
-export function generateStaticParams() {
-  return academyCourses.map((course) => ({ slug: course.slug }));
-}
-
-export async function generateMetadata({ params }: AcademyCoursePageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const course = getAcademyCourseBySlug(slug);
-
-  if (!course) {
-    return createMetadata({ title: "Cours introuvable", path: `/academy/cours/${slug}` });
-  }
-
-  return createMetadata({
-    title: `${course.title} | Agri-tech Academy`,
-    description: course.shortDescription,
-    path: `/academy/cours/${course.slug}`,
-    image: course.image,
-  });
-}
-
-export default async function AcademyCoursePage({ params }: AcademyCoursePageProps) {
-  const { slug } = await params;
-  const course = getAcademyCourseBySlug(slug);
-
-  if (!course) {
-    notFound();
-  }
-
-  return (
-    <main className="overflow-x-hidden bg-[#f8faf7]">
-      <section className="border-b border-emerald-100 bg-white py-10 sm:py-12">
-        <Container>
-          <Button href="/academy" variant="ghost" size="sm" className="px-0 lg:hidden">
-            ← Retour à l’espace étudiant
-          </Button>
-          <div className="mt-7 grid gap-6 lg:mt-0 lg:grid-cols-[1fr_260px] lg:items-end">
-            <div>
-              <p className="text-sm font-bold uppercase tracking-[0.18em] text-orange-600">
-                {course.category}
-              </p>
-              <h1 className="mt-3 text-4xl font-bold tracking-tight text-emerald-950 sm:text-5xl">
-                {course.title}
-              </h1>
-              <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
-                {course.shortDescription}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
-              <p className="text-sm font-semibold text-emerald-900">Progression fictive</p>
-              <p className="mt-2 text-3xl font-black text-emerald-950">{course.progress} %</p>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
-                <div className="h-full rounded-full bg-emerald-700" style={{ width: `${course.progress}%` }} aria-hidden="true" />
-              </div>
-            </div>
-          </div>
-        </Container>
-      </section>
-
-      <Container className="py-10 sm:py-12 lg:py-14">
-        <div className="mb-8 rounded-2xl border border-orange-100 bg-orange-50 px-5 py-4 text-sm leading-6 text-orange-900">
-          Prototype visuel — les accès, paiements et progressions réelles seront ajoutés dans une prochaine étape.
-        </div>
-        <CoursePlayerLayout course={course} />
-      </Container>
-    </main>
-  );
-}
+export async function generateMetadata({params}:{params:Promise<{slug:string}>}):Promise<Metadata>{ const {slug}=await params; const c=await getAcademyCourseBySlug(slug); return createMetadata({title:c?`${c.title} | Agri-tech Academy`:"Cours introuvable",description:c?.short_description??"Formation Academy",path:`/academy/cours/${slug}`}); }
+export default async function AcademyCoursePage({params}:{params:Promise<{slug:string}>}){ const {slug}=await params; const course=await getAcademyCourseBySlug(slug); if(!course) notFound(); const user=await getCurrentStudentUser(); const hasAccess=user?await hasActiveEnrollment(user.id,course.id):false; const {modules,lessons}=await getPublicCourseProgram(course.id); return <main className="bg-[#f8faf7]"><section className="bg-emerald-950 py-14 text-white"><Container><p className="text-sm font-bold uppercase tracking-widest text-yellow-400">{course.category}</p><h1 className="mt-4 max-w-4xl text-5xl font-bold">{course.title}</h1><p className="mt-5 max-w-3xl text-lg text-white/80">{course.short_description}</p><div className="mt-8 flex flex-wrap gap-3"><Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={hasAccess?`/academy/cours/${course.slug}/apprendre`:user?"/contact":"/academy/register"}>{hasAccess?"Continuer le cours":user?"Demander l’accès":"Créer un compte étudiant"}</Link><Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold" href="/academy/login">Connexion étudiant</Link></div></Container></section><Container className="py-12"><div className="grid gap-8 lg:grid-cols-[1fr_320px]"><section className="rounded-3xl bg-white p-7 ring-1 ring-emerald-100"><h2 className="text-2xl font-bold">Présentation</h2><p className="mt-4 whitespace-pre-line leading-7 text-slate-700">{course.description ?? course.short_description}</p><h2 className="mt-8 text-2xl font-bold">Programme</h2><div className="mt-4 space-y-4">{modules.map(m=><div key={m.id} className="rounded-2xl border p-4"><h3 className="font-bold">{m.title}</h3><ul className="mt-2 list-disc pl-5 text-sm text-slate-600">{lessons.filter(l=>l.module_id===m.id).map(l=><li key={l.id}>{l.title}{l.is_preview?" — aperçu gratuit":""}</li>)}</ul></div>)}</div></section><aside className="h-fit rounded-3xl bg-white p-6 ring-1 ring-emerald-100"><p className="text-sm text-slate-500">Prix</p><p className="mt-1 text-3xl font-black">{course.is_free?"Gratuit":`${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`}</p><p className="mt-4 text-sm text-slate-600">Accès complet après validation manuelle par l’équipe Agri-tech.</p></aside></div></Container></main> }
