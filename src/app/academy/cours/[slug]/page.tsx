@@ -36,27 +36,29 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
 
   return (
     <main className="bg-[#f8faf7]">
-      <section className="bg-emerald-950 py-14 text-white sm:py-18">
-        <Container>
-          <div className={course.cover_image_url ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center" : "max-w-4xl"}>
-            <div>
-              <p className="text-sm font-bold uppercase tracking-widest text-yellow-400">{course.category}</p>
-              <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl">{course.title}</h1>
-              <p className="mt-5 max-w-3xl text-lg leading-8 text-white/80">{course.short_description ?? "Formation Academy Agri-tech."}</p>
-              <div className="mt-6 flex flex-wrap gap-2 text-sm font-semibold text-white/85">
-                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">{course.duration ?? "Durée non précisée"}</span>
-                <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">{course.level ? levelLabels[course.level] : "Niveau non précisé"}</span>
-              </div>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={accessHref}>{accessLabel}</Link>
-                <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15" href="/academy/login">Connexion étudiant</Link>
-              </div>
+      <section className="relative overflow-hidden bg-emerald-950 py-14 text-white sm:py-20">
+        {course.cover_image_url ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-35 mix-blend-luminosity sm:opacity-40"
+            style={{ backgroundImage: `url(${course.cover_image_url})` }}
+            aria-hidden="true"
+          />
+        ) : null}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_18%,rgba(250,204,21,0.20),transparent_24%),linear-gradient(110deg,rgba(2,44,34,0.98)_0%,rgba(2,44,34,0.92)_46%,rgba(6,78,59,0.74)_100%)]" aria-hidden="true" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#f8faf7] to-transparent" aria-hidden="true" />
+        <Container className="relative z-10">
+          <div className="max-w-4xl">
+            <p className="text-sm font-bold uppercase tracking-widest text-yellow-400">{course.category}</p>
+            <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight drop-shadow-sm sm:text-5xl">{course.title}</h1>
+            <p className="mt-5 max-w-3xl text-lg leading-8 text-white/85 drop-shadow-sm">{course.short_description ?? "Formation Academy Agri-tech."}</p>
+            <div className="mt-6 flex flex-wrap gap-2 text-sm font-semibold text-white/90">
+              <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm">{course.duration ?? "Durée non précisée"}</span>
+              <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/20 backdrop-blur-sm">{course.level ? levelLabels[course.level] : "Niveau non précisé"}</span>
             </div>
-            {course.cover_image_url ? (
-              <div className="relative min-h-64 overflow-hidden rounded-3xl bg-emerald-900/60 ring-1 ring-white/15 sm:min-h-80">
-                <Image src={course.cover_image_url} alt={course.title} fill unoptimized sizes="(min-width: 1024px) 380px, 100vw" className="object-cover" />
-              </div>
-            ) : null}
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950 shadow-sm transition hover:bg-yellow-300" href={accessHref}>{accessLabel}</Link>
+              <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15 backdrop-blur-sm transition hover:bg-white/15" href="/academy/login">Connexion étudiant</Link>
+            </div>
           </div>
         </Container>
       </section>
