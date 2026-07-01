@@ -2,23 +2,23 @@
 
 ## Pages à vérifier
 
-- `/academy` : cartes avec image, titre, description courte, durée, niveau, prix et CTA.
-- `/academy/cours/cuniculture-pratique` : hero, détails, certification, programme accordéon et formateur.
-- `/academy/cours/cuniculture-pratique/apprendre` : accès étudiant, lecteur vidéo, ressources cliquables, progression.
-- `/admin/academy/courses` : création avec champs éditoriaux.
-- `/admin/academy/courses/[id]/edit` : modification et sauvegarde des nouveaux champs.
-- `/admin/academy/courses/[id]/content` : contenu modules/leçons/ressources inchangé.
+- `/academy` : cartes avec image, titre, description courte, durée, niveau et CTA, sans prix.
+- `/academy/cours/cuniculture-pratique` : hero sans prix ni box accès, détails, certification longue, formateur long, programme accordéon et box modalités d’accès.
+- `/academy/cours/cuniculture-pratique/apprendre` : accès étudiant, lecteur vidéo plus large, onglets, ressources cliquables, progression.
 
 ## Tests fonctionnels
 
-1. Les cartes Academy restent homogènes et responsive.
-2. Les fallbacks “Durée non précisée” et “Niveau non précisé” s’affichent si nécessaire.
-3. La page publique ne donne pas accès au contenu réservé.
-4. Les modules du programme peuvent être ouverts/fermés.
-5. Le formateur affiche les données du cours ou le fallback Équipe Agri-tech.
-6. Les ressources n’affichent plus de bouton “Voir/Ouvrir”.
-7. Le titre de ressource ouvre `external_url` ou `file_url`.
-8. Les enrollments et la progression restent fonctionnels.
+1. Sur `/academy`, les cartes de formation n’affichent plus le prix.
+2. Les cartes affichent toujours image, description courte, durée et niveau.
+3. Sur `/academy/cours/[slug]`, la box “Accès / Validation manuelle” n’est plus dans le hero.
+4. Le prix n’est plus affiché dans le hero.
+5. Une box prix + CTA `Demander l’accès` apparaît dans les modalités d’accès.
+6. La phrase expliquant la validation manuelle par l’équipe Agri-tech est affichée.
+7. La section Formateur est affichée en format long et lisible.
+8. La section Certification Agri-tech est affichée en format long et lisible.
+9. Le lecteur vidéo dans `/apprendre` est légèrement plus large et conserve son ratio responsive.
+10. Les onglets, ressources, enrollments et la progression continuent de fonctionner.
+11. Aucun scroll horizontal sur mobile.
 
 ## Commandes
 

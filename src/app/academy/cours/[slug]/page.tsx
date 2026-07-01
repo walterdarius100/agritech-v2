@@ -26,13 +26,19 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
   const hasAccess = user ? await hasActiveEnrollment(user.id, course.id) : false;
   const { modules, lessons, resources } = await getPublicCourseProgram(course.id);
   const videoCount = lessons.filter((lesson) => lesson.video_url).length;
-  const certificationText = course.certification_description || "À la fin de cette formation, les participants ayant suivi le parcours et validé les conditions définies par Agri-tech pourront recevoir un certificat ou une attestation de participation. Ce document pourra être vérifié en ligne lorsque la fonctionnalité de vérification est activée.";
+  const certificationText = course.certification_description || "À la fin de cette formation, les participants ayant suivi le parcours et rempli les conditions définies par Agri-tech pourront recevoir une attestation ou un certificat Agri-tech. La délivrance du document reste soumise à la validation de l’équipe Agri-tech.";
+  const priceLabel = course.is_free ? "Gratuit" : `${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`;
+  const accessHref = hasAccess ? `/academy/cours/${course.slug}/apprendre` : user ? "/contact" : "/academy/register";
+  const accessLabel = hasAccess ? "Continuer le cours" : "Demander l’accès";
+  const accessCopy = course.is_free
+    ? "Après votre demande, l’équipe Agri-tech pourra valider votre accès à cette formation."
+    : "Après votre demande, l’équipe Agri-tech vous contactera pour finaliser les modalités de paiement. L’accès à la formation sera activé manuellement après validation.";
 
   return (
     <main className="bg-[#f8faf7]">
       <section className="bg-emerald-950 py-14 text-white sm:py-18">
         <Container>
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+          <div className={course.cover_image_url ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center" : "max-w-4xl"}>
             <div>
               <p className="text-sm font-bold uppercase tracking-widest text-yellow-400">{course.category}</p>
               <h1 className="mt-4 max-w-4xl text-4xl font-black tracking-tight sm:text-5xl">{course.title}</h1>
@@ -40,18 +46,17 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
               <div className="mt-6 flex flex-wrap gap-2 text-sm font-semibold text-white/85">
                 <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">{course.duration ?? "Durée non précisée"}</span>
                 <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15">{course.level ? levelLabels[course.level] : "Niveau non précisé"}</span>
-                <span className="rounded-full bg-yellow-400 px-3 py-1 text-emerald-950">{course.is_free ? "Gratuit" : `${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`}</span>
               </div>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={hasAccess ? `/academy/cours/${course.slug}/apprendre` : user ? "/contact" : "/academy/register"}>{hasAccess ? "Continuer le cours" : user ? "Demander l’accès" : "Créer un compte étudiant"}</Link>
+                <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={accessHref}>{accessLabel}</Link>
                 <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15" href="/academy/login">Connexion étudiant</Link>
               </div>
             </div>
-            <aside className="rounded-3xl bg-white/10 p-6 ring-1 ring-white/15 backdrop-blur">
-              <p className="text-sm text-white/70">Accès</p>
-              <p className="mt-2 text-2xl font-black">Validation manuelle</p>
-              <p className="mt-3 text-sm leading-6 text-white/75">Accès complet après validation par l’équipe Agri-tech. Les leçons, ressources et progression restent dans l’espace étudiant sécurisé.</p>
-            </aside>
+            {course.cover_image_url ? (
+              <div className="relative min-h-64 overflow-hidden rounded-3xl bg-emerald-900/60 ring-1 ring-white/15 sm:min-h-80">
+                <Image src={course.cover_image_url} alt={course.title} fill unoptimized sizes="(min-width: 1024px) 380px, 100vw" className="object-cover" />
+              </div>
+            ) : null}
           </div>
         </Container>
       </section>
@@ -72,11 +77,25 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
             </section>
 
             <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100 sm:p-8">
-              <div className="flex gap-4">
-                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-yellow-100 text-2xl">🎓</span>
+              <div className="grid gap-5 md:grid-cols-[64px_minmax(0,1fr)]">
+                <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-yellow-100 text-3xl">🎓</span>
                 <div>
-                  <h2 className="text-3xl font-black text-emerald-950">Certification Agri-tech</h2>
-                  <p className="mt-4 leading-8 text-slate-700">{certificationText}</p>
+                  <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Validation Agri-tech</p>
+                  <h2 className="mt-3 text-3xl font-black text-emerald-950">Certification Agri-tech</h2>
+                  <p className="mt-5 max-w-3xl whitespace-pre-line text-lg leading-8 text-slate-700">{certificationText}</p>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100 sm:p-8">
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Encadrement</p>
+              <h2 className="mt-3 text-3xl font-black text-emerald-950">Formateur</h2>
+              <div className="mt-6 grid gap-6 md:grid-cols-[96px_minmax(0,1fr)] md:items-start">
+                {course.instructor_image_url ? <span className="relative h-24 w-24 shrink-0 overflow-hidden rounded-3xl"><Image src={course.instructor_image_url} alt={course.instructor_name ?? "Formateur Agri-tech"} fill unoptimized sizes="96px" className="object-cover" /></span> : <span className="flex h-24 w-24 shrink-0 items-center justify-center rounded-3xl bg-emerald-50 text-2xl font-black text-emerald-800">AT</span>}
+                <div>
+                  <p className="text-2xl font-black text-emerald-950">{course.instructor_name || "Équipe Agri-tech"}</p>
+                  <p className="mt-1 text-base font-semibold text-emerald-700">{course.instructor_role || "Formateur Academy"}</p>
+                  <p className="mt-5 max-w-3xl whitespace-pre-line text-lg leading-8 text-slate-700">{course.instructor_bio || "Cette formation est préparée par l’équipe Agri-tech dans le cadre de son programme de formation agricole."}</p>
                 </div>
               </div>
             </section>
@@ -107,15 +126,10 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
 
           <aside className="space-y-6 lg:sticky lg:top-6 lg:h-fit">
             <section className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
-              <h2 className="text-xl font-black text-emerald-950">Formateur Agri-tech</h2>
-              <div className="mt-5 flex gap-4">
-                {course.instructor_image_url ? <span className="relative h-16 w-16 shrink-0 overflow-hidden rounded-2xl"><Image src={course.instructor_image_url} alt={course.instructor_name ?? "Formateur Agri-tech"} fill unoptimized sizes="64px" className="object-cover" /></span> : <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 font-black text-emerald-800">AT</span>}
-                <div>
-                  <p className="font-black text-emerald-950">{course.instructor_name || "Équipe Agri-tech"}</p>
-                  <p className="mt-1 text-sm font-semibold text-emerald-700">{course.instructor_role || "Formateur Academy"}</p>
-                </div>
-              </div>
-              <p className="mt-4 leading-7 text-slate-600">{course.instructor_bio || "Cette formation est préparée par l’équipe Agri-tech dans le cadre de son programme de formation agricole."}</p>
+              <p className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700">Modalités d’accès</p>
+              <p className="mt-3 text-4xl font-black text-emerald-950">{priceLabel}</p>
+              <p className="mt-4 leading-7 text-slate-600">{accessCopy}</p>
+              <Link className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white transition hover:bg-emerald-800" href={accessHref}>{accessLabel}</Link>
             </section>
           </aside>
         </div>

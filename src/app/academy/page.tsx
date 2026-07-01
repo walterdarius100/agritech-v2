@@ -26,7 +26,6 @@ export default async function AcademyPage() {
         duration: course.duration ?? "Durée non précisée",
         level: course.level === "beginner" ? "Débutant" : course.level === "intermediate" ? "Intermédiaire" : course.level === "advanced" ? "Avancé" : "Niveau non précisé",
         coverImageUrl: course.cover_image_url,
-        price: course.is_free ? "Gratuit" : `${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`,
       }))
     : formations.map((formation) => ({
         title: formation.title,
@@ -36,7 +35,6 @@ export default async function AcademyPage() {
         duration: formation.duration,
         level: formation.level,
         coverImageUrl: formation.image,
-        price: "Accès après validation",
       }));
 
   return (
@@ -86,7 +84,6 @@ export default async function AcademyPage() {
                   <span className="rounded-full bg-emerald-50 px-3 py-2">Durée : {course.duration}</span>
                   <span className="rounded-full bg-emerald-50 px-3 py-2">Niveau : {course.level}</span>
                 </div>
-                <p className="mt-4 text-sm font-bold text-emerald-950">{course.price}</p>
                 <Link className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800" href={`/academy/cours/${course.slug}`}>
                   Voir la formation →
                 </Link>

@@ -196,8 +196,8 @@ export function LearningExperience({ course, modules, lessons, resources, progre
 
           <section className="min-w-0 space-y-5">
             <div className="overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-sm">
-              <div className="bg-slate-950 p-1.5 sm:p-2">
-                <div className="aspect-video overflow-hidden rounded-2xl bg-black">
+              <div className="bg-slate-950 p-0.5 sm:p-1">
+                <div className="aspect-video overflow-hidden rounded-[1.35rem] bg-black">
                   {embedUrl ? <iframe className="h-full w-full" src={embedUrl} title={activeLesson?.title ?? course.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /> : null}
                   {!embedUrl && isMp4Url(activeLesson?.video_url) ? <video className="h-full w-full" src={activeLesson?.video_url ?? undefined} controls /> : null}
                   {!embedUrl && activeLesson?.video_url && !isMp4Url(activeLesson.video_url) ? (
