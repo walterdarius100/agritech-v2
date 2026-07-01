@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 import { Container } from "@/components/ui/Container";
@@ -22,8 +23,10 @@ export default async function AcademyPage() {
         slug: course.slug,
         category: course.category,
         shortDescription: course.short_description ?? "Formation Academy Agri-tech.",
-        duration: course.duration ?? "À définir",
-        level: course.level ?? "Tous niveaux",
+        duration: course.duration ?? "Durée non précisée",
+        level: course.level === "beginner" ? "Débutant" : course.level === "intermediate" ? "Intermédiaire" : course.level === "advanced" ? "Avancé" : "Niveau non précisé",
+        coverImageUrl: course.cover_image_url,
+        price: course.is_free ? "Gratuit" : `${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`,
       }))
     : formations.map((formation) => ({
         title: formation.title,
@@ -32,6 +35,8 @@ export default async function AcademyPage() {
         shortDescription: formation.shortDescription,
         duration: formation.duration,
         level: formation.level,
+        coverImageUrl: formation.image,
+        price: "Accès après validation",
       }));
 
   return (
@@ -69,17 +74,23 @@ export default async function AcademyPage() {
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {publicCourses.map((course) => (
-            <article key={course.slug} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-emerald-100">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">{course.category}</p>
-              <h3 className="mt-3 text-xl font-bold text-emerald-950">{course.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-slate-600">{course.shortDescription}</p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-emerald-800">
-                <span className="rounded-full bg-emerald-50 px-3 py-1">{course.duration}</span>
-                <span className="rounded-full bg-emerald-50 px-3 py-1">{course.level}</span>
+            <article key={course.slug} className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-emerald-100 transition hover:-translate-y-1 hover:shadow-md">
+              <div className="relative h-48 overflow-hidden bg-emerald-50">
+                {course.coverImageUrl ? <Image src={course.coverImageUrl} alt={course.title} fill unoptimized sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-emerald-900 text-sm font-bold uppercase tracking-[0.18em] text-yellow-300">Agri-tech Academy</div>}
               </div>
-              <Link className="mt-6 inline-flex font-semibold text-emerald-700" href={`/academy/cours/${course.slug}`}>
-                Voir le cours →
-              </Link>
+              <div className="p-6">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">{course.category}</p>
+                <h3 className="mt-3 text-xl font-bold text-emerald-950">{course.title}</h3>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{course.shortDescription}</p>
+                <div className="mt-5 grid gap-2 text-xs font-semibold text-emerald-800 sm:grid-cols-2">
+                  <span className="rounded-full bg-emerald-50 px-3 py-2">Durée : {course.duration}</span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-2">Niveau : {course.level}</span>
+                </div>
+                <p className="mt-4 text-sm font-bold text-emerald-950">{course.price}</p>
+                <Link className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800" href={`/academy/cours/${course.slug}`}>
+                  Voir la formation →
+                </Link>
+              </div>
             </article>
           ))}
         </div>

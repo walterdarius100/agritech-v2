@@ -5,7 +5,7 @@ export type EnrollmentSource = "manual" | "payment" | "free" | "admin_grant";
 export type CertificateStatus = "issued" | "revoked" | "expired";
 
 export type AcademyCourse = {
-  id: string; title: string; slug: string; category: string; short_description: string | null; description: string | null; cover_image_url: string | null; level: AcademyLevel | null; duration: string | null; language: string | null; status: AcademyStatus; price_amount: number | null; price_currency: string | null; is_free: boolean; published_at: string | null; created_at: string; updated_at: string;
+  id: string; title: string; slug: string; category: string; short_description: string | null; description: string | null; cover_image_url: string | null; level: AcademyLevel | null; duration: string | null; language: string | null; status: AcademyStatus; price_amount: number | null; price_currency: string | null; is_free: boolean; published_at: string | null; certification_description: string | null; instructor_name: string | null; instructor_role: string | null; instructor_bio: string | null; instructor_image_url: string | null; created_at: string; updated_at: string;
 };
 export type AcademyModule = { id: string; course_id: string; title: string; description: string | null; position: number; status: AcademyStatus; };
 export type AcademyLesson = { id: string; course_id: string; module_id: string | null; title: string; content: string | null; video_url: string | null; position: number; is_preview: boolean; duration: string | null; status: AcademyStatus; };

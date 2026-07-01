@@ -1,51 +1,28 @@
-# Agri-tech Academy — contenu pédagogique
+# Academy — contenu des fiches cours
 
-## Concepts
+Les fiches publiques Academy utilisent maintenant les champs éditoriaux du cours pour composer les cartes catalogue et la page `/academy/cours/[slug]`.
 
-- **Cours** : parcours global visible dans Academy, par exemple `Cuniculture pratique`.
-- **Module** : chapitre ordonné du cours avec `title`, `description`, `position` et `status` (`draft`, `published`, `archived`).
-- **Leçon** : contenu pédagogique rattaché au cours et, idéalement, à un module. Elle contient `title`, `module_id`, `content`, `video_url`, `duration`, `position`, `is_preview` et `status`.
-- **Ressource** : document ou lien lié au cours ou à une leçon via `lesson_id` optionnel.
+## Champs principaux
 
-## Gérer le contenu
+- `title` : titre affiché dans les cartes, le hero public et l’espace d’apprentissage.
+- `slug` : segment d’URL public, par exemple `/academy/cours/cuniculture-pratique`.
+- `category` : catégorie affichée au-dessus du titre.
+- `short_description` : résumé court pour les cartes et l’introduction.
+- `description` : description détaillée affichée dans **Détails du cours**.
+- `cover_image_url` : image de couverture de la carte catalogue.
+- `duration` : durée textuelle affichée avec fallback “Durée non précisée”.
+- `level` : niveau (`beginner`, `intermediate`, `advanced`) affiché en français.
+- `price_amount`, `price_currency`, `is_free` : prix ou mention gratuit.
+- `certification_description` : texte prudent sur le certificat ou l’attestation.
+- `instructor_name`, `instructor_role`, `instructor_bio`, `instructor_image_url` : formateur principal.
 
-Depuis `/admin/academy/courses`, cliquer sur **Contenu**. La page `/admin/academy/courses/[id]/content` affiche le cours, ses modules, les leçons de chaque module et les ressources associées.
+## Page publique d’un cours
 
-### Créer un module
+Après le hero, la page contient :
 
-1. Cliquer **Ajouter un module**.
-2. Renseigner le titre, la description, la position et le statut.
-3. Utiliser `published` pour l’afficher côté étudiant, `draft` pour préparer, `archived` pour masquer sans supprimer.
+1. **Détails du cours** : modules, durée, description, certification/vidéos/ressources.
+2. **Certification Agri-tech** : explication sobre sans promettre de génération automatique.
+3. **Programme de la formation** : modules en cartes accordéon avec leçons publiées.
+4. **Formateur Agri-tech** : données du formateur ou fallback Équipe Agri-tech.
 
-### Créer une leçon
-
-1. Cliquer **Ajouter une leçon**.
-2. Choisir le module lié.
-3. Ajouter le contenu écrit dans le textarea.
-4. Ajouter une durée, une position et un statut.
-5. Cocher `is_preview` si la leçon doit être marquée comme aperçu gratuit.
-
-### Ajouter une vidéo
-
-Le champ `video_url` accepte une URL YouTube, Vimeo, MP4 direct ou externe. Côté étudiant, YouTube est intégré automatiquement quand l’identifiant est reconnu ; les autres liens sont affichés comme bouton externe.
-
-### Ajouter une ressource
-
-1. Cliquer **Ajouter une ressource**.
-2. Choisir une leçon ou laisser vide pour une ressource globale du cours.
-3. Choisir le type : `document`, `pdf`, `video`, `link`, `image`, `other`.
-4. Renseigner `file_url` ou `external_url`.
-
-## Ordre et publication
-
-Les modules, leçons et ressources sont triés par `position`. Seules les leçons `published` sont comptabilisées dans la progression étudiant. Les modules `published` sont affichés côté étudiant.
-
-## Limites actuelles
-
-- Pas d’upload vidéo.
-- Les ressources acceptent des URLs ; l’upload Supabase Storage `academy-resources` reste une prochaine étape si le bucket n’est pas configuré.
-- Pas de quiz, devoirs, commentaires, certificats PDF ou paiement automatique dans cette étape.
-
-## Affichage côté étudiant
-
-La page d’apprentissage affiche maintenant le contenu dans une structure proche d’une plateforme e-learning : sidebar modules/leçons, lecteur vidéo prioritaire, bouton de progression dans la zone de lecture et onglets sous la vidéo. Les ressources globales du cours et les ressources liées à la leçon active sont disponibles dans l’onglet **Ressources**.
+Les compteurs de modules, leçons vidéo et ressources sont issus des tables Academy quand disponibles.

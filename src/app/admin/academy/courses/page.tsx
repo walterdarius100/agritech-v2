@@ -15,7 +15,7 @@ export default async function CoursesAdmin() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold">Cours Academy</h1>
+      <div className="flex flex-wrap items-start justify-between gap-4"><h1 className="text-3xl font-bold">Cours Academy</h1><Link className="rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white" href="/admin/academy/courses/new">Nouveau cours</Link></div>
       <p className="mt-2 text-slate-600">Créez un cours simple puis modifiez-le depuis la liste.</p>
 
       <form action={createCourse} className="mt-6 grid gap-3 rounded-2xl bg-white p-5 ring-1 ring-slate-200 md:grid-cols-2">
@@ -40,7 +40,12 @@ export default async function CoursesAdmin() {
           <input name="isFree" type="checkbox" /> Gratuit
         </label>
         <textarea name="shortDescription" placeholder="Description courte" className="rounded border p-2 md:col-span-2" />
-        <textarea name="description" placeholder="Description" className="rounded border p-2 md:col-span-2" />
+        <textarea name="description" placeholder="Description détaillée" className="rounded border p-2 md:col-span-2" />
+        <textarea name="certificationDescription" placeholder="Texte certification / conditions" className="rounded border p-2 md:col-span-2" />
+        <input name="instructorName" placeholder="Nom du formateur principal" className="rounded border p-2" />
+        <input name="instructorRole" placeholder="Titre ou rôle du formateur" className="rounded border p-2" />
+        <input name="instructorImageUrl" placeholder="URL image du formateur" className="rounded border p-2 md:col-span-2" />
+        <textarea name="instructorBio" placeholder="Bio courte du formateur" className="rounded border p-2 md:col-span-2" />
         <button className="rounded-xl bg-emerald-700 px-4 py-2 text-white md:col-span-2" type="submit">
           Créer le cours
         </button>
