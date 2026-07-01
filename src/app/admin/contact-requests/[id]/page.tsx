@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ContactRequestAdminForm } from "@/components/admin/ContactRequestAdminForm";
 import { getAdminContactRequestById, updateContactRequest } from "@/lib/contact/adminContactRequests";
+import { getContactRequestContext } from "@/lib/contact/requestLabels";
 
 export default async function AdminContactRequestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -10,6 +11,7 @@ export default async function AdminContactRequestDetailPage({ params }: { params
   if (!request) notFound();
 
   const action = updateContactRequest.bind(null, id);
+  const context = getContactRequestContext(request);
 
   return (
     <div>
@@ -29,9 +31,8 @@ export default async function AdminContactRequestDetailPage({ params }: { params
             <Info label="Email" value={request.email} />
             <Info label="Téléphone" value={request.phone} />
             <Info label="Organisation" value={request.organization} />
-            <Info label="Type" value={request.request_type} />
-            <Info label="Service" value={request.service_slug} />
-            <Info label="Formation" value={request.formation_slug} />
+            <Info label="Type de demande" value={context.typeLabel} />
+            {context.itemPrefix ? <Info label={context.itemPrefix} value={context.itemLabel} /> : null}
             <Info label="Source" value={request.source_page} />
           </dl>
           <div className="mt-6">

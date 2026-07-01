@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
 import { services } from "@/data/services";
+import { getFormationLabel, getServiceLabel } from "@/lib/contact/requestLabels";
 import type { ContactRequestType } from "@/types/contact";
 
 type ContactFormProps = {
@@ -22,10 +23,13 @@ const requestTypeOptions: { label: string; value: ContactRequestType }[] = [
 ];
 
 export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFormProps) {
-  const initialRequestType: ContactRequestType = formationSlug
-    ? "formation"
-    : serviceSlug
-      ? "service"
+  // Quand les deux paramètres sont présents, le service est prioritaire afin de garder une seule origine claire.
+  const selectedServiceSlug = serviceSlug || "";
+  const selectedFormationSlug = selectedServiceSlug ? "" : formationSlug || "";
+  const initialRequestType: ContactRequestType = selectedServiceSlug
+    ? "service"
+    : selectedFormationSlug
+      ? "formation"
       : "general";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>({ type: "idle" });
@@ -33,11 +37,11 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
 
   const sourcePage = useMemo(() => {
     const params = new URLSearchParams();
-    if (serviceSlug) params.set("service", serviceSlug);
-    if (formationSlug) params.set("formation", formationSlug);
+    if (selectedServiceSlug) params.set("service", selectedServiceSlug);
+    if (selectedFormationSlug) params.set("formation", selectedFormationSlug);
     const query = params.toString();
     return query ? `/contact?${query}` : "/contact";
-  }, [formationSlug, serviceSlug]);
+  }, [selectedFormationSlug, selectedServiceSlug]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -90,9 +94,17 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
   return (
     <form onSubmit={handleSubmit} className="grid gap-4 rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
       <input aria-hidden="true" autoComplete="off" className="hidden" name="company_website" tabIndex={-1} type="text" />
-      <input name="service_slug" type="hidden" value={serviceSlug} />
-      <input name="formation_slug" type="hidden" value={formationSlug} />
+      <input name="service_slug" type="hidden" value={selectedServiceSlug} />
+      <input name="formation_slug" type="hidden" value={selectedFormationSlug} />
       <input name="source_page" type="hidden" value={sourcePage} />
+
+      {initialRequestType !== "general" ? (
+        <p className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
+          {initialRequestType === "service"
+            ? `Demande liée au service : ${getServiceLabel(selectedServiceSlug) ?? selectedServiceSlug}`
+            : `Demande liée à la formation : ${getFormationLabel(selectedFormationSlug) ?? selectedFormationSlug}`}
+        </p>
+      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Nom complet" maxLength={120} name="full_name" placeholder="Votre nom" required />
