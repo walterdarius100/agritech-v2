@@ -133,3 +133,118 @@ export async function revokeCertificate(formData: FormData) {
   await supabase.from("academy_certificates").update({ status: "revoked" }).eq("id", String(formData.get("id")));
   revalidatePath("/admin/academy/certificates");
 }
+
+function numberValue(value: FormDataEntryValue | null, fallback = 0) {
+  const number = Number(String(value ?? "").trim());
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function validUrlOrNull(value: FormDataEntryValue | null) {
+  const text = nullableString(value);
+  if (!text) return null;
+  try {
+    return new URL(text).toString();
+  } catch {
+    return null;
+  }
+}
+
+function contentRedirect(courseId: string, suffix = "success=1") {
+  revalidatePath(`/admin/academy/courses/${courseId}/content`);
+  redirect(`/admin/academy/courses/${courseId}/content?${suffix}`);
+}
+
+export async function saveModule(formData: FormData) {
+  await requireAuthorizedAdmin();
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+  const courseId = String(formData.get("courseId") ?? "");
+  const id = nullableString(formData.get("id"));
+  const payload = {
+    course_id: courseId,
+    title: String(formData.get("title") ?? "").trim(),
+    description: nullableString(formData.get("description")),
+    position: numberValue(formData.get("position")),
+    status: String(formData.get("status") || "draft"),
+  };
+  const { error } = id
+    ? await supabase.from("academy_modules").update(payload).eq("id", id).eq("course_id", courseId)
+    : await supabase.from("academy_modules").insert(payload);
+  if (error) contentRedirect(courseId, `error=${encodeURIComponent(error.message)}`);
+  contentRedirect(courseId);
+}
+
+export async function archiveModule(formData: FormData) {
+  await requireAuthorizedAdmin();
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+  const courseId = String(formData.get("courseId") ?? "");
+  await supabase.from("academy_modules").update({ status: "archived" }).eq("id", String(formData.get("id"))).eq("course_id", courseId);
+  contentRedirect(courseId, "archived=1");
+}
+
+export async function saveLesson(formData: FormData) {
+  await requireAuthorizedAdmin();
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+  const courseId = String(formData.get("courseId") ?? "");
+  const id = nullableString(formData.get("id"));
+  const payload = {
+    course_id: courseId,
+    module_id: nullableString(formData.get("moduleId")),
+    title: String(formData.get("title") ?? "").trim(),
+    content: nullableString(formData.get("content")),
+    video_url: validUrlOrNull(formData.get("videoUrl")),
+    duration: nullableString(formData.get("duration")),
+    position: numberValue(formData.get("position")),
+    is_preview: formData.get("isPreview") === "on",
+    status: String(formData.get("status") || "draft"),
+  };
+  const { error } = id
+    ? await supabase.from("academy_lessons").update(payload).eq("id", id).eq("course_id", courseId)
+    : await supabase.from("academy_lessons").insert(payload);
+  if (error) contentRedirect(courseId, `error=${encodeURIComponent(error.message)}`);
+  contentRedirect(courseId);
+}
+
+export async function archiveLesson(formData: FormData) {
+  await requireAuthorizedAdmin();
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+  const courseId = String(formData.get("courseId") ?? "");
+  await supabase.from("academy_lessons").update({ status: "archived" }).eq("id", String(formData.get("id"))).eq("course_id", courseId);
+  contentRedirect(courseId, "archived=1");
+}
+
+export async function saveResource(formData: FormData) {
+  await requireAuthorizedAdmin();
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+  const courseId = String(formData.get("courseId") ?? "");
+  const id = nullableString(formData.get("id"));
+  const payload = {
+    course_id: courseId,
+    lesson_id: nullableString(formData.get("lessonId")),
+    title: String(formData.get("title") ?? "").trim(),
+    description: nullableString(formData.get("description")),
+    resource_type: String(formData.get("resourceType") || "document"),
+    file_url: validUrlOrNull(formData.get("fileUrl")),
+    external_url: validUrlOrNull(formData.get("externalUrl")),
+    position: numberValue(formData.get("position")),
+    is_downloadable: formData.get("isDownloadable") === "on",
+  };
+  const { error } = id
+    ? await supabase.from("academy_resources").update(payload).eq("id", id).eq("course_id", courseId)
+    : await supabase.from("academy_resources").insert(payload);
+  if (error) contentRedirect(courseId, `error=${encodeURIComponent(error.message)}`);
+  contentRedirect(courseId);
+}
+
+export async function archiveResource(formData: FormData) {
+  await requireAuthorizedAdmin();
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+  const courseId = String(formData.get("courseId") ?? "");
+  await supabase.from("academy_resources").delete().eq("id", String(formData.get("id"))).eq("course_id", courseId);
+  contentRedirect(courseId, "archived=1");
+}

@@ -34,9 +34,14 @@ export default async function EditAcademyCoursePage({ params, searchParams }: Ed
           <h1 className="text-3xl font-bold">Modifier le cours</h1>
           <p className="mt-2 text-slate-600">{course.title}</p>
         </div>
-        <Link className="rounded-xl border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-700" href="/admin/academy/courses">
-          Retour aux cours
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link className="rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white" href={`/admin/academy/courses/${course.id}/content`}>
+            Gérer le contenu du cours
+          </Link>
+          <Link className="rounded-xl border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-700" href="/admin/academy/courses">
+            Retour aux cours
+          </Link>
+        </div>
       </div>
 
       {query.success ? <p className="mt-6 rounded-2xl bg-emerald-50 p-4 font-semibold text-emerald-800">Cours sauvegardé avec succès.</p> : null}
