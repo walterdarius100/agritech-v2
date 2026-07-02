@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { generateCertificateId, getCertificateVerificationUrl } from "@/lib/academy/certificates";
+import { extractCloudflareStreamUid, getVideoProvider, normalizeVideoUrl } from "@/lib/academy/video";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -199,12 +200,20 @@ export async function saveLesson(formData: FormData) {
   if (!supabase) return;
   const courseId = String(formData.get("courseId") ?? "");
   const id = nullableString(formData.get("id"));
+  const videoInput = String(formData.get("videoUrl") ?? "");
+  const normalizedVideoUrl = normalizeVideoUrl(videoInput);
+  const pastedUid = !normalizedVideoUrl && /^[a-zA-Z0-9_-]{16,}$/.test(videoInput.trim()) ? videoInput.trim() : null;
+  const cloudflareUid = extractCloudflareStreamUid(videoInput) ?? pastedUid;
+  const videoProvider = cloudflareUid ? "cloudflare_stream" : normalizedVideoUrl ? getVideoProvider(normalizedVideoUrl) : null;
   const payload = {
     course_id: courseId,
     module_id: nullableString(formData.get("moduleId")),
     title: String(formData.get("title") ?? "").trim(),
     content: nullableString(formData.get("content")),
-    video_url: validUrlOrNull(formData.get("videoUrl")),
+    video_url: normalizedVideoUrl,
+    video_provider: videoProvider,
+    video_uid: cloudflareUid,
+    video_embed_url: videoProvider === "cloudflare_stream" ? normalizedVideoUrl : null,
     duration: nullableString(formData.get("duration")),
     position: numberValue(formData.get("position")),
     is_preview: formData.get("isPreview") === "on",
