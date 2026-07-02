@@ -1,28 +1,35 @@
-# Academy — checklist de test
+# Tests Academy
 
-## Pages à vérifier
+## Parcours demande d’accès
 
-- `/academy` : cartes avec image, titre, description courte, durée, niveau et CTA, sans prix.
-- `/academy/cours/cuniculture-pratique` : hero sans prix ni box accès, détails, certification longue, formateur long, programme accordéon et box modalités d’accès.
-- `/academy/cours/cuniculture-pratique/apprendre` : accès étudiant, lecteur vidéo plus large, onglets, ressources cliquables, progression.
+1. Ouvrir `/academy/cours/cuniculture-pratique`.
+2. Cliquer `Demander l’accès` en visiteur non connecté.
+3. Vérifier la redirection vers `/academy/register` avec un paramètre `next` encodé contenant `/contact?type=academy-access&course=cuniculture-pratique`.
+4. Créer un compte ou se connecter via `/academy/login?next=...` et vérifier la redirection vers Contact.
+5. Ouvrir directement `/contact?type=academy-access&course=cuniculture-pratique` en étudiant connecté.
+6. Vérifier qu’aucune box contextuelle publique n’est affichée.
+7. Vérifier que le type, la formation, le nom, l’email et le téléphone sont préremplis quand disponibles.
+8. Vérifier que la textarea message est masquée pour Academy.
+9. Envoyer la demande et vérifier l’enregistrement `contact_requests.request_type = academy_access` avec un message généré automatiquement.
+10. Vérifier `/admin/contact-requests` et le détail de la demande.
+11. Confirmer qu’aucun enrollment n’est créé automatiquement.
 
-## Tests fonctionnels
+## Régressions à vérifier
 
-1. Sur `/academy`, les cartes de formation n’affichent plus le prix.
-2. Les cartes affichent toujours image, description courte, durée et niveau.
-3. Sur `/academy/cours/[slug]`, la box “Accès / Validation manuelle” n’est plus dans le hero.
-4. Le prix n’est plus affiché dans le hero.
-5. Une box prix + CTA `Demander l’accès` apparaît dans les modalités d’accès.
-6. La phrase expliquant la validation manuelle par l’équipe Agri-tech est affichée.
-7. La section Formateur est affichée en format long et lisible.
-8. La section Certification Agri-tech est affichée en format long et lisible.
-9. Le lecteur vidéo dans `/apprendre` est légèrement plus large et conserve son ratio responsive.
-10. Les onglets, ressources, enrollments et la progression continuent de fonctionner.
-11. Aucun scroll horizontal sur mobile.
+- `/contact` sans paramètre reste une demande générale avec message visible et sans box contextuelle.
+- `/contact?service=poule-pondeuse` reste une demande service avec domaine prérempli, message visible et textarea vide.
+- `/contact?type=partnership` reste une demande partenariat avec message visible.
+- `/admin/academy/enrollments` reste le point de validation manuelle.
 
-## Commandes
+## Navigation publique
 
-```bash
-npm run lint
-npm run build
-```
+- La page d’accueil présente `Agri-tech Academy` au lieu de `Formations Agri-tech`.
+- Le CTA `Découvrir notre Academy` pointe vers `/academy`.
+- La navbar desktop et le menu mobile affichent `Academy` et non `Formations`.
+
+## Sécurité vidéo
+
+- Vérifier qu’un étudiant autorisé charge le lecteur Cloudflare avec watermark.
+- Vérifier qu’un utilisateur non autorisé ne reçoit pas d’URL depuis `/api/academy/secure-video`.
+- Vérifier qu’aucun lien de téléchargement ou URL vidéo brute n’est affiché dans l’interface étudiant.
+- Vérifier que l’application ne plante pas si les variables Cloudflare Stream signées ne sont pas configurées.

@@ -18,6 +18,20 @@ const cookieOptions = {
   path: "/",
 };
 
+
+function getSafeNext(formData: FormData) {
+  const next = String(formData.get("next") ?? "").trim();
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/academy/dashboard";
+  try {
+    const parsed = new URL(next, env.siteUrl);
+    const site = new URL(env.siteUrl);
+    if (parsed.origin !== site.origin) return "/academy/dashboard";
+    return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+  } catch {
+    return "/academy/dashboard";
+  }
+}
+
 function getStudentAuthErrorMessage(message?: string) {
   const normalized = (message ?? "").toLowerCase();
   if (normalized.includes("email not confirmed") || normalized.includes("not confirmed")) {
@@ -57,6 +71,7 @@ async function upsertStudentProfile(userId: string, fullName?: string, phone?: s
 export async function loginStudent(_state: AcademyAuthState, formData: FormData): Promise<AcademyAuthState> {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
+  const next = getSafeNext(formData);
 
   if (!email || !password) {
     return { error: "Email et mot de passe requis." };
@@ -75,7 +90,7 @@ export async function loginStudent(_state: AcademyAuthState, formData: FormData)
 
   await upsertStudentProfile(data.user.id, data.user.user_metadata?.full_name);
   await setSessionCookies(data.session);
-  redirect("/academy/dashboard");
+  redirect(next);
 }
 
 export async function registerStudent(_state: AcademyAuthState, formData: FormData): Promise<AcademyAuthState> {
@@ -84,6 +99,7 @@ export async function registerStudent(_state: AcademyAuthState, formData: FormDa
   const fullName = String(formData.get("fullName") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const organization = String(formData.get("organization") ?? "").trim();
+  const next = getSafeNext(formData);
 
   if (!email || !password || !fullName) {
     return { error: "Nom, email et mot de passe requis." };
@@ -99,7 +115,7 @@ export async function registerStudent(_state: AcademyAuthState, formData: FormDa
     password,
     options: {
       data: { full_name: fullName },
-      emailRedirectTo: `${env.siteUrl.replace(/\/$/, "")}/academy/login?registered=1`,
+      emailRedirectTo: `${env.siteUrl.replace(/\/$/, "")}/academy/login?registered=1&next=${encodeURIComponent(next)}`,
     },
   });
 
@@ -111,12 +127,12 @@ export async function registerStudent(_state: AcademyAuthState, formData: FormDa
 
   if (data.session) {
     await setSessionCookies(data.session);
-    redirect("/academy/dashboard");
+    redirect(next);
   }
 
   return {
     success:
-      "Compte créé. Votre adresse email doit être confirmée avant la connexion si la confirmation email est activée dans Supabase.",
+      "Compte créé. Votre adresse email doit être confirmée avant la connexion si la confirmation email est activée dans Supabase. Le lien de connexion conservera votre demande Academy.",
   };
 }
 
