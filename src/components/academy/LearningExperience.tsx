@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { toggleLessonProgress } from "@/lib/academy/progress";
+import { getVideoEmbed } from "@/lib/academy/video";
 import type { AcademyCourse, AcademyLesson, AcademyModule, AcademyResource, LessonProgress } from "@/types/academy";
 
 type LearningExperienceProps = {
@@ -13,6 +14,7 @@ type LearningExperienceProps = {
   progress: LessonProgress[];
   progressPercent: number;
   slug: string;
+  videoWatermark?: string;
 };
 
 type TabKey = "about" | "instructor" | "resources";
@@ -22,27 +24,6 @@ const tabLabels: Record<TabKey, string> = {
   instructor: "Formateur de la leçon",
   resources: "Ressources",
 };
-
-function getYouTubeEmbedUrl(url?: string | null) {
-  if (!url) return null;
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname.replace(/^www\./, "");
-    const id = host === "youtu.be" ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
-    return id && (host.includes("youtube.com") || host === "youtu.be") ? `https://www.youtube-nocookie.com/embed/${id}` : null;
-  } catch {
-    return null;
-  }
-}
-
-function isMp4Url(url?: string | null) {
-  if (!url) return false;
-  try {
-    return new URL(url).pathname.toLowerCase().endsWith(".mp4");
-  } catch {
-    return false;
-  }
-}
 
 function durationToMinutes(duration?: string | null) {
   if (!duration) return 0;
@@ -73,19 +54,47 @@ function ResourceCard({ resource }: { resource: AcademyResource }) {
   );
 }
 
-export function LearningExperience({ course, modules, lessons, resources, progress, progressPercent, slug }: LearningExperienceProps) {
+export function LearningExperience({ course, modules, lessons, resources, progress, progressPercent, slug, videoWatermark }: LearningExperienceProps) {
   const firstLesson = lessons[0] ?? null;
   const [activeLessonId, setActiveLessonId] = useState(firstLesson?.id ?? "");
   const [activeTab, setActiveTab] = useState<TabKey>("about");
   const [openModuleIds, setOpenModuleIds] = useState(() => new Set(modules.slice(0, 1).map((module) => module.id)));
+  const [secureVideoUrls, setSecureVideoUrls] = useState<Record<string, string>>({});
+  const [secureVideoErrors, setSecureVideoErrors] = useState<Record<string, string>>({});
 
   const completedLessonIds = useMemo(() => new Set(progress.filter((item) => item.is_completed).map((item) => item.lesson_id)), [progress]);
   const activeLesson = lessons.find((lesson) => lesson.id === activeLessonId) ?? firstLesson;
   const activeModule = activeLesson ? modules.find((module) => module.id === activeLesson.module_id) ?? null : null;
   const activeResources = resources.filter((resource) => !resource.lesson_id || resource.lesson_id === activeLesson?.id);
   const orphanLessons = lessons.filter((lesson) => !lesson.module_id);
-  const embedUrl = getYouTubeEmbedUrl(activeLesson?.video_url);
+  const rawVideoEmbed = getVideoEmbed(activeLesson?.video_embed_url ?? activeLesson?.video_url);
+  const isCloudflareStream = activeLesson?.video_provider === "cloudflare_stream" || Boolean(activeLesson?.video_uid) || rawVideoEmbed.provider === "cloudflare_stream";
+  const videoEmbed = isCloudflareStream
+    ? { provider: "cloudflare_stream" as const, embedUrl: activeLesson ? secureVideoUrls[activeLesson.id] ?? null : null }
+    : rawVideoEmbed;
+  const hasActiveLessonVideo = Boolean(activeLesson?.video_url || activeLesson?.video_uid || activeLesson?.video_embed_url || activeLesson?.video_provider);
   const completed = activeLesson ? completedLessonIds.has(activeLesson.id) : false;
+
+
+
+  useEffect(() => {
+    if (!activeLesson || !isCloudflareStream || secureVideoUrls[activeLesson.id] || secureVideoErrors[activeLesson.id]) return;
+
+    let cancelled = false;
+    fetch(`/api/academy/secure-video?lessonId=${encodeURIComponent(activeLesson.id)}`)
+      .then(async (response) => {
+        const data = (await response.json()) as { ok?: boolean; embedUrl?: string; message?: string };
+        if (!response.ok || !data.ok || !data.embedUrl) throw new Error(data.message || "Lecture vidéo indisponible.");
+        if (!cancelled) setSecureVideoUrls((current) => ({ ...current, [activeLesson.id]: data.embedUrl ?? "" }));
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) setSecureVideoErrors((current) => ({ ...current, [activeLesson.id]: error instanceof Error ? error.message : "Lecture vidéo indisponible." }));
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeLesson, isCloudflareStream, secureVideoErrors, secureVideoUrls]);
 
   function toggleModule(moduleId: string) {
     setOpenModuleIds((current) => {
@@ -152,7 +161,7 @@ export function LearningExperience({ course, modules, lessons, resources, progre
                                   <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${isDone ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"}`}>{isDone ? "✓" : "▶"}</span>
                                   <span className="min-w-0">
                                     <span className="block break-words text-sm font-semibold text-slate-900">{lesson.title}</span>
-                                    <span className="mt-1 block text-xs text-slate-500">{lesson.duration || (lesson.video_url ? "Vidéo" : "Leçon")}</span>
+                                    <span className="mt-1 block text-xs text-slate-500">{lesson.duration || (lesson.video_url || lesson.video_uid || lesson.video_provider ? "Vidéo" : "Leçon")}</span>
                                   </span>
                                 </span>
                               </button>
@@ -181,7 +190,7 @@ export function LearningExperience({ course, modules, lessons, resources, progre
                               <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs ${isDone ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-500"}`}>{isDone ? "✓" : "▶"}</span>
                               <span className="min-w-0">
                                 <span className="block break-words text-sm font-semibold text-slate-900">{lesson.title}</span>
-                                <span className="mt-1 block text-xs text-slate-500">{lesson.duration || (lesson.video_url ? "Vidéo" : "Leçon")}</span>
+                                <span className="mt-1 block text-xs text-slate-500">{lesson.duration || (lesson.video_url || lesson.video_uid || lesson.video_provider ? "Vidéo" : "Leçon")}</span>
                               </span>
                             </span>
                           </button>
@@ -197,18 +206,21 @@ export function LearningExperience({ course, modules, lessons, resources, progre
           <section className="min-w-0 space-y-5">
             <div className="overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-sm">
               <div className="bg-slate-950 p-0.5 sm:p-1">
-                <div className="aspect-video overflow-hidden rounded-[1.35rem] bg-black">
-                  {embedUrl ? <iframe className="h-full w-full" src={embedUrl} title={activeLesson?.title ?? course.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /> : null}
-                  {!embedUrl && isMp4Url(activeLesson?.video_url) ? <video className="h-full w-full" src={activeLesson?.video_url ?? undefined} controls /> : null}
-                  {!embedUrl && activeLesson?.video_url && !isMp4Url(activeLesson.video_url) ? (
+                <div className="relative aspect-video overflow-hidden rounded-[1.35rem] bg-black">
+                  {videoEmbed.embedUrl && videoEmbed.provider !== "mp4" ? <iframe className="h-full w-full" src={videoEmbed.embedUrl} title={activeLesson?.title ?? course.title} allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture" loading="lazy" allowFullScreen /> : null}
+                  {videoEmbed.provider === "mp4" && videoEmbed.embedUrl ? <video className="h-full w-full" src={videoEmbed.embedUrl} controls controlsList="nodownload" disablePictureInPicture /> : null}
+                  {videoEmbed.embedUrl && videoWatermark ? <div className="pointer-events-none absolute right-3 top-3 max-w-[70%] rounded-full bg-black/45 px-3 py-1 text-xs font-semibold text-white/80 shadow-sm backdrop-blur-sm">{videoWatermark}</div> : null}
+                  {isCloudflareStream && !videoEmbed.embedUrl && !secureVideoErrors[activeLesson?.id ?? ""] ? <div className="flex h-full items-center justify-center p-6 text-center text-white/80">Chargement sécurisé de la vidéo...</div> : null}
+                  {isCloudflareStream && activeLesson && secureVideoErrors[activeLesson.id] ? <div className="flex h-full items-center justify-center p-6 text-center text-white/80">{secureVideoErrors[activeLesson.id]}</div> : null}
+                  {videoEmbed.provider === "external" && activeLesson?.video_url && !isCloudflareStream ? (
                     <div className="flex h-full items-center justify-center p-6 text-center text-white">
                       <div>
                         <p className="text-xl font-bold">Vidéo disponible sur une plateforme externe</p>
-                        <a className="mt-4 inline-flex rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={activeLesson.video_url} target="_blank" rel="noreferrer">Ouvrir la vidéo</a>
+                        <p className="mt-3 text-sm text-white/70">Cette vidéo n’est pas intégrée au lecteur sécurisé Agri-tech Academy.</p>
                       </div>
                     </div>
                   ) : null}
-                  {!activeLesson?.video_url ? <div className="flex h-full items-center justify-center p-6 text-center text-white/80">Aucune vidéo n’est encore disponible pour cette leçon.</div> : null}
+                  {!hasActiveLessonVideo ? <div className="flex h-full items-center justify-center p-6 text-center text-white/80">Aucune vidéo n’est encore disponible pour cette leçon.</div> : null}
                 </div>
               </div>
 

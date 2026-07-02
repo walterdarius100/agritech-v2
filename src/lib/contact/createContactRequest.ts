@@ -10,6 +10,7 @@ export const contactRequestTypes: ContactRequestType[] = [
   "general",
   "service",
   "formation",
+  "academy_access",
   "partnership",
   "other",
 ];
@@ -72,16 +73,17 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
   const phone = clean(input.phone, limits.phone);
   const organization = clean(input.organization, limits.organization);
   const subject = clean(input.subject, limits.subject);
-  const message = cleanMultiline(input.message, limits.message);
+  let message = cleanMultiline(input.message, limits.message);
   const serviceSlug = clean(input.service_slug, limits.slug);
   const formationSlug = clean(input.formation_slug, limits.slug);
+  const courseSlug = clean(input.course_slug, limits.slug);
+  const courseTitle = clean(input.course_title, limits.subject);
   const sourcePage = clean(input.source_page, limits.source_page);
 
   if (!fullName) return { ok: false, message: "Le nom complet est requis." };
   if (!email || !emailPattern.test(email)) {
     return { ok: false, message: "Un email valide est requis." };
   }
-  if (!message) return { ok: false, message: "Le message est requis." };
   if (!contactRequestTypes.includes(requestType)) {
     return { ok: false, message: "Type de demande invalide." };
   }
@@ -89,9 +91,17 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
   // Si service_slug et formation_slug arrivent ensemble, le service est prioritaire.
   const finalRequestType = serviceSlug
     ? "service"
-    : formationSlug
-      ? "formation"
-      : requestType;
+    : courseSlug || requestType === "academy_access"
+      ? "academy_access"
+      : formationSlug
+        ? "formation"
+        : requestType;
+
+  const academyCourseTitle = courseTitle || subject || "Formation sélectionnée non précisée";
+  if (!message && (courseSlug || requestType === "academy_access")) {
+    message = `Demande d’accès à la formation Academy : ${academyCourseTitle}. L’étudiant souhaite être contacté pour les modalités de paiement et l’activation manuelle de son accès.`;
+  }
+  if (!message) return { ok: false, message: "Le message est requis." };
 
   return {
     ok: true,
@@ -103,7 +113,9 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
       request_type: finalRequestType,
       service_slug: finalRequestType === "service" ? nullable(serviceSlug) : null,
       formation_slug: finalRequestType === "formation" ? nullable(formationSlug) : null,
-      subject: nullable(subject),
+      course_slug: finalRequestType === "academy_access" ? nullable(courseSlug || formationSlug) : null,
+      course_title: finalRequestType === "academy_access" ? nullable(academyCourseTitle) : null,
+      subject: finalRequestType === "academy_access" ? nullable(subject || academyCourseTitle || "Accès formation Academy") : nullable(subject),
       message,
       source_page: nullable(sourcePage),
     },
@@ -119,7 +131,43 @@ export async function createContactRequest(input: Record<string, unknown>) {
     return { ok: false as const, message: "Configuration Supabase manquante." };
   }
 
-  const { error } = await supabase.from("contact_requests").insert(validated.payload);
+  const serviceTitle = clean(input.service_title, limits.subject);
+
+  const metadata = (() => {
+    if (validated.payload.request_type === "academy_access") {
+      return {
+        request_type: "academy_access",
+        course_slug: validated.payload.course_slug,
+        course_title: validated.payload.course_title,
+        origin: "academy_course_page",
+      };
+    }
+
+    if (validated.payload.request_type === "service") {
+      return {
+        request_type: "service",
+        service_slug: validated.payload.service_slug,
+        service_title: serviceTitle || validated.payload.subject,
+        origin: "service_page",
+      };
+    }
+
+    if (validated.payload.request_type === "partnership") {
+      return {
+        request_type: "partnership",
+        origin: "partnership_cta",
+      };
+    }
+
+    return {};
+  })();
+
+  const payload = {
+    ...validated.payload,
+    metadata,
+  };
+
+  const { error } = await supabase.from("contact_requests").insert(payload);
   if (error) {
     console.error("Unable to create contact request", error.message);
     return { ok: false as const, message: "Impossible d’envoyer votre demande pour le moment." };

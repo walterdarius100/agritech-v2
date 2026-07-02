@@ -21,7 +21,7 @@ export default async function AdminContactRequestDetailPage({ params }: { params
           <h1 className="text-3xl font-bold">Demande de {request.full_name}</h1>
           <p className="mt-2 text-slate-600">Reçue le {new Date(request.created_at).toLocaleString("fr-FR")}</p>
         </div>
-        <a className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white" href={`mailto:${request.email}`}>Répondre par email</a>
+        <div className="flex flex-wrap gap-2"><a className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white" href={`mailto:${request.email}`}>Répondre par email</a>{request.request_type === "academy_access" ? <Link className="rounded-xl bg-yellow-400 px-4 py-2 text-sm font-black text-emerald-950" href="/admin/academy/enrollments">Gérer l’accès Academy</Link> : null}</div>
       </div>
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
         <section className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -33,6 +33,7 @@ export default async function AdminContactRequestDetailPage({ params }: { params
             <Info label="Organisation" value={request.organization} />
             <Info label="Type de demande" value={context.typeLabel} />
             {context.itemPrefix ? <Info label={context.itemPrefix} value={context.itemLabel} /> : null}
+            {request.course_slug ? <Info label="Slug du cours Academy" value={request.course_slug} /> : null}
             <Info label="Source" value={request.source_page} />
           </dl>
           <div className="mt-6">
