@@ -5,17 +5,18 @@
 1. Ouvrir `/academy/cours/cuniculture-pratique`.
 2. Cliquer `Demander l’accès` en visiteur non connecté.
 3. Vérifier la redirection vers `/academy/register` avec un paramètre `next` encodé contenant `/contact?type=academy-access&course=cuniculture-pratique`.
-4. Créer un compte ; si Supabase renvoie une session, vérifier la redirection vers le formulaire Contact prérempli.
-5. Se connecter via `/academy/login?next=...` et vérifier la même redirection.
-6. Ouvrir directement `/contact?type=academy-access&course=cuniculture-pratique` en étudiant connecté.
-7. Vérifier le mode `Demande d’accès à une formation Academy`, la formation, le slug, le message, le nom et l’email préremplis si disponibles.
-8. Envoyer la demande et vérifier l’enregistrement `contact_requests.request_type = academy_access`.
-9. Vérifier `/admin/contact-requests` et le détail de la demande.
-10. Confirmer qu’aucun enrollment n’est créé automatiquement.
+4. Créer un compte ou se connecter via `/academy/login?next=...` et vérifier la redirection vers Contact.
+5. Ouvrir directement `/contact?type=academy-access&course=cuniculture-pratique` en étudiant connecté.
+6. Vérifier qu’aucune box contextuelle publique n’est affichée.
+7. Vérifier que le type, la formation, le nom, l’email et le téléphone sont préremplis quand disponibles.
+8. Vérifier que la textarea message est masquée pour Academy.
+9. Envoyer la demande et vérifier l’enregistrement `contact_requests.request_type = academy_access` avec un message généré automatiquement.
+10. Vérifier `/admin/contact-requests` et le détail de la demande.
+11. Confirmer qu’aucun enrollment n’est créé automatiquement.
 
 ## Régressions à vérifier
 
-- `/contact` sans paramètre reste une demande générale.
-- `/contact?service=[slug]` reste une demande service.
-- `/contact?formation=[slug]` reste une demande formation classique.
+- `/contact` sans paramètre reste une demande générale avec message visible et sans box contextuelle.
+- `/contact?service=poule-pondeuse` reste une demande service avec domaine/message préremplis et message visible.
+- `/contact?type=partnership` reste une demande partenariat avec message visible.
 - `/admin/academy/enrollments` reste le point de validation manuelle.

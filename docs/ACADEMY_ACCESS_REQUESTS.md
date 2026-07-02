@@ -8,7 +8,7 @@ L’accès aux formations Academy reste manuel : aucune demande Contact ne crée
 2. Si l’étudiant est connecté, il est envoyé vers `/contact?type=academy-access&course=[slug]`.
 3. Si le visiteur n’est pas connecté, il est envoyé vers `/academy/register?next=...` avec une URL `next` interne encodée vers le formulaire Contact.
 4. Après création de compte ou connexion, `next` est validée côté serveur puis utilisée ; sinon le fallback reste `/academy/dashboard`.
-5. Le formulaire Contact est prérempli en mode `Accès formation Academy`.
+5. Le formulaire Contact est prérempli en mode `Accès formation Academy`, sans box contextuelle publique et sans textarea visible.
 
 ## Données enregistrées
 
@@ -19,7 +19,7 @@ Les demandes Academy utilisent `contact_requests` avec :
 - `course_title` si trouvé ;
 - `subject` renseigné avec la formation demandée ;
 - `metadata` contenant le contexte Academy ;
-- `message` prérempli et modifiable.
+- `message` généré automatiquement.
 
 ## Limites actuelles
 

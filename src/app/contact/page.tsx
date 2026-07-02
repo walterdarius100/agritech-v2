@@ -22,20 +22,24 @@ export default async function ContactPage({
 }) {
   const params = await searchParams;
   const isAcademyAccess = params.type === "academy-access";
+  const isPartnership = params.type === "partnership";
   const courseSlug = isAcademyAccess ? params.course ?? "" : "";
   const [course, user] = await Promise.all([courseSlug ? getAcademyCourseBySlug(courseSlug) : null, getCurrentStudentUser()]);
   let profileName = "";
+  let profilePhone = "";
   if (user) {
     const supabase = createSupabaseAdminClient();
     const { data: profile } = supabase
-      ? await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()
+      ? await supabase.from("profiles").select("full_name, phone").eq("id", user.id).maybeSingle()
       : { data: null };
     profileName = typeof profile?.full_name === "string" ? profile.full_name : "";
+    profilePhone = typeof profile?.phone === "string" ? profile.phone : "";
   }
   const metadata = user?.user_metadata as { full_name?: string; name?: string } | undefined;
   const initialValues = {
     fullName: profileName || metadata?.full_name || metadata?.name || "",
     email: user?.email ?? "",
+    phone: profilePhone,
   };
 
   return (
@@ -53,7 +57,7 @@ export default async function ContactPage({
       </section>
       <Section>
         <div className="mx-auto max-w-4xl">
-          <ContactFormShell courseSlug={courseSlug} courseTitle={course?.title} formationSlug={params.formation} initialValues={initialValues} isAcademyAccess={isAcademyAccess} serviceSlug={params.service} />
+          <ContactFormShell courseSlug={courseSlug} courseTitle={course?.title} formationSlug={params.formation} initialValues={initialValues} isAcademyAccess={isAcademyAccess} isPartnership={isPartnership} serviceSlug={params.service} />
         </div>
       </Section>
     </>

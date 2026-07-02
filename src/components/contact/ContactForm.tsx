@@ -7,7 +7,7 @@ import { services } from "@/data/services";
 import { getFormationLabel, getServiceLabel } from "@/lib/contact/requestLabels";
 import type { ContactRequestType } from "@/types/contact";
 
-export type ContactFormInitialValues = { fullName?: string; email?: string };
+export type ContactFormInitialValues = { fullName?: string; email?: string; phone?: string };
 
 type ContactFormProps = {
   serviceSlug?: string;
@@ -15,6 +15,7 @@ type ContactFormProps = {
   courseSlug?: string;
   courseTitle?: string;
   isAcademyAccess?: boolean;
+  isPartnership?: boolean;
   initialValues?: ContactFormInitialValues;
 };
 
@@ -29,19 +30,30 @@ const requestTypeOptions: { label: string; value: ContactRequestType }[] = [
   { label: "Autre demande", value: "other" },
 ];
 
-export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug = "", courseTitle, isAcademyAccess = false, initialValues }: ContactFormProps) {
+export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug = "", courseTitle, isAcademyAccess = false, isPartnership = false, initialValues }: ContactFormProps) {
   // Quand les deux paramètres sont présents, le service est prioritaire afin de garder une seule origine claire.
   const selectedServiceSlug = serviceSlug || "";
   const selectedFormationSlug = selectedServiceSlug ? "" : formationSlug || "";
+  const selectedServiceLabel = getServiceLabel(selectedServiceSlug) ?? selectedServiceSlug;
+  const selectedFormationLabel = getFormationLabel(selectedFormationSlug) ?? selectedFormationSlug;
   const initialRequestType: ContactRequestType = selectedServiceSlug
     ? "service"
     : isAcademyAccess
       ? "academy_access"
       : selectedFormationSlug
         ? "formation"
-        : "general";
-  const academyCourseLabel = courseTitle || (courseSlug ? "Formation sélectionnée non précisée" : "Formation sélectionnée non précisée");
-  const academyMessage = `Bonjour Agri-tech,\n\nJe souhaite demander l’accès à la formation : ${academyCourseLabel}.\n\nMerci de me contacter pour les modalités de paiement et l’activation manuelle de mon accès.`;
+        : isPartnership
+          ? "partnership"
+          : "general";
+  const academyCourseLabel = courseTitle || "Formation sélectionnée non précisée";
+  const academyMessage = `Demande d’accès à la formation Academy : ${academyCourseLabel}. L’étudiant souhaite être contacté pour les modalités de paiement et l’activation manuelle de son accès.`;
+  const defaultMessage = isAcademyAccess
+    ? academyMessage
+    : selectedServiceSlug
+      ? `Bonjour Agri-tech,\n\nJe souhaite avoir des informations concernant le service : ${selectedServiceLabel}.`
+      : isPartnership
+        ? "Bonjour Agri-tech,\n\nJe souhaite discuter d’une possibilité de partenariat."
+        : undefined;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>({ type: "idle" });
   const [requestType, setRequestType] = useState<ContactRequestType>(initialRequestType);
@@ -51,10 +63,11 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
     if (selectedServiceSlug) params.set("service", selectedServiceSlug);
     if (selectedFormationSlug) params.set("formation", selectedFormationSlug);
     if (isAcademyAccess) params.set("type", "academy-access");
+    if (isPartnership) params.set("type", "partnership");
     if (courseSlug) params.set("course", courseSlug);
     const query = params.toString();
     return query ? `/contact?${query}` : "/contact";
-  }, [courseSlug, isAcademyAccess, selectedFormationSlug, selectedServiceSlug]);
+  }, [courseSlug, isAcademyAccess, isPartnership, selectedFormationSlug, selectedServiceSlug]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -108,53 +121,50 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
     <form onSubmit={handleSubmit} className="grid gap-4 rounded-3xl border border-emerald-100 bg-white p-6 shadow-sm">
       <input aria-hidden="true" autoComplete="off" className="hidden" name="company_website" tabIndex={-1} type="text" />
       <input name="service_slug" type="hidden" value={selectedServiceSlug} />
+      <input name="service_title" type="hidden" value={selectedServiceSlug ? selectedServiceLabel : ""} />
       <input name="formation_slug" type="hidden" value={selectedFormationSlug} />
       <input name="course_slug" type="hidden" value={isAcademyAccess ? courseSlug : ""} />
       <input name="course_title" type="hidden" value={isAcademyAccess ? academyCourseLabel : ""} />
       <input name="source_page" type="hidden" value={sourcePage} />
-
-      {isAcademyAccess ? (
-        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-emerald-950">
-          <p className="font-black">Demande d’accès à une formation Academy</p>
-          <p className="mt-1 font-semibold">Formation choisie : {academyCourseLabel}{courseSlug ? ` (${courseSlug})` : ""}</p>
-          <p className="mt-2 text-slate-700">Remplissez ce formulaire pour demander l’accès à la formation sélectionnée. L’équipe Agri-tech vous contactera pour les modalités de paiement et l’activation manuelle de votre accès.</p>
-        </div>
-      ) : initialRequestType !== "general" ? (
-        <p className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
-          {initialRequestType === "service"
-            ? `Demande liée au service : ${getServiceLabel(selectedServiceSlug) ?? selectedServiceSlug}`
-            : `Demande liée à la formation : ${getFormationLabel(selectedFormationSlug) ?? selectedFormationSlug}`}
-        </p>
-      ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Field defaultValue={initialValues?.fullName} label="Nom complet" maxLength={120} name="full_name" placeholder="Votre nom" required />
         <Field defaultValue={initialValues?.email} label="Email" maxLength={180} name="email" placeholder="vous@example.com" required type="email" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Téléphone" maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
+        <Field defaultValue={initialValues?.phone} label="Téléphone" maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
         <Field label="Organisation / entreprise" maxLength={180} name="organization" placeholder="Nom de votre structure" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Select label="Type de demande" name="request_type" onChange={(value) => setRequestType(value as ContactRequestType)} options={requestTypeOptions} value={requestType} />
         {isAcademyAccess ? (
-          <Field defaultValue={academyCourseLabel} label="Formation demandée" maxLength={180} name="subject" placeholder="Formation Academy" />
+          <Field defaultValue={academyCourseLabel} label="Domaine / Formation concernée" maxLength={180} name="subject" placeholder="Formation Academy" />
+        ) : isPartnership ? (
+          <Field defaultValue="Collaboration / Partenariat" label="Domaine concerné" maxLength={180} name="subject" placeholder="Collaboration / Partenariat" />
+        ) : selectedServiceSlug ? (
+          <Field defaultValue={selectedServiceLabel} label="Domaine concerné" maxLength={180} name="subject" placeholder="Service concerné" />
+        ) : selectedFormationSlug ? (
+          <Field defaultValue={selectedFormationLabel} label="Domaine concerné" maxLength={180} name="subject" placeholder="Formation concernée" />
         ) : (
           <Select label="Domaine concerné" name="subject" options={services.map((service) => ({ label: service.title, value: service.title }))} placeholder="Choisir si applicable" />
         )}
       </div>
-      <label className="grid gap-2 text-sm font-semibold text-emerald-950">
-        Message
-        <textarea
-          className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600"
-          maxLength={3000}
-          name="message"
-          placeholder="Décrivez votre projet, votre localisation, votre objectif et vos contraintes"
-          required
-          rows={6}
-          defaultValue={isAcademyAccess ? academyMessage : undefined}
-        />
-      </label>
+      {isAcademyAccess ? (
+        <input name="message" type="hidden" value={academyMessage} />
+      ) : (
+        <label className="grid gap-2 text-sm font-semibold text-emerald-950">
+          Message
+          <textarea
+            className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600"
+            maxLength={3000}
+            name="message"
+            placeholder="Décrivez votre projet, votre localisation, votre objectif et vos contraintes"
+            required
+            rows={6}
+            defaultValue={defaultMessage}
+          />
+        </label>
+      )}
       <label className="flex gap-3 text-sm text-slate-600"><input required type="checkbox" className="mt-1 size-4 accent-emerald-700" />J’accepte d’être recontacté par Agri-tech au sujet de ma demande.</label>
       <Button disabled={isSubmitting} type="submit" variant="secondary" className="w-fit">
         {isSubmitting ? "Envoi en cours..." : isAcademyAccess ? "Envoyer ma demande d’accès" : "Demander une consultation"}
