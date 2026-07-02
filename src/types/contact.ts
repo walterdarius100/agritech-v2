@@ -2,6 +2,7 @@ export type ContactRequestType =
   | "general"
   | "service"
   | "formation"
+  | "academy_access"
   | "partnership"
   | "other";
 
@@ -24,6 +25,9 @@ export type ContactRequest = {
   request_type: ContactRequestType;
   service_slug: string | null;
   formation_slug: string | null;
+  course_slug: string | null;
+  course_title: string | null;
+  metadata: Record<string, unknown> | null;
   subject: string | null;
   message: string;
   source_page: string | null;
@@ -43,6 +47,8 @@ export type CreateContactRequestInput = Pick<
   | "request_type"
   | "service_slug"
   | "formation_slug"
+  | "course_slug"
+  | "course_title"
   | "subject"
   | "message"
   | "source_page"

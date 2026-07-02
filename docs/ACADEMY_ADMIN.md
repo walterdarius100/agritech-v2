@@ -1,34 +1,11 @@
-# Academy — administration des cours
+# Admin Academy et demandes Contact
 
-## Créer ou modifier un cours
+## Traitement manuel
 
-Depuis `/admin/academy/courses`, l’admin peut créer un cours avec les champs de base et les champs d’affichage public. Depuis `/admin/academy/courses/[id]/edit`, il peut compléter ou corriger la fiche.
+Les demandes `academy_access` apparaissent dans `/admin/contact-requests` avec un badge `Academy`, le nom, l’email, la formation demandée et le slug du cours.
 
-Champs à renseigner :
+Depuis le détail d’une demande Academy, le lien `Gérer l’accès Academy` mène vers `/admin/academy/enrollments` pour aider l’équipe à attribuer l’accès manuellement.
 
-- titre, slug, catégorie ;
-- description courte et description détaillée ;
-- image de couverture ;
-- durée, niveau, statut, date de publication ;
-- prix, devise, case cours gratuit ;
-- texte de certification / conditions ;
-- nom, rôle, bio courte et image du formateur principal.
+## Règle importante
 
-## Persistance Supabase
-
-La migration `20260701_add_academy_course_display_fields.sql` ajoute de façon non destructive :
-
-- `certification_description` ;
-- `instructor_name` ;
-- `instructor_role` ;
-- `instructor_bio` ;
-- `instructor_image_url`.
-
-Les autres champs existaient déjà dans `academy_courses` et sont réutilisés.
-
-## Limites actuelles
-
-- Pas d’upload vidéo automatique.
-- Pas de paiement automatique.
-- Pas de génération PDF de certificat dans ce lot.
-- Gestion d’un formateur principal seulement.
+Une demande Contact n’accorde jamais l’accès automatiquement. L’enrollment Academy reste validé par un administrateur.

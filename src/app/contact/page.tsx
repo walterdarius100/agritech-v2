@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 
 import { ContactFormShell } from "@/components/contact/ContactFormShell";
+import { getCurrentStudentUser } from "@/lib/academy/auth";
+import { getAcademyCourseBySlug } from "@/lib/academy/courses";
+import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { createMetadata } from "@/lib/seo/metadata";
@@ -15,9 +18,26 @@ export const metadata: Metadata = createMetadata({
 export default async function ContactPage({
   searchParams,
 }: {
-  searchParams: Promise<{ service?: string; formation?: string }>;
+  searchParams: Promise<{ service?: string; formation?: string; type?: string; course?: string }>;
 }) {
   const params = await searchParams;
+  const isAcademyAccess = params.type === "academy-access";
+  const courseSlug = isAcademyAccess ? params.course ?? "" : "";
+  const [course, user] = await Promise.all([courseSlug ? getAcademyCourseBySlug(courseSlug) : null, getCurrentStudentUser()]);
+  let profileName = "";
+  if (user) {
+    const supabase = createSupabaseAdminClient();
+    const { data: profile } = supabase
+      ? await supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle()
+      : { data: null };
+    profileName = typeof profile?.full_name === "string" ? profile.full_name : "";
+  }
+  const metadata = user?.user_metadata as { full_name?: string; name?: string } | undefined;
+  const initialValues = {
+    fullName: profileName || metadata?.full_name || metadata?.name || "",
+    email: user?.email ?? "",
+  };
+
   return (
     <>
       <section className="bg-emerald-950 py-14 text-white sm:py-18">
@@ -33,7 +53,7 @@ export default async function ContactPage({
       </section>
       <Section>
         <div className="mx-auto max-w-4xl">
-          <ContactFormShell formationSlug={params.formation} serviceSlug={params.service} />
+          <ContactFormShell courseSlug={courseSlug} courseTitle={course?.title} formationSlug={params.formation} initialValues={initialValues} isAcademyAccess={isAcademyAccess} serviceSlug={params.service} />
         </div>
       </Section>
     </>

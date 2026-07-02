@@ -7,9 +7,15 @@ import { services } from "@/data/services";
 import { getFormationLabel, getServiceLabel } from "@/lib/contact/requestLabels";
 import type { ContactRequestType } from "@/types/contact";
 
+export type ContactFormInitialValues = { fullName?: string; email?: string };
+
 type ContactFormProps = {
   serviceSlug?: string;
   formationSlug?: string;
+  courseSlug?: string;
+  courseTitle?: string;
+  isAcademyAccess?: boolean;
+  initialValues?: ContactFormInitialValues;
 };
 
 type SubmitState = { type: "idle" | "success" | "error"; message?: string };
@@ -18,19 +24,24 @@ const requestTypeOptions: { label: string; value: ContactRequestType }[] = [
   { label: "Demande générale", value: "general" },
   { label: "Service technique", value: "service" },
   { label: "Formation", value: "formation" },
+  { label: "Accès formation Academy", value: "academy_access" },
   { label: "Partenariat", value: "partnership" },
   { label: "Autre demande", value: "other" },
 ];
 
-export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFormProps) {
+export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug = "", courseTitle, isAcademyAccess = false, initialValues }: ContactFormProps) {
   // Quand les deux paramètres sont présents, le service est prioritaire afin de garder une seule origine claire.
   const selectedServiceSlug = serviceSlug || "";
   const selectedFormationSlug = selectedServiceSlug ? "" : formationSlug || "";
   const initialRequestType: ContactRequestType = selectedServiceSlug
     ? "service"
-    : selectedFormationSlug
-      ? "formation"
-      : "general";
+    : isAcademyAccess
+      ? "academy_access"
+      : selectedFormationSlug
+        ? "formation"
+        : "general";
+  const academyCourseLabel = courseTitle || (courseSlug ? "Formation sélectionnée non précisée" : "Formation sélectionnée non précisée");
+  const academyMessage = `Bonjour Agri-tech,\n\nJe souhaite demander l’accès à la formation : ${academyCourseLabel}.\n\nMerci de me contacter pour les modalités de paiement et l’activation manuelle de mon accès.`;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>({ type: "idle" });
   const [requestType, setRequestType] = useState<ContactRequestType>(initialRequestType);
@@ -39,9 +50,11 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
     const params = new URLSearchParams();
     if (selectedServiceSlug) params.set("service", selectedServiceSlug);
     if (selectedFormationSlug) params.set("formation", selectedFormationSlug);
+    if (isAcademyAccess) params.set("type", "academy-access");
+    if (courseSlug) params.set("course", courseSlug);
     const query = params.toString();
     return query ? `/contact?${query}` : "/contact";
-  }, [selectedFormationSlug, selectedServiceSlug]);
+  }, [courseSlug, isAcademyAccess, selectedFormationSlug, selectedServiceSlug]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -96,9 +109,17 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
       <input aria-hidden="true" autoComplete="off" className="hidden" name="company_website" tabIndex={-1} type="text" />
       <input name="service_slug" type="hidden" value={selectedServiceSlug} />
       <input name="formation_slug" type="hidden" value={selectedFormationSlug} />
+      <input name="course_slug" type="hidden" value={isAcademyAccess ? courseSlug : ""} />
+      <input name="course_title" type="hidden" value={isAcademyAccess ? academyCourseLabel : ""} />
       <input name="source_page" type="hidden" value={sourcePage} />
 
-      {initialRequestType !== "general" ? (
+      {isAcademyAccess ? (
+        <div className="rounded-2xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-emerald-950">
+          <p className="font-black">Demande d’accès à une formation Academy</p>
+          <p className="mt-1 font-semibold">Formation choisie : {academyCourseLabel}{courseSlug ? ` (${courseSlug})` : ""}</p>
+          <p className="mt-2 text-slate-700">Remplissez ce formulaire pour demander l’accès à la formation sélectionnée. L’équipe Agri-tech vous contactera pour les modalités de paiement et l’activation manuelle de votre accès.</p>
+        </div>
+      ) : initialRequestType !== "general" ? (
         <p className="rounded-2xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-900">
           {initialRequestType === "service"
             ? `Demande liée au service : ${getServiceLabel(selectedServiceSlug) ?? selectedServiceSlug}`
@@ -107,8 +128,8 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="Nom complet" maxLength={120} name="full_name" placeholder="Votre nom" required />
-        <Field label="Email" maxLength={180} name="email" placeholder="vous@example.com" required type="email" />
+        <Field defaultValue={initialValues?.fullName} label="Nom complet" maxLength={120} name="full_name" placeholder="Votre nom" required />
+        <Field defaultValue={initialValues?.email} label="Email" maxLength={180} name="email" placeholder="vous@example.com" required type="email" />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Téléphone" maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
@@ -116,7 +137,11 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <Select label="Type de demande" name="request_type" onChange={(value) => setRequestType(value as ContactRequestType)} options={requestTypeOptions} value={requestType} />
-        <Select label="Domaine concerné" name="subject" options={services.map((service) => ({ label: service.title, value: service.title }))} placeholder="Choisir si applicable" />
+        {isAcademyAccess ? (
+          <Field defaultValue={academyCourseLabel} label="Formation demandée" maxLength={180} name="subject" placeholder="Formation Academy" />
+        ) : (
+          <Select label="Domaine concerné" name="subject" options={services.map((service) => ({ label: service.title, value: service.title }))} placeholder="Choisir si applicable" />
+        )}
       </div>
       <label className="grid gap-2 text-sm font-semibold text-emerald-950">
         Message
@@ -127,19 +152,20 @@ export function ContactForm({ serviceSlug = "", formationSlug = "" }: ContactFor
           placeholder="Décrivez votre projet, votre localisation, votre objectif et vos contraintes"
           required
           rows={6}
+          defaultValue={isAcademyAccess ? academyMessage : undefined}
         />
       </label>
       <label className="flex gap-3 text-sm text-slate-600"><input required type="checkbox" className="mt-1 size-4 accent-emerald-700" />J’accepte d’être recontacté par Agri-tech au sujet de ma demande.</label>
       <Button disabled={isSubmitting} type="submit" variant="secondary" className="w-fit">
-        {isSubmitting ? "Envoi en cours..." : "Demander une consultation"}
+        {isSubmitting ? "Envoi en cours..." : isAcademyAccess ? "Envoyer ma demande d’accès" : "Demander une consultation"}
       </Button>
       {submitState.message ? <p className={`rounded-2xl p-4 text-sm ${submitState.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{submitState.message}</p> : null}
     </form>
   );
 }
 
-function Field({ label, name, type = "text", placeholder, required = false, maxLength }: { label: string; name: string; type?: string; placeholder: string; required?: boolean; maxLength: number }) {
-  return <label className="grid gap-2 text-sm font-semibold text-emerald-950">{label}<input maxLength={maxLength} name={name} required={required} type={type} placeholder={placeholder} className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600" /></label>;
+function Field({ label, name, type = "text", placeholder, required = false, maxLength, defaultValue }: { label: string; name: string; type?: string; placeholder: string; required?: boolean; maxLength: number; defaultValue?: string }) {
+  return <label className="grid gap-2 text-sm font-semibold text-emerald-950">{label}<input defaultValue={defaultValue} maxLength={maxLength} name={name} required={required} type={type} placeholder={placeholder} className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600" /></label>;
 }
 function Select({ label, name, options, placeholder, value, onChange }: { label: string; name: string; options: { label: string; value: string }[]; placeholder?: string; value?: string; onChange?: (value: string) => void }) {
   return <label className="grid gap-2 text-sm font-semibold text-emerald-950">{label}<select name={name} value={value} onChange={(event) => onChange?.(event.target.value)} className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600">{placeholder ? <option value="">{placeholder}</option> : null}{options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select></label>;

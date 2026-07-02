@@ -10,6 +10,7 @@ export const contactRequestTypes: ContactRequestType[] = [
   "general",
   "service",
   "formation",
+  "academy_access",
   "partnership",
   "other",
 ];
@@ -75,6 +76,8 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
   const message = cleanMultiline(input.message, limits.message);
   const serviceSlug = clean(input.service_slug, limits.slug);
   const formationSlug = clean(input.formation_slug, limits.slug);
+  const courseSlug = clean(input.course_slug, limits.slug);
+  const courseTitle = clean(input.course_title, limits.subject);
   const sourcePage = clean(input.source_page, limits.source_page);
 
   if (!fullName) return { ok: false, message: "Le nom complet est requis." };
@@ -89,9 +92,11 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
   // Si service_slug et formation_slug arrivent ensemble, le service est prioritaire.
   const finalRequestType = serviceSlug
     ? "service"
-    : formationSlug
-      ? "formation"
-      : requestType;
+    : courseSlug || requestType === "academy_access"
+      ? "academy_access"
+      : formationSlug
+        ? "formation"
+        : requestType;
 
   return {
     ok: true,
@@ -103,7 +108,9 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
       request_type: finalRequestType,
       service_slug: finalRequestType === "service" ? nullable(serviceSlug) : null,
       formation_slug: finalRequestType === "formation" ? nullable(formationSlug) : null,
-      subject: nullable(subject),
+      course_slug: finalRequestType === "academy_access" ? nullable(courseSlug || formationSlug) : null,
+      course_title: finalRequestType === "academy_access" ? nullable(courseTitle || subject) : null,
+      subject: finalRequestType === "academy_access" ? nullable(subject || courseTitle || "Accès formation Academy") : nullable(subject),
       message,
       source_page: nullable(sourcePage),
     },
@@ -119,7 +126,19 @@ export async function createContactRequest(input: Record<string, unknown>) {
     return { ok: false as const, message: "Configuration Supabase manquante." };
   }
 
-  const { error } = await supabase.from("contact_requests").insert(validated.payload);
+  const payload = {
+    ...validated.payload,
+    metadata: validated.payload.request_type === "academy_access"
+      ? {
+          request_type: "academy_access",
+          course_slug: validated.payload.course_slug,
+          course_title: validated.payload.course_title,
+          origin: "academy_course_page",
+        }
+      : {},
+  };
+
+  const { error } = await supabase.from("contact_requests").insert(payload);
   if (error) {
     console.error("Unable to create contact request", error.message);
     return { ok: false as const, message: "Impossible d’envoyer votre demande pour le moment." };
