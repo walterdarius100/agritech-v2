@@ -5,7 +5,7 @@ Le formulaire `/contact` gère les demandes générales, services, formations cl
 ## Préremplissage par contexte
 
 - `/contact` : formulaire normal, type par défaut, domaine facultatif et message visible.
-- `/contact?service=[slug]` : type `service`, domaine prérempli avec le service, message visible et prérempli légèrement.
+- `/contact?service=[slug]` : type `service`, domaine prérempli avec le service, message visible, obligatoire selon la logique actuelle, mais laissé vide pour que le prospect décrive librement son besoin.
 - `/contact?formation=[slug]` : type `formation`, domaine prérempli avec la formation classique, message visible.
 - `/contact?type=partnership` : type `partnership`, domaine `Collaboration / Partenariat`, message visible et prérempli.
 - `/contact?type=academy-access&course=[slug]` : type `academy_access`, formation préremplie, nom/email/téléphone préremplis si disponibles, textarea masquée.

@@ -7,7 +7,7 @@ export const footerBrand = {
 export const footerExplorerLinks = [
   { label: "Accueil", href: "/" },
   { label: "Services agricoles", href: "/services" },
-  { label: "Formations", href: "/formations" },
+  { label: "Academy", href: "/academy" },
   { label: "Actualités", href: "/actualites" },
   { label: "Contact", href: "/contact" },
 ] as const;
@@ -37,7 +37,7 @@ export const footerContact = {
 export const footerNewsletter = {
   title: "Inscrivez-vous à notre newsletter",
   description:
-    "Conseils pratiques, formations et opportunités agricoles adaptés à la réalité haïtienne.",
+    "Conseils pratiques, Academy et opportunités agricoles adaptés à la réalité haïtienne.",
   placeholder: "Votre email",
   buttonLabel: "S’inscrire",
 } as const;

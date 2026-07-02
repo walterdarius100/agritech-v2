@@ -17,6 +17,12 @@
 ## Régressions à vérifier
 
 - `/contact` sans paramètre reste une demande générale avec message visible et sans box contextuelle.
-- `/contact?service=poule-pondeuse` reste une demande service avec domaine/message préremplis et message visible.
+- `/contact?service=poule-pondeuse` reste une demande service avec domaine prérempli, message visible et textarea vide.
 - `/contact?type=partnership` reste une demande partenariat avec message visible.
 - `/admin/academy/enrollments` reste le point de validation manuelle.
+
+## Navigation publique
+
+- La page d’accueil présente `Agri-tech Academy` au lieu de `Formations Agri-tech`.
+- Le CTA `Découvrir notre Academy` pointe vers `/academy`.
+- La navbar desktop et le menu mobile affichent `Academy` et non `Formations`.

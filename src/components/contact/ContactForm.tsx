@@ -49,11 +49,9 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
   const academyMessage = `Demande d’accès à la formation Academy : ${academyCourseLabel}. L’étudiant souhaite être contacté pour les modalités de paiement et l’activation manuelle de son accès.`;
   const defaultMessage = isAcademyAccess
     ? academyMessage
-    : selectedServiceSlug
-      ? `Bonjour Agri-tech,\n\nJe souhaite avoir des informations concernant le service : ${selectedServiceLabel}.`
-      : isPartnership
-        ? "Bonjour Agri-tech,\n\nJe souhaite discuter d’une possibilité de partenariat."
-        : undefined;
+    : isPartnership
+      ? "Bonjour Agri-tech,\n\nJe souhaite discuter d’une possibilité de partenariat."
+      : undefined;
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitState, setSubmitState] = useState<SubmitState>({ type: "idle" });
   const [requestType, setRequestType] = useState<ContactRequestType>(initialRequestType);
@@ -158,7 +156,7 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
             className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600"
             maxLength={3000}
             name="message"
-            placeholder="Décrivez votre projet, votre localisation, votre objectif et vos contraintes"
+            placeholder="Présentez votre projet, votre localisation, votre objectif et les informations dont vous avez besoin."
             required
             rows={6}
             defaultValue={defaultMessage}

@@ -14,7 +14,7 @@ export const revalidate = 60;
 export const metadata: Metadata = createMetadata({
   title: "Votre projet agricole, bien accompagné",
   description:
-    "Services techniques, formations pratiques et contenus éducatifs pour accompagner les projets agricoles en Haïti.",
+    "Services techniques, Agri-tech Academy et contenus éducatifs pour accompagner les projets agricoles en Haïti.",
   path: "/",
 });
 
