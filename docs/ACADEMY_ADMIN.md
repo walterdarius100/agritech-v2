@@ -13,3 +13,7 @@ Une demande Contact n’accorde jamais l’accès automatiquement. L’enrollmen
 ## Vidéos Cloudflare Stream
 
 Dans le formulaire de leçon, l’admin peut coller l’URL iframe Cloudflare Stream ou l’identifiant vidéo. Le système extrait l’UID quand possible et prépare `video_provider`, `video_uid` et `video_embed_url` sans supprimer `video_url`.
+
+## Paiements Academy
+
+La page `/admin/academy/payments` liste les paiements, providers, montants, statuts, références provider et enrollment lié. L'accès utilise la protection admin existante.

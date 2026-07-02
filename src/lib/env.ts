@@ -5,6 +5,8 @@ export const env = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   clarityProjectId: process.env.NEXT_PUBLIC_CLARITY_PROJECT_ID || "",
   gaMeasurementId: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || "",
+  academyPaymentsMode: process.env.ACADEMY_PAYMENTS_MODE || "mock",
+  academyCheckoutEnabled: process.env.NEXT_PUBLIC_ACADEMY_CHECKOUT_ENABLED === "true",
 };
 
 export const hasSupabasePublicConfig = Boolean(

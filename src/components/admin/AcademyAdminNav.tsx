@@ -8,6 +8,7 @@ const academyLinks = [
   { href: "/admin/academy/courses", label: "Cours" },
   { href: "/admin/academy/students", label: "Étudiants" },
   { href: "/admin/academy/enrollments", label: "Inscriptions" },
+  { href: "/admin/academy/payments", label: "Paiements" },
   { href: "/admin/academy/certificates", label: "Certificats" },
 ];
 
