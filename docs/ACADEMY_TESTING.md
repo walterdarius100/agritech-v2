@@ -26,3 +26,10 @@
 - La page d’accueil présente `Agri-tech Academy` au lieu de `Formations Agri-tech`.
 - Le CTA `Découvrir notre Academy` pointe vers `/academy`.
 - La navbar desktop et le menu mobile affichent `Academy` et non `Formations`.
+
+## Sécurité vidéo
+
+- Vérifier qu’un étudiant autorisé charge le lecteur Cloudflare avec watermark.
+- Vérifier qu’un utilisateur non autorisé ne reçoit pas d’URL depuis `/api/academy/secure-video`.
+- Vérifier qu’aucun lien de téléchargement ou URL vidéo brute n’est affiché dans l’interface étudiant.
+- Vérifier que l’application ne plante pas si les variables Cloudflare Stream signées ne sont pas configurées.

@@ -3,6 +3,7 @@ export type VideoProvider = "youtube" | "vimeo" | "cloudflare_stream" | "mp4" | 
 export type VideoEmbed = {
   provider: VideoProvider;
   embedUrl: string | null;
+  uid?: string | null;
 };
 
 function extractIframeSrc(value: string) {
@@ -41,19 +42,39 @@ function getVimeoEmbedUrl(parsed: URL) {
   return id ? `https://player.vimeo.com/video/${id}` : null;
 }
 
-function getCloudflareStreamEmbedUrl(parsed: URL) {
-  const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
-  const isCloudflareStream = host.includes("cloudflarestream.com") || host === "iframe.videodelivery.net" || host.endsWith(".videodelivery.net");
-  if (!isCloudflareStream) return null;
+export function extractCloudflareStreamUid(value?: string | null) {
+  const normalized = normalizeVideoUrl(value);
+  if (!normalized) return null;
+  try {
+    const parsed = new URL(normalized);
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    const isCloudflareStream = host.includes("cloudflarestream.com") || host === "iframe.videodelivery.net" || host.endsWith(".videodelivery.net");
+    if (!isCloudflareStream) return null;
+    return parsed.pathname.split("/").filter(Boolean)[0] ?? null;
+  } catch {
+    return null;
+  }
+}
 
+export function getCloudflareEmbedUrl(videoUid: string, customerCode?: string | null) {
+  const uid = videoUid.trim();
+  if (!uid) return null;
+  const customer = customerCode?.trim();
+  return customer
+    ? `https://${customer}.cloudflarestream.com/${encodeURIComponent(uid)}/iframe`
+    : `https://iframe.videodelivery.net/${encodeURIComponent(uid)}`;
+}
+
+function getCloudflareStreamEmbedUrl(parsed: URL) {
+  const uid = extractCloudflareStreamUid(parsed.toString());
+  if (!uid) return null;
+
+  const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
   if (host === "iframe.videodelivery.net" || host.endsWith(".videodelivery.net")) {
     return parsed.toString();
   }
 
-  const parts = parsed.pathname.split("/").filter(Boolean);
-  const videoId = parts[0];
-  if (!videoId) return null;
-  return `${parsed.origin}/${videoId}/iframe${parsed.search}`;
+  return `${parsed.origin}/${uid}/iframe${parsed.search}`;
 }
 
 export function getVideoEmbed(value?: string | null): VideoEmbed {
@@ -63,7 +84,7 @@ export function getVideoEmbed(value?: string | null): VideoEmbed {
   try {
     const parsed = new URL(normalized);
     const cloudflare = getCloudflareStreamEmbedUrl(parsed);
-    if (cloudflare) return { provider: "cloudflare_stream", embedUrl: cloudflare };
+    if (cloudflare) return { provider: "cloudflare_stream", embedUrl: cloudflare, uid: extractCloudflareStreamUid(normalized) };
 
     const youtube = getYouTubeEmbedUrl(parsed);
     if (youtube) return { provider: "youtube", embedUrl: youtube };
@@ -79,4 +100,8 @@ export function getVideoEmbed(value?: string | null): VideoEmbed {
   }
 
   return { provider: "external", embedUrl: null };
+}
+
+export function getVideoProvider(value?: string | null): VideoProvider {
+  return getVideoEmbed(value).provider;
 }
