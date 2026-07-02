@@ -32,8 +32,8 @@ export function LessonForm({ courseId, modules, lesson }: { courseId: string; mo
       </select>
       <input name="duration" defaultValue={lesson?.duration ?? ""} placeholder="Durée (ex. 12 min)" className="rounded-xl border p-3" />
       <input name="position" type="number" defaultValue={lesson?.position ?? 0} placeholder="Position" className="rounded-xl border p-3" />
-      <input name="videoUrl" type="url" defaultValue={lesson?.video_url ?? ""} placeholder="https://..." className="rounded-xl border p-3 md:col-span-2" />
-      <p className="text-sm text-slate-500 md:col-span-2">Collez ici le lien de la vidéo.</p>
+      <input name="videoUrl" type="text" defaultValue={lesson?.video_url ?? ""} placeholder="https://customer-XXXX.cloudflarestream.com/VIDEO_ID/iframe" className="rounded-xl border p-3 md:col-span-2" />
+      <p className="text-sm text-slate-500 md:col-span-2">Collez ici le lien de la vidéo. Pour Cloudflare Stream, utilisez l’URL iframe du lecteur, par exemple https://customer-XXXX.cloudflarestream.com/VIDEO_ID/iframe ou https://iframe.videodelivery.net/VIDEO_ID. Si un iframe complet est collé, seul son src sera enregistré.</p>
       <select name="status" defaultValue={lesson?.status ?? "draft"} className="rounded-xl border p-3">
         {statuses.map((status) => <option key={status} value={status}>{status}</option>)}
       </select>

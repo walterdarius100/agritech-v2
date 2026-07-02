@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { toggleLessonProgress } from "@/lib/academy/progress";
+import { getVideoEmbed } from "@/lib/academy/video";
 import type { AcademyCourse, AcademyLesson, AcademyModule, AcademyResource, LessonProgress } from "@/types/academy";
 
 type LearningExperienceProps = {
@@ -22,27 +23,6 @@ const tabLabels: Record<TabKey, string> = {
   instructor: "Formateur de la leçon",
   resources: "Ressources",
 };
-
-function getYouTubeEmbedUrl(url?: string | null) {
-  if (!url) return null;
-  try {
-    const parsed = new URL(url);
-    const host = parsed.hostname.replace(/^www\./, "");
-    const id = host === "youtu.be" ? parsed.pathname.slice(1) : parsed.searchParams.get("v");
-    return id && (host.includes("youtube.com") || host === "youtu.be") ? `https://www.youtube-nocookie.com/embed/${id}` : null;
-  } catch {
-    return null;
-  }
-}
-
-function isMp4Url(url?: string | null) {
-  if (!url) return false;
-  try {
-    return new URL(url).pathname.toLowerCase().endsWith(".mp4");
-  } catch {
-    return false;
-  }
-}
 
 function durationToMinutes(duration?: string | null) {
   if (!duration) return 0;
@@ -84,7 +64,7 @@ export function LearningExperience({ course, modules, lessons, resources, progre
   const activeModule = activeLesson ? modules.find((module) => module.id === activeLesson.module_id) ?? null : null;
   const activeResources = resources.filter((resource) => !resource.lesson_id || resource.lesson_id === activeLesson?.id);
   const orphanLessons = lessons.filter((lesson) => !lesson.module_id);
-  const embedUrl = getYouTubeEmbedUrl(activeLesson?.video_url);
+  const videoEmbed = getVideoEmbed(activeLesson?.video_url);
   const completed = activeLesson ? completedLessonIds.has(activeLesson.id) : false;
 
   function toggleModule(moduleId: string) {
@@ -198,9 +178,9 @@ export function LearningExperience({ course, modules, lessons, resources, progre
             <div className="overflow-hidden rounded-3xl border border-emerald-50 bg-white shadow-sm">
               <div className="bg-slate-950 p-0.5 sm:p-1">
                 <div className="aspect-video overflow-hidden rounded-[1.35rem] bg-black">
-                  {embedUrl ? <iframe className="h-full w-full" src={embedUrl} title={activeLesson?.title ?? course.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /> : null}
-                  {!embedUrl && isMp4Url(activeLesson?.video_url) ? <video className="h-full w-full" src={activeLesson?.video_url ?? undefined} controls /> : null}
-                  {!embedUrl && activeLesson?.video_url && !isMp4Url(activeLesson.video_url) ? (
+                  {videoEmbed.embedUrl && videoEmbed.provider !== "mp4" ? <iframe className="h-full w-full" src={videoEmbed.embedUrl} title={activeLesson?.title ?? course.title} allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture" loading="lazy" allowFullScreen /> : null}
+                  {videoEmbed.provider === "mp4" && videoEmbed.embedUrl ? <video className="h-full w-full" src={videoEmbed.embedUrl} controls /> : null}
+                  {videoEmbed.provider === "external" && activeLesson?.video_url ? (
                     <div className="flex h-full items-center justify-center p-6 text-center text-white">
                       <div>
                         <p className="text-xl font-bold">Vidéo disponible sur une plateforme externe</p>

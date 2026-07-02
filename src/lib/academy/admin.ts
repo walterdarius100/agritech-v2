@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { generateCertificateId, getCertificateVerificationUrl } from "@/lib/academy/certificates";
+import { normalizeVideoUrl } from "@/lib/academy/video";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -204,7 +205,7 @@ export async function saveLesson(formData: FormData) {
     module_id: nullableString(formData.get("moduleId")),
     title: String(formData.get("title") ?? "").trim(),
     content: nullableString(formData.get("content")),
-    video_url: validUrlOrNull(formData.get("videoUrl")),
+    video_url: normalizeVideoUrl(String(formData.get("videoUrl") ?? "")),
     duration: nullableString(formData.get("duration")),
     position: numberValue(formData.get("position")),
     is_preview: formData.get("isPreview") === "on",
