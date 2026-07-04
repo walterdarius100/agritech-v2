@@ -29,12 +29,13 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
   const certificationText = course.certification_description || "À la fin de cette formation, les participants ayant suivi le parcours et rempli les conditions définies par Agri-tech pourront recevoir une attestation ou un certificat Agri-tech. La délivrance du document reste soumise à la validation de l’équipe Agri-tech.";
   const priceLabel = course.is_free ? "Gratuit" : `${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`;
   const academyAccessContactHref = `/contact?type=academy-access&course=${encodeURIComponent(course.slug)}`;
-  const academyAccessRegisterHref = `/academy/register?next=${encodeURIComponent(academyAccessContactHref)}`;
-  const accessHref = hasAccess ? `/academy/cours/${course.slug}/apprendre` : user ? academyAccessContactHref : academyAccessRegisterHref;
-  const accessLabel = hasAccess ? "Continuer le cours" : "Demander l’accès";
-  const accessCopy = course.is_free
-    ? "Après votre demande, l’équipe Agri-tech pourra valider votre accès à cette formation."
-    : "Après votre demande, l’équipe Agri-tech vous contactera pour finaliser les modalités de paiement. L’accès à la formation sera activé manuellement après validation.";
+  const checkoutEnabled = process.env.NEXT_PUBLIC_ACADEMY_CHECKOUT_ENABLED === "true";
+  const checkoutHref = `/academy/checkout/${course.slug}`;
+  const accessHref = hasAccess ? `/academy/cours/${course.slug}/apprendre` : checkoutEnabled ? checkoutHref : academyAccessContactHref;
+  const accessLabel = hasAccess ? "Continuer le cours" : course.is_free ? "Accéder gratuitement" : checkoutEnabled ? "S’inscrire / Payer cette formation" : "Demander l’accès";
+  const accessCopy = checkoutEnabled
+    ? "Le paiement en ligne peut être testé en mode sécurisé sans argent réel. Le workflow manuel reste disponible si besoin."
+    : "L’équipe Agri-tech vous contactera pour finaliser les modalités d’accès. L’accès à la formation sera activé manuellement après validation.";
 
   return (
     <main className="bg-[#f8faf7]">
@@ -58,7 +59,7 @@ export default async function AcademyCoursePage({ params }: { params: Promise<{ 
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950 shadow-sm transition hover:bg-yellow-300" href={accessHref}>{accessLabel}</Link>
-              <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15 backdrop-blur-sm transition hover:bg-white/15" href={`/academy/login?next=${encodeURIComponent(academyAccessContactHref)}`}>Connexion étudiant</Link>
+              <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15 backdrop-blur-sm transition hover:bg-white/15" href={academyAccessContactHref}>Besoin d’aide ? Contacter Agri-tech</Link>
             </div>
           </div>
         </Container>
