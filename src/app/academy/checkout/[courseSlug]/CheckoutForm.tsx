@@ -1,0 +1,7 @@
+"use client";
+import { useState } from "react";
+export function CheckoutForm({ courseSlug }: { courseSlug: string }) {
+ const [provider,setProvider]=useState<"moncash"|"natcash">("moncash"); const [error,setError]=useState(""); const [loading,setLoading]=useState(false);
+ async function submit(){ setLoading(true); setError(""); const res=await fetch("/api/academy/payments/initiate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({courseSlug,provider})}); const data=await res.json(); setLoading(false); if(!res.ok){setError(data.error||"Erreur de paiement");return;} window.location.href=data.checkoutUrl||data.redirectTo||"/academy/mes-cours"; }
+ return <div className="space-y-4"><div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={()=>setProvider("moncash")} className={`rounded-2xl border p-4 font-bold ${provider==="moncash"?"border-emerald-700 bg-emerald-50 text-emerald-900":"border-slate-200"}`}>MonCash</button><button type="button" onClick={()=>setProvider("natcash")} className={`rounded-2xl border p-4 font-bold ${provider==="natcash"?"border-emerald-700 bg-emerald-50 text-emerald-900":"border-slate-200"}`}>NatCash</button></div>{error?<p className="rounded-xl bg-red-50 p-3 text-sm font-semibold text-red-700">{error}</p>:null}<button onClick={submit} disabled={loading} className="w-full rounded-xl bg-emerald-700 px-5 py-3 font-bold text-white hover:bg-emerald-800 disabled:opacity-60">{loading?"Création du paiement...":"Continuer vers le paiement"}</button></div>;
+}

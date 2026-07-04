@@ -33,3 +33,7 @@
 - Vérifier qu’un utilisateur non autorisé ne reçoit pas d’URL depuis `/api/academy/secure-video`.
 - Vérifier qu’aucun lien de téléchargement ou URL vidéo brute n’est affiché dans l’interface étudiant.
 - Vérifier que l’application ne plante pas si les variables Cloudflare Stream signées ne sont pas configurées.
+
+## Tests paiements mock
+
+Configurer `ACADEMY_PAYMENTS_MODE=mock` et `NEXT_PUBLIC_ACADEMY_CHECKOUT_ENABLED=true`. Tester `/academy/checkout/cuniculture-pratique`, créer un paiement MonCash puis NatCash, simuler success/failed/cancelled sur `/academy/payment/mock/[paymentId]`, vérifier `/academy/mes-cours`, `/academy/cours/[slug]/apprendre` et `/admin/academy/payments`.
