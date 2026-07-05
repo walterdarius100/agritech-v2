@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { generateCertificateId, getCertificateVerificationUrl } from "@/lib/academy/certificates";
+import { generateCertificateAfterCourseCompletion } from "@/lib/academy/certificates";
 import { extractCloudflareStreamUid, getVideoProvider, normalizeVideoUrl } from "@/lib/academy/video";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -119,22 +119,15 @@ export async function updateCourse(formData: FormData) {
 
 export async function createCertificate(formData: FormData) {
   await requireAuthorizedAdmin();
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) return;
+  const enrollmentId = String(formData.get("enrollmentId") ?? "");
+  if (!enrollmentId) return;
 
-  const certificateId = generateCertificateId();
-  await supabase.from("academy_certificates").insert({
-    certificate_id: certificateId,
-    student_id: String(formData.get("studentId")),
-    course_id: String(formData.get("courseId")),
-    student_full_name: String(formData.get("studentFullName")),
-    course_title: String(formData.get("courseTitle")),
-    verification_url: getCertificateVerificationUrl(certificateId),
-    status: "issued",
-  });
+  await generateCertificateAfterCourseCompletion(enrollmentId);
 
   revalidatePath("/admin/academy/certificates");
+  revalidatePath("/academy/certificats");
 }
+
 
 export async function revokeCertificate(formData: FormData) {
   await requireAuthorizedAdmin();
