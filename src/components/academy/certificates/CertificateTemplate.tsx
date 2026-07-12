@@ -19,9 +19,11 @@ export type CertificateTemplateProps = {
   coveredTopics?: string[];
 };
 
-const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
-const CERTIFICATE_SIGNATURE_PATH = "/images/brand/walter-signature.svg";
-const CERTIFICATE_STAMP_PATH = "/images/brand/agritech-stamp.svg";
+const CERTIFICATE_ASSETS = {
+  logo: "/images/brand/Untitled-1.png",
+  signature: "/images/brand/walter-darius-signature.svg",
+  stamp: "/images/brand/agritech-certificate-stamp.svg",
+};
 
 function formatCertificateDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(value));
@@ -65,7 +67,7 @@ function CertificateBrandPanel() {
       <div className="flex w-full flex-col items-center">
         <div className="relative h-[58px] w-[220px] overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={CERTIFICATE_LOGO_PATH} alt="Logo Agri-tech" className="h-full w-full object-contain brightness-0 invert" />
+          <img src={CERTIFICATE_ASSETS.logo} alt="Logo Agri-tech" className="h-full w-full object-contain brightness-0 invert" />
         </div>
         <p className="mt-1 whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-[0.08em] text-white">
           INFORMER • INNOVER • EDUQUER • SENSIBILISER
@@ -93,7 +95,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
       <div className="w-[200px] text-center text-black">
         <div className="mx-auto mb-[-4px] h-[48px] w-[150px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={CERTIFICATE_SIGNATURE_PATH} alt="Signature Walter Darius" className="h-full w-full object-contain" />
+          <img src={CERTIFICATE_ASSETS.signature} alt="Signature Walter Darius" className="h-full w-full object-contain" />
         </div>
         <div className="border-t border-slate-700 pt-1">
           <p className="text-[17px] leading-[1.25] text-slate-950">{signatoryName}</p>
@@ -104,7 +106,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
 
       <div className="h-[116px] w-[116px] opacity-90">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={CERTIFICATE_STAMP_PATH} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
+        <img src={CERTIFICATE_ASSETS.stamp} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
       </div>
     </div>
   );

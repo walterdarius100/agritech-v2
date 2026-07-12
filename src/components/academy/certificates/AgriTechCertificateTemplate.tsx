@@ -1,6 +1,8 @@
-const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
-const CERTIFICATE_SIGNATURE_PATH = "/images/brand/walter-signature.svg";
-const CERTIFICATE_STAMP_PATH = "/images/brand/agritech-stamp.svg";
+const CERTIFICATE_ASSETS = {
+  logo: "/images/brand/Untitled-1.png",
+  signature: "/images/brand/walter-darius-signature.svg",
+  stamp: "/images/brand/agritech-certificate-stamp.svg",
+};
 
 const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
   const row = Math.floor(index / 21);
@@ -20,7 +22,7 @@ function AgriTechWordmark() {
     <div className="text-center text-white">
       <div className="relative mx-auto h-[58px] w-[220px] overflow-hidden">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={CERTIFICATE_LOGO_PATH} alt="Logo Agri-tech" className="h-full w-full object-contain brightness-0 invert" />
+        <img src={CERTIFICATE_ASSETS.logo} alt="Logo Agri-tech" className="h-full w-full object-contain brightness-0 invert" />
       </div>
       <div className="mt-1 whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-[0.08em] text-white">INFORMER • INNOVER • EDUQUER • SENSIBILISER</div>
     </div>
@@ -72,7 +74,7 @@ export function AgriTechCertificateTemplate() {
           <div className="w-[156px] text-center text-black">
             <div className="mx-auto mb-[-4px] h-[40px] w-[120px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={CERTIFICATE_SIGNATURE_PATH} alt="Signature Walter Darius" className="h-full w-full object-contain" />
+              <img src={CERTIFICATE_ASSETS.signature} alt="Signature Walter Darius" className="h-full w-full object-contain" />
             </div>
             <div className="border-t border-slate-700 pt-[3px]">
               <p className="text-[12px] leading-[1.45]">Walter Darius</p>
@@ -83,7 +85,7 @@ export function AgriTechCertificateTemplate() {
 
           <div className="h-[91px] w-[91px] opacity-90">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={CERTIFICATE_STAMP_PATH} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
+            <img src={CERTIFICATE_ASSETS.stamp} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
           </div>
         </section>
 
