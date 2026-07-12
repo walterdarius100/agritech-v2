@@ -21,8 +21,8 @@ export type CertificateTemplateProps = {
 
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
-  signature: "/images/brand/walter-darius-signature.svg",
-  stamp: "/images/brand/agritech-certificate-stamp.svg",
+  signature: "/images/certificate/walter-darius-signature.png",
+  stamp: "/images/certificate/agritech-certificate-stamp.png",
 };
 
 function formatCertificateDate(value: string) {
@@ -93,7 +93,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
   return (
     <div className="flex items-end gap-[30px]">
       <div className="w-[200px] text-center text-black">
-        <div className="mx-auto mb-[-4px] h-[48px] w-[150px]">
+        <div className="mx-auto mb-[-4px] h-[64px] w-[150px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={CERTIFICATE_ASSETS.signature} alt="Signature Walter Darius" className="h-full w-full object-contain" />
         </div>

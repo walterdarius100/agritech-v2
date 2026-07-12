@@ -1,7 +1,7 @@
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
-  signature: "/images/brand/walter-darius-signature.svg",
-  stamp: "/images/brand/agritech-certificate-stamp.svg",
+  signature: "/images/certificate/walter-darius-signature.png",
+  stamp: "/images/certificate/agritech-certificate-stamp.png",
 };
 
 const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
