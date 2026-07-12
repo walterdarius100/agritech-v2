@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { toggleLessonProgress } from "@/lib/academy/progress";
@@ -117,10 +118,15 @@ export function LearningExperience({ course, modules, lessons, resources, progre
     <main className="min-h-screen overflow-x-hidden bg-[#f8faf7] py-6 sm:py-8">
       <div className="mx-auto max-w-7xl px-4">
         <header className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Agri-tech Academy</p>
+            <Link href="/academy/dashboard" className="text-sm font-semibold text-emerald-700 transition hover:text-emerald-900">
+              ← Retour au tableau de bord
+            </Link>
+          </div>
+          <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Agri-tech Academy</p>
-              <h1 className="mt-2 break-words text-3xl font-black text-emerald-950 sm:text-4xl">{course.title}</h1>
+              <h1 className="break-words text-3xl font-black text-emerald-950 sm:text-4xl">{course.title}</h1>
             </div>
             <p className="rounded-full bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800">Progression : {progressPercent}%</p>
           </div>

@@ -59,6 +59,19 @@ export default async function StudentDashboard() {
           <StatCard label="Certificats" value={certs?.length ?? 0} />
         </section>
 
+        <section className="mt-6 rounded-3xl bg-emerald-950 p-6 text-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-yellow-300">Mon espace Academy</p>
+              <h2 className="mt-2 text-2xl font-black">Mes certificats</h2>
+              <p className="mt-2 max-w-2xl text-white/75">Consultez et imprimez vos certificats de formation obtenus avec Agri-tech.</p>
+            </div>
+            <Link href="/academy/certificats" className="rounded-xl bg-white px-5 py-3 text-sm font-bold text-emerald-900 transition hover:bg-emerald-50">
+              Voir mes certificats
+            </Link>
+          </div>
+        </section>
+
         <section className="mt-10 rounded-3xl bg-white p-6 ring-1 ring-emerald-100">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
