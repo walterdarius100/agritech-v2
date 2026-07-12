@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { generateManualCertificateForEnrollment, revokeCertificate } from "@/lib/academy/admin";
 import { getCompletedEnrollmentsEligibleForCertificates } from "@/lib/academy/certificates";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
@@ -42,6 +44,9 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
             Suivi des certificats générés manuellement ou automatiquement après complétion réelle d’une formation.
           </p>
         </div>
+        <Link className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-800" href="/admin/academy/certificates/template-preview">
+          Prévisualiser le template
+        </Link>
       </div>
 
       {params.error ? <div className="mt-6 rounded-2xl bg-red-50 p-4 font-semibold text-red-800 ring-1 ring-red-100">{params.error}</div> : null}
