@@ -1,8 +1,8 @@
-// Files are stored in public/images/certificate and served from /images/certificate/...
+// Files are stored in public/images/brand and served from /images/brand/...
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
-  signature: "/images/certificate/walter-darius-signature.png",
-  stamp: "/images/certificate/agritech-certificate-stamp.png",
+  signature: "/images/brand/walter-darius-signature.png",
+  stamp: "/images/brand/agritech-certificate-stamp.svg",
 };
 
 const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
