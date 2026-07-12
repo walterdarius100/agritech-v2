@@ -150,3 +150,20 @@ find . -path './node_modules' -prune -o -type f \( -iname '*certificat*' -o -ina
 ```
 
 Conséquence : le composant `CertificateTemplate.tsx` conserve le rendu HTML/CSS/Tailwind déjà créé comme base imprimable. Dès que `docs/certificates` sera présent avec le PDF ou l’image du modèle, le composant devra être ajusté visuellement à partir de cette référence sans parser automatiquement le Word, sans déplacer les fichiers et sans les copier dans `public/`.
+
+## 14. Ajustement visuel selon le brief du modèle officiel
+
+Le fichier `/mnt/data/agritech-certificate-template.pdf` mentionné dans le complément n’est pas accessible dans cet environnement, et `docs/certificates` reste absent dans ce checkout. Le composant a donc été ajusté à partir de la description visuelle fournie :
+
+- orientation paysage ;
+- cadre fin bleu ;
+- grande zone texte à gauche ;
+- panneau bleu vertical à droite avec forme de fanion ;
+- logo Agri-tech stylisé en blanc/jaune ;
+- titre `Certificat de participation` dans la bannière ;
+- bande orange verticale à droite ;
+- emplacement QR code et numéro public du certificat en bas à droite ;
+- signature, signataire et cachet dans la zone basse gauche ;
+- nom bénéficiaire très grand, gras et bleu.
+
+Le template continue d’utiliser les données dynamiques existantes : `studentName`, `courseTitle`, `certificateId`, `issuedAt`, `verificationUrl`, `qrCodeUrl` si disponible et `status`.

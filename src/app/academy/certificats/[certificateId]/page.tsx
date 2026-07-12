@@ -62,7 +62,9 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
         certificateId={certificate.certificate_id}
         issuedAt={certificate.issued_at}
         verificationUrl={certificate.verification_url}
+        qrCodeUrl={certificate.qr_code_url}
         status={certificate.status}
+        projectName={certificate.course_title}
       />
 
       <p className="mx-auto mt-5 max-w-6xl text-sm text-slate-600 print:hidden">

@@ -6,12 +6,33 @@ export type CertificateTemplateProps = {
   certificateId: string;
   issuedAt: string;
   verificationUrl?: string | null;
+  qrCodeUrl?: string | null;
   status?: CertificateStatus | string;
   organizationName?: string;
+  courseDuration?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  issuedLocation?: string | null;
+  signatoryName?: string;
+  signatoryTitle?: string;
+  projectName?: string | null;
+  coveredTopics?: string[];
 };
+
+const DEFAULT_TOPICS = [
+  "les notions techniques essentielles liées à la formation suivie ;",
+  "les bonnes pratiques professionnelles et les standards de qualité ;",
+  "les méthodes d’application terrain adaptées au contexte agricole ;",
+  "l’évaluation des acquis et la validation de la participation.",
+];
 
 function formatCertificateDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(value));
+}
+
+function formatOptionalDate(value?: string | null) {
+  if (!value) return null;
+  return formatCertificateDate(value);
 }
 
 function statusLabel(status?: string) {
@@ -21,75 +42,150 @@ function statusLabel(status?: string) {
   return "Certificat valide";
 }
 
+function splitStudentName(studentName: string) {
+  const parts = studentName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return { firstLine: studentName, secondLine: "" };
+  return { firstLine: parts.slice(0, -1).join(" "), secondLine: parts.at(-1) ?? "" };
+}
+
+function TrainingDates({ courseDuration, startDate, endDate }: Pick<CertificateTemplateProps, "courseDuration" | "startDate" | "endDate">) {
+  const start = formatOptionalDate(startDate);
+  const end = formatOptionalDate(endDate);
+  const durationLabel = courseDuration || "selon le programme pédagogique validé";
+
+  if (start && end) {
+    return (
+      <p>
+        D’une durée de <strong>{durationLabel}</strong>, cette formation a été réalisée du <strong>{start}</strong> au <strong>{end}</strong>.
+      </p>
+    );
+  }
+
+  return (
+    <p>
+      D’une durée de <strong>{durationLabel}</strong>, cette formation a été réalisée conformément au programme pédagogique de WAL AGRITECH.
+    </p>
+  );
+}
+
 export function CertificateTemplate({
   studentName,
   courseTitle,
   certificateId,
   issuedAt,
   verificationUrl,
+  qrCodeUrl,
   status = "valid",
-  organizationName = "Agri-tech / WAL AGRITECH",
+  organizationName = "WAL AGRITECH",
+  courseDuration,
+  startDate,
+  endDate,
+  issuedLocation = "Fondwa",
+  signatoryName = "Walter Darius",
+  signatoryTitle = "Directeur Général",
+  projectName,
+  coveredTopics = DEFAULT_TOPICS,
 }: CertificateTemplateProps) {
   const isRevoked = status === "revoked";
   const isDraft = status === "draft";
+  const { firstLine, secondLine } = splitStudentName(studentName);
+  const issuedDate = formatCertificateDate(issuedAt);
+  const sideLabel = projectName || courseTitle;
 
   return (
-    <article className="certificate-print-area relative mx-auto aspect-[1.414/1] w-full max-w-6xl overflow-hidden bg-[#fffdf4] p-4 text-emerald-950 shadow-2xl ring-1 ring-emerald-100 print:shadow-none print:ring-0">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.20),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(5,150,105,0.16),transparent_30%)]" />
-      <div className="relative flex h-full flex-col border-[10px] border-double border-emerald-800/80 bg-white/70 p-8 text-center sm:p-10">
+    <article className="certificate-print-area mx-auto aspect-[1.414/1] w-full max-w-6xl overflow-hidden bg-white p-3 text-slate-950 shadow-2xl ring-1 ring-slate-200 print:shadow-none print:ring-0">
+      <div className="relative grid h-full grid-cols-[minmax(0,1fr)_32%] overflow-hidden border-[3px] border-[#173c8f] bg-white">
         {(isRevoked || isDraft) && (
-          <div className="pointer-events-none absolute inset-0 flex rotate-[-18deg] items-center justify-center text-6xl font-black uppercase tracking-[0.25em] text-red-700/10 sm:text-8xl">
+          <div className="pointer-events-none absolute inset-0 z-30 flex rotate-[-18deg] items-center justify-center text-6xl font-black uppercase tracking-[0.28em] text-red-700/10 sm:text-8xl">
             {isRevoked ? "Révoqué" : "Brouillon"}
           </div>
         )}
 
-        <header className="relative z-10">
-          <p className="text-xs font-black uppercase tracking-[0.45em] text-emerald-700">{organizationName}</p>
-          <div className="mx-auto mt-4 h-1 w-40 rounded-full bg-yellow-500" />
-          <h1 className="mt-6 text-4xl font-black uppercase tracking-[0.18em] text-emerald-950 sm:text-6xl">Certificat</h1>
-          <p className="mt-2 text-lg font-semibold uppercase tracking-[0.35em] text-slate-600">de formation</p>
-        </header>
+        <section className="flex min-w-0 flex-col px-8 py-7 text-left sm:px-12 sm:py-10">
+          <p className="text-xl font-medium text-slate-900 sm:text-2xl">Agri-tech certifie que :</p>
 
-        <main className="relative z-10 flex flex-1 flex-col items-center justify-center py-8">
-          <p className="text-base font-medium text-slate-600 sm:text-lg">Ce certificat est décerné à</p>
-          <h2 className="mt-4 max-w-4xl break-words border-b-2 border-yellow-500/70 px-6 pb-3 text-4xl font-black text-emerald-950 sm:text-6xl">
-            {studentName}
-          </h2>
-          <p className="mt-8 max-w-3xl text-base leading-8 text-slate-700 sm:text-xl">
-            pour avoir complété avec succès la formation
-          </p>
-          <h3 className="mt-4 max-w-4xl break-words text-2xl font-black text-emerald-800 sm:text-4xl">{courseTitle}</h3>
-          <p className="mt-6 max-w-3xl text-base leading-8 text-slate-700 sm:text-lg">
-            délivrée par <strong>{organizationName}</strong>, en reconnaissance des compétences acquises dans le cadre du programme Agri-tech Academy.
-          </p>
-        </main>
+          <div className="mt-4 text-[#123f93]">
+            <h1 className="break-words text-5xl font-black leading-[0.92] tracking-tight sm:text-7xl">{firstLine}</h1>
+            {secondLine ? <p className="mt-1 break-words text-5xl font-black uppercase leading-[0.92] tracking-tight sm:text-7xl">{secondLine}</p> : null}
+          </div>
 
-        <footer className="relative z-10 grid gap-6 border-t border-emerald-900/15 pt-6 text-left text-sm text-slate-700 sm:grid-cols-3">
-          <div>
-            <p className="font-bold uppercase tracking-widest text-emerald-800">Date de délivrance</p>
-            <p className="mt-2 font-semibold">{formatCertificateDate(issuedAt)}</p>
-          </div>
-          <div className="text-left sm:text-center">
-            <p className="font-bold uppercase tracking-widest text-emerald-800">Direction Agri-tech</p>
-            <div className="mx-0 mt-8 h-px w-48 bg-slate-400 sm:mx-auto" />
-            <p className="mt-2 text-xs font-semibold uppercase tracking-widest">Signature autorisée</p>
-          </div>
-          <div className="sm:text-right">
-            <p className="font-bold uppercase tracking-widest text-emerald-800">Identifiant public</p>
-            <p className="mt-2 break-words font-mono text-xs font-bold text-slate-900">{certificateId}</p>
-            <p className={`mt-3 inline-flex rounded-full px-3 py-1 text-xs font-black uppercase tracking-widest ${isRevoked ? "bg-red-100 text-red-800" : isDraft ? "bg-yellow-100 text-yellow-800" : "bg-emerald-100 text-emerald-800"}`}>
-              {statusLabel(status)}
+          <div className="mt-7 max-w-3xl space-y-4 text-[15px] leading-7 text-slate-950 sm:text-base">
+            <p>
+              A suivi avec succès la formation en <strong>{courseTitle}</strong>, organisée par <strong>{organizationName}</strong>, portant sur les compétences techniques et pratiques du programme Agri-tech Academy.
+            </p>
+
+            <div>
+              <p className="font-bold">Cette formation a couvert notamment :</p>
+              <ol className="mt-2 list-decimal space-y-1 pl-5">
+                {coveredTopics.slice(0, 4).map((topic) => (
+                  <li key={topic}>{topic}</li>
+                ))}
+              </ol>
+            </div>
+
+            <TrainingDates courseDuration={courseDuration} startDate={startDate} endDate={endDate} />
+
+            <p>En foi de quoi, ce certificat lui est délivré pour servir et valoir ce que de droit.</p>
+            <p className="font-semibold">
+              Fait à {issuedLocation || "Fondwa"}, le {issuedDate}
             </p>
           </div>
-        </footer>
 
-        <div className="relative z-10 mt-4 flex items-end justify-between gap-4 text-left text-xs text-slate-500">
-          <p className="max-w-lg">Ce certificat peut être vérifié à partir de son identifiant public. Aucune information de paiement n’est affichée sur ce document.</p>
-          <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border-2 border-dashed border-emerald-700/40 text-center text-[10px] font-bold uppercase tracking-wider text-emerald-700/70">
-            Zone QR future
+          <div className="mt-auto flex items-end justify-between gap-8 pt-7">
+            <div className="min-w-[220px] text-center">
+              <div className="mx-auto mb-1 h-10 w-44 rounded-full border border-dashed border-slate-300 text-xs italic leading-10 text-slate-400">Signature</div>
+              <div className="border-t-2 border-slate-900 pt-2">
+                <p className="text-lg font-black text-slate-950">{signatoryName}</p>
+                <p className="text-sm font-semibold text-slate-700">{signatoryTitle}</p>
+                <p className="text-sm font-black text-[#123f93]">{organizationName}</p>
+              </div>
+            </div>
+
+            <div className="flex h-28 w-28 items-center justify-center rounded-full border-[3px] border-[#123f93] text-center text-[10px] font-black uppercase leading-tight tracking-wider text-[#123f93]">
+              Cachet<br />Agri-tech
+            </div>
           </div>
+        </section>
+
+        <aside className="relative flex min-h-0 flex-col items-center bg-[#123f93] px-7 pb-10 pt-8 text-center text-white">
+          <div className="absolute bottom-[-58px] left-0 h-28 w-full bg-white [clip-path:polygon(0_0,50%_100%,100%_0)]" />
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="relative mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-white text-[#123f93]">
+              <span className="absolute -top-3 h-4 w-4 rounded-full bg-[#f59e0b]" />
+              <span className="text-2xl font-black">Ag</span>
+            </div>
+            <p className="text-2xl font-black uppercase tracking-[0.18em]">Agri-tech</p>
+            <p className="mt-1 text-xs font-semibold uppercase tracking-[0.22em] text-white/85">Formation • Innovation • Agriculture</p>
+            <div className="my-8 h-px w-40 bg-white/80" />
+            <p className="text-5xl font-black leading-none tracking-tight">Certificat</p>
+            <p className="mt-3 text-2xl font-light tracking-wide">de participation</p>
+            <div className="my-8 h-px w-40 bg-white/80" />
+            <p className="text-2xl tracking-[0.45em]">★ ★ ★</p>
+          </div>
+        </aside>
+
+        <div className="absolute bottom-5 right-[7.5%] z-20 flex w-36 flex-col items-center text-center">
+          {qrCodeUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-24 w-24 rounded bg-white object-contain p-1 ring-1 ring-slate-200" />
+          ) : (
+            <div className="grid h-24 w-24 grid-cols-4 gap-1 rounded bg-white p-2 ring-1 ring-slate-200" aria-label="Emplacement QR code">
+              {Array.from({ length: 16 }).map((_, index) => (
+                <span key={index} className={index % 2 === 0 || index === 5 || index === 10 ? "bg-slate-950" : "bg-slate-200"} />
+              ))}
+            </div>
+          )}
+          <p className="mt-2 text-[10px] font-bold leading-tight text-slate-900">Numéro du certificat : {certificateId}</p>
+          {verificationUrl ? <p className="mt-1 max-w-40 break-all text-[8px] leading-tight text-slate-500">{verificationUrl}</p> : null}
         </div>
-        {verificationUrl ? <p className="relative z-10 mt-2 break-all text-xs text-slate-500">Vérification : {verificationUrl}</p> : null}
+
+        <div className="absolute right-0 top-0 z-20 flex h-full w-8 items-center justify-center bg-[#ef8b1e] text-white">
+          <p className="rotate-90 whitespace-nowrap text-xs font-black uppercase tracking-[0.22em]">Projet : {sideLabel}</p>
+        </div>
+
+        <div className={`absolute left-6 top-5 z-20 rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-widest ${isRevoked ? "bg-red-100 text-red-800" : isDraft ? "bg-yellow-100 text-yellow-800" : "bg-emerald-100 text-emerald-800"}`}>
+          {statusLabel(status)}
+        </div>
       </div>
     </article>
   );
