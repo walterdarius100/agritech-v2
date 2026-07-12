@@ -165,4 +165,35 @@ Migration complémentaire : `supabase/migrations/20260712_add_academy_enrollment
 
 Elle ajoute uniquement `academy_enrollments.completed_at` si la colonne n'existe pas déjà. Cette colonne aide à diagnostiquer la date réelle de complétion, sans changer la logique de paiement ni supprimer de données.
 
-Migration complémentaire révocation : `supabase/migrations/20260712_allow_certificate_regeneration_after_revocation.sql` remplace l'unicité par enrollment par une unicité partielle limitée aux certificats `valid` et `draft`. Cela conserve l'idempotence normale tout en permettant une nouvelle émission si un ancien certificat a été révoqué.
+Migration complémentaire révocation : `supabase/migrations/20260712_allow_certificate_regeneration_after_revocation.sql` doit d'abord garantir que `academy_certificates.enrollment_id` existe, puis ajouter la clé étrangère si elle manque, et seulement ensuite créer l'index unique partiel limité aux certificats `valid` et `draft`. Cela conserve l'idempotence normale tout en permettant une nouvelle émission si un ancien certificat a été révoqué.
+
+### SQL manuel compatible Supabase SQL Editor pour la migration de révocation
+
+Si Supabase CLI échoue, copiez-collez ce SQL dans Supabase Dashboard → SQL Editor → Run :
+
+```sql
+alter table public.academy_certificates
+  add column if not exists enrollment_id uuid;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'academy_certificates_enrollment_id_fkey'
+      and conrelid = 'public.academy_certificates'::regclass
+  ) then
+    alter table public.academy_certificates
+      add constraint academy_certificates_enrollment_id_fkey
+      foreign key (enrollment_id)
+      references public.academy_enrollments(id)
+      on delete set null;
+  end if;
+end $$;
+
+drop index if exists public.academy_certificates_enrollment_unique_idx;
+
+create unique index if not exists academy_certificates_active_enrollment_unique_idx
+on public.academy_certificates(enrollment_id)
+where enrollment_id is not null and status in ('valid', 'draft');
+```
