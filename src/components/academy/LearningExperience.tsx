@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { toggleLessonProgress } from "@/lib/academy/progress";
@@ -117,6 +118,9 @@ export function LearningExperience({ course, modules, lessons, resources, progre
     <main className="min-h-screen overflow-x-hidden bg-[#f8faf7] py-6 sm:py-8">
       <div className="mx-auto max-w-7xl px-4">
         <header className="rounded-3xl border border-emerald-100 bg-white p-5 shadow-sm sm:p-6">
+          <Link href="/academy/dashboard" className="mb-4 inline-flex text-sm font-semibold text-emerald-700 transition hover:text-emerald-900">
+            ← Retour au tableau de bord
+          </Link>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">Agri-tech Academy</p>
