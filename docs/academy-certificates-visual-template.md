@@ -131,3 +131,22 @@ Le PDF serveur pourra faire l’objet d’un PR séparé après choix d’une so
 - générer un QR code réel ;
 - générer et stocker un PDF serveur ;
 - renseigner `pdf_url` lorsque le pipeline PDF sera prêt.
+
+## 13. Référence visuelle `docs/certificates`
+
+Le complément PR 4 demande d’utiliser les fichiers du dossier suivant comme référence visuelle principale :
+
+```txt
+docs/certificates
+```
+
+Vérification effectuée dans ce checkout : ce dossier n’est pas présent et aucun fichier certificat PDF, image ou Word n’a été trouvé ailleurs dans le dépôt.
+
+Commandes utilisées pour vérifier :
+
+```bash
+find docs/certificates -maxdepth 2 -type f -print
+find . -path './node_modules' -prune -o -type f \( -iname '*certificat*' -o -iname '*certificate*' -o -iname '*.pdf' -o -iname '*.docx' -o -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' \) -print | sort
+```
+
+Conséquence : le composant `CertificateTemplate.tsx` conserve le rendu HTML/CSS/Tailwind déjà créé comme base imprimable. Dès que `docs/certificates` sera présent avec le PDF ou l’image du modèle, le composant devra être ajusté visuellement à partir de cette référence sans parser automatiquement le Word, sans déplacer les fichiers et sans les copier dans `public/`.
