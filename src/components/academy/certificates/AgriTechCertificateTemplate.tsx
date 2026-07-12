@@ -1,11 +1,6 @@
 const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
-
-const coveredTopics = [
-  "la biologie et le comportement des abeilles",
-  "l’installation et la gestion d’un rucher",
-  "les techniques d’entretien et de suivi des colonies",
-  "la prévention et la gestion des maladies",
-];
+const CERTIFICATE_SIGNATURE_PATH = "/images/certificates/walter-signature.svg";
+const CERTIFICATE_STAMP_PATH = "/images/certificates/agritech-stamp.svg";
 
 const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
   const row = Math.floor(index / 21);
@@ -56,36 +51,29 @@ export function AgriTechCertificateTemplate() {
 
           <div className="mt-[14px] space-y-[13px] text-[12.5px] leading-[1.55] text-black">
             <p>
-              A suivi avec succès la formation en <strong>apiculture moderne</strong>, organisée par <strong>WAL AGRITECH</strong>, portant sur les techniques de base et intermédiaires de gestion des colonies d’abeilles.
+              A suivi avec succès la formation « <strong>apiculture moderne</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
-            <div>
-              <p>Cette formation a couvert notamment :</p>
-              <ol className="mt-[13px] space-y-[13px] pl-[19px]">
-                {coveredTopics.map((topic, index) => (
-                  <li key={topic} className="flex gap-[12px]">
-                    <span className="min-w-[14px] text-right">{index + 1})</span>
-                    <span>{topic}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
+            <p>Le programme a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.</p>
 
-            <p className="pt-[10px]">
-              D’une durée de <strong>[nombre d’heures / jours]</strong>, cette formation a été réalisée du <strong>[date début]</strong> au <strong>[date fin]</strong>.
+            <p className="pt-[4px]">
+              D’une durée de <strong>[nombre d’heures / jours]</strong>, la formation a été réalisée du <strong>[date début]</strong> au <strong>[date fin]</strong>.
             </p>
 
             <p>En foi de quoi, le présent certificat est délivré pour servir et valoir ce que de droit.</p>
 
             <p>
-              Fait à <strong>[ville]</strong>, le <strong>[date]</strong>
+              Fait à <strong>[ville]</strong>, le <strong>[date]</strong>.
             </p>
           </div>
         </section>
 
         <section className="absolute bottom-[34px] left-[74px] z-10 flex items-end gap-[36px]">
           <div className="w-[156px] text-center text-black">
-            <div className="mx-auto mb-[-2px] h-[40px] w-[74px] rotate-[-5deg] border-b-2 border-[#1b2a74] font-[cursive] text-[26px] leading-[36px] text-[#1b2a74]">Wdy</div>
+            <div className="mx-auto mb-[-4px] h-[40px] w-[120px]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={CERTIFICATE_SIGNATURE_PATH} alt="Signature Walter Darius" className="h-full w-full object-contain" />
+            </div>
             <div className="border-t border-slate-700 pt-[3px]">
               <p className="text-[12px] leading-[1.45]">Walter Darius</p>
               <p className="text-[12px] leading-[1.45]">Directeur Général</p>
@@ -93,13 +81,9 @@ export function AgriTechCertificateTemplate() {
             </div>
           </div>
 
-          <div className="relative flex h-[91px] w-[91px] items-center justify-center rounded-full border border-[#2e2d8f] text-[#2e2d8f]">
-            <div className="absolute inset-[9px] rounded-full border border-[#2e2d8f]" />
-            <div className="text-center text-[10px] font-black leading-none">◔</div>
-            <span className="absolute top-[8px] text-[7px] font-black uppercase tracking-[0.13em]">INFORMER</span>
-            <span className="absolute bottom-[8px] rotate-180 text-[7px] font-black uppercase tracking-[0.13em]">EDUQUER</span>
-            <span className="absolute left-[-2px] rotate-[-78deg] text-[7px] font-black uppercase tracking-[0.08em]">SENSIBILISER</span>
-            <span className="absolute right-[-2px] rotate-[78deg] text-[7px] font-black uppercase tracking-[0.08em]">INNOVER</span>
+          <div className="h-[91px] w-[91px] opacity-90">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={CERTIFICATE_STAMP_PATH} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
           </div>
         </section>
 
@@ -116,7 +100,7 @@ export function AgriTechCertificateTemplate() {
           </div>
         </aside>
 
-        <div className="absolute bottom-[66px] right-[126px] z-30 flex flex-col items-center">
+        <div className="absolute bottom-[42px] right-[126px] z-30 flex flex-col items-center">
           <StaticQrCode />
           <p className="mt-[9px] whitespace-nowrap text-[9px] leading-none text-black">
             <strong>Numéro du certificat :</strong> AGRI-API-2026-01

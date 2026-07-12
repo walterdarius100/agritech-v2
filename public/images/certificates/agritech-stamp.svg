@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240" fill="none">
+  <circle cx="120" cy="120" r="103" stroke="#2e2d8f" stroke-width="4"/>
+  <circle cx="120" cy="120" r="73" stroke="#2e2d8f" stroke-width="3"/>
+  <circle cx="120" cy="120" r="31" fill="#2e2d8f" fill-opacity="0.1" stroke="#2e2d8f" stroke-width="3"/>
+  <path d="M98 123c16-31 36-31 45 0-14 14-30 14-45 0Z" fill="#2e2d8f"/>
+  <path d="M122 89l9 20 22 3-16 15 4 22-19-11-19 11 4-22-16-15 22-3 9-20Z" fill="#2e2d8f" opacity="0.9"/>
+  <text x="120" y="34" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="800" fill="#2e2d8f">INFORMER • INNOVER</text>
+  <text x="120" y="213" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="14" font-weight="800" fill="#2e2d8f">EDUQUER • SENSIBILISER</text>
+  <text x="28" y="125" transform="rotate(-90 28 125)" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="800" fill="#2e2d8f">WAL AGRITECH</text>
+  <text x="212" y="125" transform="rotate(90 212 125)" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="800" fill="#2e2d8f">ACADEMY</text>
+</svg>

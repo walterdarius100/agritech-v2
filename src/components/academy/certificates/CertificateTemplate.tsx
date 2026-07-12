@@ -20,13 +20,8 @@ export type CertificateTemplateProps = {
 };
 
 const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
-
-const DEFAULT_TOPICS = [
-  "les notions techniques essentielles liées à la formation suivie ;",
-  "les bonnes pratiques professionnelles et les standards de qualité ;",
-  "les méthodes d’application terrain adaptées au contexte agricole ;",
-  "l’évaluation des acquis et la validation de la participation.",
-];
+const CERTIFICATE_SIGNATURE_PATH = "/images/certificates/walter-signature.svg";
+const CERTIFICATE_STAMP_PATH = "/images/certificates/agritech-stamp.svg";
 
 function formatCertificateDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(value));
@@ -53,19 +48,13 @@ function splitStudentName(studentName: string) {
 function TrainingDates({ courseDuration, startDate, endDate }: Pick<CertificateTemplateProps, "courseDuration" | "startDate" | "endDate">) {
   const start = formatOptionalDate(startDate);
   const end = formatOptionalDate(endDate);
-  const durationLabel = courseDuration || "selon le programme pédagogique validé";
-
-  if (start && end) {
-    return (
-      <p>
-        D’une durée de <strong>{durationLabel}</strong>, cette formation a été réalisée du <strong>{start}</strong> au <strong>{end}</strong>.
-      </p>
-    );
-  }
+  const durationLabel = courseDuration || "durée définie par le programme";
+  const startLabel = start || "date de début non précisée";
+  const endLabel = end || "date de fin non précisée";
 
   return (
     <p>
-      D’une durée de <strong>{durationLabel}</strong>, cette formation a été réalisée conformément au programme pédagogique de WAL AGRITECH.
+      D’une durée de <strong>{durationLabel}</strong>, la formation a été réalisée du <strong>{startLabel}</strong> au <strong>{endLabel}</strong>.
     </p>
   );
 }
@@ -102,7 +91,10 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
   return (
     <div className="flex items-end gap-[30px]">
       <div className="w-[200px] text-center text-black">
-        <div className="mx-auto mb-[-2px] h-[42px] w-[116px] rotate-[-4deg] border-b-2 border-[#1b2a74] font-[cursive] text-[30px] leading-[38px] text-[#1b2a74]">W. Darius</div>
+        <div className="mx-auto mb-[-4px] h-[48px] w-[150px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={CERTIFICATE_SIGNATURE_PATH} alt="Signature Walter Darius" className="h-full w-full object-contain" />
+        </div>
         <div className="border-t border-slate-700 pt-1">
           <p className="text-[17px] leading-[1.25] text-slate-950">{signatoryName}</p>
           <p className="mt-1 text-[14px] leading-[1.2] text-slate-950">{signatoryTitle}</p>
@@ -110,13 +102,9 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
         </div>
       </div>
 
-      <div className="relative flex h-[112px] w-[112px] items-center justify-center rounded-full border border-[#2e2d8f] text-[#2e2d8f] opacity-90">
-        <div className="absolute inset-[12px] rounded-full border border-[#2e2d8f]" />
-        <div className="text-center text-[17px] font-black leading-none">AG</div>
-        <span className="absolute top-[9px] text-[8px] font-black uppercase tracking-[0.16em]">INFORMER</span>
-        <span className="absolute bottom-[9px] rotate-180 text-[8px] font-black uppercase tracking-[0.16em]">EDUQUER</span>
-        <span className="absolute left-[-4px] rotate-[-78deg] text-[8px] font-black uppercase tracking-[0.08em]">SENSIBILISER</span>
-        <span className="absolute right-[-3px] rotate-[78deg] text-[8px] font-black uppercase tracking-[0.08em]">INNOVER</span>
+      <div className="h-[116px] w-[116px] opacity-90">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={CERTIFICATE_STAMP_PATH} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
       </div>
     </div>
   );
@@ -124,7 +112,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
 
 function CertificateQrBlock({ certificateId, qrCodeUrl, verificationUrl }: Pick<CertificateTemplateProps, "certificateId" | "qrCodeUrl" | "verificationUrl">) {
   return (
-    <div className="absolute bottom-[7.3%] right-[15.4%] z-30 flex w-[170px] flex-col items-center text-center">
+    <div className="absolute bottom-[3.6%] right-[15.4%] z-30 flex w-[170px] flex-col items-center text-center">
       {qrCodeUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-[118px] w-[118px] bg-white object-contain p-1 ring-1 ring-slate-200" />
@@ -155,11 +143,10 @@ export function CertificateTemplate({
   courseDuration,
   startDate,
   endDate,
-  issuedLocation = "Fondwa",
+  issuedLocation = "Jacmel",
   signatoryName = "Walter Darius",
   signatoryTitle = "Directeur Général",
   projectName,
-  coveredTopics = DEFAULT_TOPICS,
 }: CertificateTemplateProps) {
   const isRevoked = status === "revoked";
   const isDraft = status === "draft";
@@ -185,26 +172,16 @@ export function CertificateTemplate({
 
           <div className="mt-[4.2%] max-w-[620px] space-y-3 text-[clamp(0.75rem,1.3vw,1.12rem)] leading-[1.5] text-black">
             <p>
-              A suivi avec succès la formation en <strong>{courseTitle}</strong>, organisée par <strong>{organizationName}</strong>, portant sur les techniques de base et intermédiaires du programme Agri-tech Academy.
+              A suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
-            <div>
-              <p>Cette formation a couvert notamment :</p>
-              <ol className="mt-2.5 space-y-2.5 pl-8">
-                {coveredTopics.slice(0, 4).map((topic, index) => (
-                  <li key={topic} className="flex gap-4">
-                    <span className="min-w-[20px] text-right">{index + 1})</span>
-                    <span>{topic}</span>
-                  </li>
-                ))}
-              </ol>
-            </div>
+            <p>Le programme a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.</p>
 
             <TrainingDates courseDuration={courseDuration} startDate={startDate} endDate={endDate} />
 
             <p>En foi de quoi, le présent certificat est délivré pour servir et valoir ce que de droit.</p>
             <p>
-              Fait à <strong>{issuedLocation || "Fondwa"}</strong>, le <strong>{issuedDate}</strong>
+              Fait à <strong>{issuedLocation || "Jacmel"}</strong>, le <strong>{issuedDate}</strong>.
             </p>
           </div>
         </section>
