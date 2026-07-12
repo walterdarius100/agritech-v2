@@ -1,3 +1,5 @@
+const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
+
 const coveredTopics = [
   "la biologie et le comportement des abeilles",
   "l’installation et la gestion d’un rucher",
@@ -21,11 +23,11 @@ const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
 function AgriTechWordmark() {
   return (
     <div className="text-center text-white">
-      <div className="mx-auto mb-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#f6bc19] text-[12px] font-black text-[#4775c8] shadow-[0_0_0_6px_rgba(246,188,25,0.22)]">
-        ◔
+      <div className="relative mx-auto h-[58px] w-[220px] overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={CERTIFICATE_LOGO_PATH} alt="Logo Agri-tech" className="h-full w-full object-contain brightness-0 invert" />
       </div>
-      <div className="font-[Arial_Black,Arial,sans-serif] text-[50px] font-black leading-none tracking-[-0.08em] text-white">AGRI-TECH</div>
-      <div className="mt-1 text-[10px] font-black uppercase leading-none tracking-[0.16em] text-white">INFORMER • INNOVER • EDUQUER • SENSIBILISER</div>
+      <div className="mt-1 whitespace-nowrap text-[10px] font-black uppercase leading-none tracking-[0.08em] text-white">INFORMER • INNOVER • EDUQUER • SENSIBILISER</div>
     </div>
   );
 }
@@ -103,11 +105,11 @@ export function AgriTechCertificateTemplate() {
 
         <aside className="absolute right-[22px] top-[-18px] z-20 h-[430px] w-[294px] bg-[#4775c8] px-[14px] pt-[42px] text-center text-white [clip-path:polygon(0_0,100%_0,100%_80%,50%_100%,0_80%)]">
           <AgriTechWordmark />
-          <div className="mx-auto mt-[38px] h-px w-[190px] bg-white" />
-          <p className="mt-[35px] font-[Arial_Black,Arial,sans-serif] text-[50px] font-black leading-none tracking-[-0.04em]">Certificat</p>
-          <p className="mt-[17px] text-[27px] font-black leading-none">de participation</p>
-          <div className="mx-auto mt-[50px] h-px w-[111px] bg-white" />
-          <div className="mt-[34px] flex justify-center gap-[18px] text-[19px] leading-none text-white">
+          <div className="mx-auto mt-[32px] h-px w-[190px] bg-white" />
+          <p className="mt-[30px] font-[Arial_Black,Arial,sans-serif] text-[50px] font-black leading-none tracking-[-0.04em]">Certificat</p>
+          <p className="mt-[15px] text-[27px] font-black leading-none">de participation</p>
+          <div className="mx-auto mt-[42px] h-px w-[111px] bg-white" />
+          <div className="mt-[30px] flex justify-center gap-[18px] text-[19px] leading-none text-white">
             <span>★</span>
             <span>★</span>
             <span>★</span>
@@ -122,8 +124,8 @@ export function AgriTechCertificateTemplate() {
         </div>
       </div>
 
-      <div className="absolute bottom-[39px] right-[-31px] z-40 flex h-[171px] w-[18px] items-center justify-center bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
-        <p className="rotate-[-90deg] whitespace-nowrap text-[9px] font-black leading-none">Projet : ApisFondwa</p>
+      <div className="absolute bottom-[39px] right-[19px] z-40 flex h-[171px] w-[18px] items-center justify-center bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
+        <p className="rotate-[-90deg] whitespace-nowrap text-[9px] font-black leading-none">Agri-tech Academy</p>
       </div>
     </article>
   );
