@@ -120,12 +120,18 @@ export async function updateCourse(formData: FormData) {
 export async function createCertificate(formData: FormData) {
   await requireAuthorizedAdmin();
   const enrollmentId = String(formData.get("enrollmentId") ?? "");
-  if (!enrollmentId) return;
+  if (!enrollmentId) redirect("/admin/academy/certificates?error=missing-enrollment");
 
-  await generateCertificateAfterCourseCompletion(enrollmentId);
+  try {
+    await generateCertificateAfterCourseCompletion(enrollmentId);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Impossible de générer le certificat.";
+    redirect(`/admin/academy/certificates?error=${encodeURIComponent(message)}`);
+  }
 
   revalidatePath("/admin/academy/certificates");
   revalidatePath("/academy/certificats");
+  redirect("/admin/academy/certificates?success=certificate-generated");
 }
 
 

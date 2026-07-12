@@ -136,3 +136,33 @@ L'espace étudiant filtre par `student_id` côté serveur. Les routes admin rest
 - Le QR code est stocké comme URL d'image vers le service léger `api.qrserver.com`.
 - Le composant imprimable prépare le futur PDF, mais la génération PDF automatisée depuis le modèle Word n'est pas finalisée.
 - Pour le PDF final, il faudra reproduire le modèle Word en HTML/CSS ou brancher un moteur de rendu PDF côté serveur.
+
+## 12. Correction de la génération après complétion
+
+La source de vérité serveur est `getCourseCompletionStatus(enrollmentId)`. Elle compare les leçons publiées de `academy_lessons` avec les lignes `academy_lesson_progress` où `is_completed = true`. Un cours est terminé quand toutes les leçons publiées sont complétées. Le statut `academy_enrollments.status = completed` est synchronisé après coup, mais il n'est plus la seule condition utilisée pour diagnostiquer ou afficher les enrollments éligibles.
+
+Flux automatique :
+
+1. l'étudiant clique sur `Marquer comme terminé` dans le lecteur Academy ;
+2. `academy_lesson_progress` est mis à jour ;
+3. le serveur recalcule la progression de l'enrollment ;
+4. si la progression atteint 100 %, l'enrollment passe à `completed` et `generateCertificateAfterCourseCompletion(enrollmentId)` est appelée ;
+5. la fonction retourne le certificat existant ou en crée un seul.
+
+## 13. Pourquoi un étudiant terminé peut ne pas apparaître dans la génération manuelle
+
+La page admin `/admin/academy/certificates` affiche maintenant un diagnostic. Un étudiant apparaît dans le menu de génération uniquement si :
+
+- l'enrollment donne accès au cours (`active` ou `completed`) ;
+- toutes les leçons publiées sont complétées ;
+- aucun certificat `valid` ou `draft` n'existe déjà pour cet enrollment.
+
+Si le menu est vide, consultez le tableau `Diagnostic progression / certificats` : il affiche la progression, les leçons complétées, le statut enrollment, `completed_at`, le certificat existant et la raison de non-éligibilité.
+
+## 14. Migration complémentaire
+
+Migration complémentaire : `supabase/migrations/20260712_add_academy_enrollment_completion_fields.sql`.
+
+Elle ajoute uniquement `academy_enrollments.completed_at` si la colonne n'existe pas déjà. Cette colonne aide à diagnostiquer la date réelle de complétion, sans changer la logique de paiement ni supprimer de données.
+
+Migration complémentaire révocation : `supabase/migrations/20260712_allow_certificate_regeneration_after_revocation.sql` remplace l'unicité par enrollment par une unicité partielle limitée aux certificats `valid` et `draft`. Cela conserve l'idempotence normale tout en permettant une nouvelle émission si un ancien certificat a été révoqué.
