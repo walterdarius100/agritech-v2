@@ -20,8 +20,8 @@ export type CertificateTemplateProps = {
 };
 
 const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
-const CERTIFICATE_SIGNATURE_PATH = "/images/certificates/walter-signature.svg";
-const CERTIFICATE_STAMP_PATH = "/images/certificates/agritech-stamp.svg";
+const CERTIFICATE_SIGNATURE_PATH = "/images/brand/walter-signature.svg";
+const CERTIFICATE_STAMP_PATH = "/images/brand/agritech-stamp.svg";
 
 function formatCertificateDate(value: string) {
   return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(value));
@@ -112,7 +112,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
 
 function CertificateQrBlock({ certificateId, qrCodeUrl, verificationUrl }: Pick<CertificateTemplateProps, "certificateId" | "qrCodeUrl" | "verificationUrl">) {
   return (
-    <div className="absolute bottom-[3.6%] right-[15.4%] z-30 flex w-[170px] flex-col items-center text-center">
+    <div className="absolute bottom-[3.6%] right-[9.2%] z-30 flex w-[170px] flex-col items-center text-center">
       {qrCodeUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-[118px] w-[118px] bg-white object-contain p-1 ring-1 ring-slate-200" />

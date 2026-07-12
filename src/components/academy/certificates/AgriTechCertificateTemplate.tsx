@@ -1,6 +1,6 @@
 const CERTIFICATE_LOGO_PATH = "/images/brand/Untitled-1.png";
-const CERTIFICATE_SIGNATURE_PATH = "/images/certificates/walter-signature.svg";
-const CERTIFICATE_STAMP_PATH = "/images/certificates/agritech-stamp.svg";
+const CERTIFICATE_SIGNATURE_PATH = "/images/brand/walter-signature.svg";
+const CERTIFICATE_STAMP_PATH = "/images/brand/agritech-stamp.svg";
 
 const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
   const row = Math.floor(index / 21);
@@ -100,7 +100,7 @@ export function AgriTechCertificateTemplate() {
           </div>
         </aside>
 
-        <div className="absolute bottom-[42px] right-[126px] z-30 flex flex-col items-center">
+        <div className="absolute bottom-[42px] right-[94px] z-30 flex flex-col items-center">
           <StaticQrCode />
           <p className="mt-[9px] whitespace-nowrap text-[9px] leading-none text-black">
             <strong>Numéro du certificat :</strong> AGRI-API-2026-01
