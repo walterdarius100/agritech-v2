@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { generateCertificateId, getCertificateVerificationUrl } from "@/lib/academy/certificates";
+import { generateCertificatePublicId, getCertificateEligibilityForEnrollment, getCertificateVerificationUrl } from "@/lib/academy/certificates";
 import { extractCloudflareStreamUid, getVideoProvider, normalizeVideoUrl } from "@/lib/academy/video";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -117,23 +117,77 @@ export async function updateCourse(formData: FormData) {
   redirect(`/admin/academy/courses/${id}/edit?success=1`);
 }
 
-export async function createCertificate(formData: FormData) {
-  await requireAuthorizedAdmin();
+export async function generateManualCertificateForEnrollment(formData: FormData) {
+  const admin = await requireAuthorizedAdmin();
   const supabase = createSupabaseAdminClient();
   if (!supabase) return;
 
-  const certificateId = generateCertificateId();
-  await supabase.from("academy_certificates").insert({
+  const enrollmentId = String(formData.get("enrollmentId") ?? "");
+  if (!enrollmentId) {
+    redirect("/admin/academy/certificates?error=" + encodeURIComponent("Impossible de générer le certificat : aucun enrollment trouvé."));
+  }
+
+  const eligibility = await getCertificateEligibilityForEnrollment(enrollmentId);
+  if (!eligibility) {
+    redirect("/admin/academy/certificates?error=" + encodeURIComponent("Impossible de générer le certificat : aucun enrollment trouvé."));
+  }
+
+  if (!eligibility.isEligible) {
+    console.warn("[Academy certificates] Manual certificate refused", {
+      enrollmentId: eligibility.enrollmentId,
+      studentId: eligibility.studentId,
+      courseId: eligibility.courseId,
+      totalPublishedLessons: eligibility.totalPublishedLessons,
+      completedPublishedLessons: eligibility.completedPublishedLessons,
+      progressPercentage: eligibility.progressPercentage,
+      existingCertificateId: eligibility.existingCertificateId,
+      reason: eligibility.reason,
+    });
+    redirect(
+      "/admin/academy/certificates?error=" +
+        encodeURIComponent(
+          eligibility.existingCertificateId
+            ? "Impossible de générer le certificat : un certificat existe déjà pour cet enrollment."
+            : "Impossible de générer le certificat : la formation n’est pas terminée.",
+        ),
+    );
+  }
+
+  const certificateId = generateCertificatePublicId();
+  const { error } = await supabase.from("academy_certificates").insert({
     certificate_id: certificateId,
-    student_id: String(formData.get("studentId")),
-    course_id: String(formData.get("courseId")),
-    student_full_name: String(formData.get("studentFullName")),
-    course_title: String(formData.get("courseTitle")),
+    student_id: eligibility.studentId,
+    course_id: eligibility.courseId,
+    enrollment_id: eligibility.enrollmentId,
+    student_full_name: eligibility.studentName ?? "Étudiant Academy",
+    course_title: eligibility.courseTitle,
     verification_url: getCertificateVerificationUrl(certificateId),
-    status: "issued",
+    status: "valid",
+    metadata: {
+      generation_mode: "manual_admin",
+      generated_by: admin.id,
+      total_published_lessons: eligibility.totalPublishedLessons,
+      completed_published_lessons: eligibility.completedPublishedLessons,
+      progress_percentage: eligibility.progressPercentage,
+    },
   });
 
+  if (error) {
+    console.error("[Academy certificates] Manual certificate insert failed", {
+      enrollmentId: eligibility.enrollmentId,
+      studentId: eligibility.studentId,
+      courseId: eligibility.courseId,
+      totalPublishedLessons: eligibility.totalPublishedLessons,
+      completedPublishedLessons: eligibility.completedPublishedLessons,
+      progressPercentage: eligibility.progressPercentage,
+      existingCertificateId: eligibility.existingCertificateId,
+      message: error.message,
+    });
+    redirect("/admin/academy/certificates?error=" + encodeURIComponent("Impossible de générer le certificat : insertion Supabase échouée."));
+  }
+
   revalidatePath("/admin/academy/certificates");
+  redirect("/admin/academy/certificates?success=" + encodeURIComponent("Certificat généré manuellement."));
 }
 
 export async function revokeCertificate(formData: FormData) {
@@ -143,6 +197,7 @@ export async function revokeCertificate(formData: FormData) {
 
   await supabase.from("academy_certificates").update({ status: "revoked" }).eq("id", String(formData.get("id")));
   revalidatePath("/admin/academy/certificates");
+  redirect("/admin/academy/certificates?success=" + encodeURIComponent("Certificat révoqué."));
 }
 
 function numberValue(value: FormDataEntryValue | null, fallback = 0) {
