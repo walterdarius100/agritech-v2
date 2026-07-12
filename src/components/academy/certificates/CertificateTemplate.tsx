@@ -19,11 +19,11 @@ export type CertificateTemplateProps = {
   coveredTopics?: string[];
 };
 
-// Files are stored in public/images/brand and served from /images/brand/...
+// Files are stored in public/images/* and served without the public/ prefix.
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
   signature: "/images/brand/walter-darius-signature.png",
-  stamp: "/images/brand/agritech-certificate-stamp.png",
+  stamp: "/images/certificate/agritech-certificate-stamp.png",
 };
 
 function formatCertificateDate(value: string) {
