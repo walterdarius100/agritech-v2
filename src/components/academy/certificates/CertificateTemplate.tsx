@@ -23,7 +23,7 @@ export type CertificateTemplateProps = {
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
   signature: "/images/brand/walter-darius-signature.png",
-  stamp: "/images/brand/agritech-certificate-stamp.svg",
+  stamp: "/images/brand/agritech-certificate-stamp.png",
 };
 
 function formatCertificateDate(value: string) {
