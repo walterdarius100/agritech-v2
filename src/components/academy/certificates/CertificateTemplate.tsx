@@ -19,6 +19,7 @@ export type CertificateTemplateProps = {
   coveredTopics?: string[];
 };
 
+// Files are stored in public/images/certificate and served from /images/certificate/...
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
   signature: "/images/certificate/walter-darius-signature.png",
@@ -95,7 +96,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
       <div className="w-[200px] text-center text-black">
         <div className="mx-auto mb-[-4px] h-[64px] w-[150px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={CERTIFICATE_ASSETS.signature} alt="Signature Walter Darius" className="h-full w-full object-contain" />
+          <img src={CERTIFICATE_ASSETS.signature} alt="Signature de Walter Darius" className="h-full w-full object-contain" />
         </div>
         <div className="border-t border-slate-700 pt-1">
           <p className="text-[17px] leading-[1.25] text-slate-950">{signatoryName}</p>

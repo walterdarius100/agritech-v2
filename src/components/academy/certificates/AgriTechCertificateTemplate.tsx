@@ -1,3 +1,4 @@
+// Files are stored in public/images/certificate and served from /images/certificate/...
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
   signature: "/images/certificate/walter-darius-signature.png",
@@ -74,7 +75,7 @@ export function AgriTechCertificateTemplate() {
           <div className="w-[156px] text-center text-black">
             <div className="mx-auto mb-[-4px] h-[40px] w-[120px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={CERTIFICATE_ASSETS.signature} alt="Signature Walter Darius" className="h-full w-full object-contain" />
+              <img src={CERTIFICATE_ASSETS.signature} alt="Signature de Walter Darius" className="h-full w-full object-contain" />
             </div>
             <div className="border-t border-slate-700 pt-[3px]">
               <p className="text-[12px] leading-[1.45]">Walter Darius</p>
