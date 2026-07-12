@@ -423,3 +423,9 @@ Autres migrations possibles :
 - Aucun endpoint certificat n'a été ajouté.
 - Aucune génération QR/PDF n'a été ajoutée.
 - Aucun certificat n'est créé par ce PR.
+
+## Note PR 4 — Modèle visuel imprimable
+
+Le PR 4 ajoute un rendu HTML/CSS/Tailwind du certificat dans `src/components/academy/certificates/CertificateTemplate.tsx` et une page protégée `/academy/certificats/[certificateId]`.
+
+Cette étape prépare l’impression A4 paysage et l’enregistrement PDF via le navigateur sans parser automatiquement le fichier Word de référence et sans ajouter de génération PDF serveur. La logique de progression, la génération manuelle, la génération automatique et les paiements restent inchangés.

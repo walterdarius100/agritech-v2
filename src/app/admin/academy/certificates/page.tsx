@@ -128,7 +128,10 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
                     <td className="p-3 font-mono text-xs">{certificate.enrollment_id ?? "—"}</td>
                     <td className="p-3">{getGenerationSource(certificate)}</td>
                     <td className="p-3">
-                      <a className="font-semibold text-emerald-700" href={`/certificats/verifier/${certificate.certificate_id}`}>
+                      <a className="font-semibold text-emerald-700" href={`/academy/certificats/${certificate.certificate_id}`}>
+                        Voir le certificat
+                      </a>
+                      <a className="mt-2 block font-semibold text-emerald-700" href={`/certificats/verifier/${certificate.certificate_id}`}>
                         Vérifier
                       </a>
                       {["issued", "valid", "draft"].includes(certificate.status) ? (
