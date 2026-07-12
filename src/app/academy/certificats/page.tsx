@@ -1,5 +1,48 @@
 import Link from "next/link";
+
 import { requireStudent } from "@/lib/academy/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { AcademyCertificate } from "@/types/academy";
-export default async function StudentCertificatesPage(){ const user=await requireStudent(); const s=createSupabaseAdminClient(); const {data}=s?await s.from("academy_certificates").select("*").eq("student_id",user.id).order("issued_at",{ascending:false}):{data:[]}; const certs=(data??[]) as AcademyCertificate[]; return <main className="mx-auto max-w-5xl px-4 py-12"><h1 className="text-4xl font-bold text-emerald-950">Mes certificats</h1><div className="mt-8 space-y-4">{certs.map(c=><article key={c.id} className="rounded-2xl border p-5"><h2 className="font-bold">{c.course_title}</h2><p>{c.student_full_name} — {new Date(c.issued_at).toLocaleDateString("fr-FR")}</p><p className="text-sm">Statut : {c.status}</p><Link className="text-emerald-700 font-semibold" href={`/certificats/verifier/${c.certificate_id}`}>Vérifier</Link>{c.pdf_url&&<a className="ml-4 text-emerald-700" href={c.pdf_url}>Télécharger</a>}</article>)}{certs.length===0&&<p>Aucun certificat émis pour le moment.</p>}</div></main> }
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("fr-FR");
+}
+
+export default async function StudentCertificatesPage() {
+  const user = await requireStudent();
+  const supabase = createSupabaseAdminClient();
+  const { data } = supabase
+    ? await supabase.from("academy_certificates").select("*").eq("student_id", user.id).order("issued_at", { ascending: false })
+    : { data: [] };
+  const certificates = (data ?? []) as AcademyCertificate[];
+
+  return (
+    <main className="mx-auto max-w-5xl px-4 py-12">
+      <h1 className="text-4xl font-bold text-emerald-950">Mes certificats</h1>
+      <p className="mt-3 text-slate-600">Consultez, vérifiez et imprimez vos certificats Agri-tech Academy.</p>
+      <div className="mt-8 space-y-4">
+        {certificates.map((certificate) => (
+          <article key={certificate.id} className="rounded-2xl border bg-white p-5 shadow-sm ring-1 ring-emerald-50">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold text-emerald-950">{certificate.course_title}</h2>
+                <p className="mt-2 text-slate-700">{certificate.student_full_name} — {formatDate(certificate.issued_at)}</p>
+                <p className="mt-1 font-mono text-xs font-semibold text-slate-500">ID : {certificate.certificate_id}</p>
+                <p className="mt-2 text-sm font-semibold">Statut : {certificate.status}</p>
+              </div>
+              <div className="flex flex-wrap gap-3">
+                <Link className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-800" href={`/academy/certificats/${certificate.certificate_id}`}>
+                  Voir le certificat
+                </Link>
+                <Link className="rounded-xl bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-800 ring-1 ring-emerald-100" href={`/certificats/verifier/${certificate.certificate_id}`}>
+                  Vérifier
+                </Link>
+              </div>
+            </div>
+          </article>
+        ))}
+        {certificates.length === 0 ? <p>Aucun certificat émis pour le moment.</p> : null}
+      </div>
+    </main>
+  );
+}

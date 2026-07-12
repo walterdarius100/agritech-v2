@@ -101,3 +101,34 @@ body {
   line-height: 1.5rem;
   color: #64748b;
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .certificate-print-area,
+  .certificate-print-area * {
+    visibility: visible;
+  }
+
+  .certificate-print-area {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 297mm !important;
+    max-width: none !important;
+    height: 210mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+  }
+}
