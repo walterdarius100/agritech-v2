@@ -20,6 +20,15 @@ export type CertificateEligibility = {
   reason?: string;
 };
 
+export type CertificateGenerationSource = "manual_admin" | "automatic";
+
+export type CertificateGenerationResult = {
+  attempted: boolean;
+  created: boolean;
+  certificateId?: string;
+  skippedReason?: "not_completed" | "certificate_already_exists" | "enrollment_not_found" | "generation_failed";
+};
+
 type EnrollmentWithCourse = AcademyEnrollment & {
   academy_courses?: { id: string; title: string } | null;
 };
@@ -147,4 +156,111 @@ export async function getCompletedEnrollmentsEligibleForCertificates() {
   );
 
   return results.filter((item): item is CertificateEligibility => Boolean(item)).filter((item) => item.isEligible);
+}
+
+export async function createCertificateForEligibility(
+  eligibility: CertificateEligibility,
+  options: { source: CertificateGenerationSource; generatedBy?: string | null },
+): Promise<CertificateGenerationResult> {
+  if (eligibility.existingCertificateId) {
+    return { attempted: true, created: false, certificateId: eligibility.existingCertificateId, skippedReason: "certificate_already_exists" };
+  }
+
+  if (!eligibility.isCompleted) {
+    return { attempted: true, created: false, skippedReason: "not_completed" };
+  }
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return { attempted: true, created: false, skippedReason: "generation_failed" };
+
+  const certificateId = generateCertificatePublicId();
+  const { error } = await supabase.from("academy_certificates").insert({
+    certificate_id: certificateId,
+    student_id: eligibility.studentId,
+    course_id: eligibility.courseId,
+    enrollment_id: eligibility.enrollmentId,
+    student_full_name: eligibility.studentName ?? "Étudiant Academy",
+    course_title: eligibility.courseTitle,
+    verification_url: getCertificateVerificationUrl(certificateId),
+    status: "valid",
+    metadata: {
+      generation_source: options.source === "automatic" ? "automatic" : "manual",
+      generation_mode: options.source,
+      generated_by: options.generatedBy ?? null,
+      total_published_lessons: eligibility.totalPublishedLessons,
+      completed_published_lessons: eligibility.completedPublishedLessons,
+      progress_percentage: eligibility.progressPercentage,
+    },
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      const refreshedEligibility = await getCertificateEligibilityForEnrollment(eligibility.enrollmentId);
+      return {
+        attempted: true,
+        created: false,
+        certificateId: refreshedEligibility?.existingCertificateId ?? undefined,
+        skippedReason: "certificate_already_exists",
+      };
+    }
+
+    console.error("[Academy certificates] Certificate insert failed", {
+      enrollmentId: eligibility.enrollmentId,
+      studentId: eligibility.studentId,
+      courseId: eligibility.courseId,
+      progressPercentage: eligibility.progressPercentage,
+      completedLessons: eligibility.completedPublishedLessons,
+      totalLessons: eligibility.totalPublishedLessons,
+      certificateAlreadyExists: Boolean(eligibility.existingCertificateId),
+      certificateCreated: false,
+      skippedReason: "generation_failed",
+      source: options.source,
+      message: error.message,
+    });
+    return { attempted: true, created: false, skippedReason: "generation_failed" };
+  }
+
+  return { attempted: true, created: true, certificateId };
+}
+
+export async function maybeGenerateCertificateAfterLessonCompletion(studentId: string, courseId: string): Promise<CertificateGenerationResult> {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return { attempted: true, created: false, skippedReason: "generation_failed" };
+
+  const { data: enrollment } = await supabase
+    .from("academy_enrollments")
+    .select("id")
+    .eq("student_id", studentId)
+    .eq("course_id", courseId)
+    .maybeSingle();
+
+  if (!enrollment?.id) {
+    return { attempted: false, created: false, skippedReason: "enrollment_not_found" };
+  }
+
+  const eligibility = await getCertificateEligibilityForEnrollment(String(enrollment.id));
+  if (!eligibility) return { attempted: false, created: false, skippedReason: "enrollment_not_found" };
+
+  if (eligibility.existingCertificateId) {
+    return { attempted: true, created: false, certificateId: eligibility.existingCertificateId, skippedReason: "certificate_already_exists" };
+  }
+
+  if (!eligibility.isCompleted) {
+    return { attempted: true, created: false, skippedReason: "not_completed" };
+  }
+
+  const result = await createCertificateForEligibility(eligibility, { source: "automatic" });
+  console.info("[Academy certificates] Automatic generation result", {
+    enrollmentId: eligibility.enrollmentId,
+    studentId: eligibility.studentId,
+    courseId: eligibility.courseId,
+    progressPercentage: eligibility.progressPercentage,
+    completedLessons: eligibility.completedPublishedLessons,
+    totalLessons: eligibility.totalPublishedLessons,
+    certificateAlreadyExists: result.skippedReason === "certificate_already_exists",
+    certificateCreated: result.created,
+    skippedReason: result.skippedReason ?? null,
+  });
+
+  return result;
 }

@@ -13,6 +13,13 @@ function formatDate(value: string | null) {
   return new Date(value).toLocaleDateString("fr-FR");
 }
 
+function getGenerationSource(certificate: AcademyCertificate) {
+  const source = certificate.metadata?.generation_source ?? certificate.metadata?.generation_mode;
+  if (source === "automatic") return "Automatique";
+  if (source === "manual" || source === "manual_admin") return "Manuel";
+  return "—";
+}
+
 export default async function CertificatesAdmin({ searchParams }: CertificatesAdminProps) {
   await requireAuthorizedAdmin();
   const params = await searchParams;
@@ -32,7 +39,7 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
         <div>
           <h1 className="text-3xl font-bold">Certificats Academy</h1>
           <p className="mt-2 max-w-3xl text-slate-600">
-            Génération manuelle réservée aux étudiants qui ont terminé toutes les leçons publiées d’une formation.
+            Suivi des certificats générés manuellement ou automatiquement après complétion réelle d’une formation.
           </p>
         </div>
       </div>
@@ -104,6 +111,7 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
                   <th className="p-3">Statut</th>
                   <th className="p-3">Délivré le</th>
                   <th className="p-3">Enrollment</th>
+                  <th className="p-3">Source</th>
                   <th className="p-3">Actions</th>
                 </tr>
               </thead>
@@ -118,6 +126,7 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
                     </td>
                     <td className="p-3">{formatDate(certificate.issued_at)}</td>
                     <td className="p-3 font-mono text-xs">{certificate.enrollment_id ?? "—"}</td>
+                    <td className="p-3">{getGenerationSource(certificate)}</td>
                     <td className="p-3">
                       <a className="font-semibold text-emerald-700" href={`/certificats/verifier/${certificate.certificate_id}`}>
                         Vérifier

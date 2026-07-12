@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-import { generateCertificatePublicId, getCertificateEligibilityForEnrollment, getCertificateVerificationUrl } from "@/lib/academy/certificates";
+import { createCertificateForEligibility, getCertificateEligibilityForEnrollment } from "@/lib/academy/certificates";
 import { extractCloudflareStreamUid, getVideoProvider, normalizeVideoUrl } from "@/lib/academy/video";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -153,26 +153,9 @@ export async function generateManualCertificateForEnrollment(formData: FormData)
     );
   }
 
-  const certificateId = generateCertificatePublicId();
-  const { error } = await supabase.from("academy_certificates").insert({
-    certificate_id: certificateId,
-    student_id: eligibility.studentId,
-    course_id: eligibility.courseId,
-    enrollment_id: eligibility.enrollmentId,
-    student_full_name: eligibility.studentName ?? "Étudiant Academy",
-    course_title: eligibility.courseTitle,
-    verification_url: getCertificateVerificationUrl(certificateId),
-    status: "valid",
-    metadata: {
-      generation_mode: "manual_admin",
-      generated_by: admin.id,
-      total_published_lessons: eligibility.totalPublishedLessons,
-      completed_published_lessons: eligibility.completedPublishedLessons,
-      progress_percentage: eligibility.progressPercentage,
-    },
-  });
+  const result = await createCertificateForEligibility(eligibility, { source: "manual_admin", generatedBy: admin.id });
 
-  if (error) {
+  if (!result.created) {
     console.error("[Academy certificates] Manual certificate insert failed", {
       enrollmentId: eligibility.enrollmentId,
       studentId: eligibility.studentId,
@@ -181,9 +164,16 @@ export async function generateManualCertificateForEnrollment(formData: FormData)
       completedPublishedLessons: eligibility.completedPublishedLessons,
       progressPercentage: eligibility.progressPercentage,
       existingCertificateId: eligibility.existingCertificateId,
-      message: error.message,
+      skippedReason: result.skippedReason,
     });
-    redirect("/admin/academy/certificates?error=" + encodeURIComponent("Impossible de générer le certificat : insertion Supabase échouée."));
+    redirect(
+      "/admin/academy/certificates?error=" +
+        encodeURIComponent(
+          result.skippedReason === "certificate_already_exists"
+            ? "Impossible de générer le certificat : un certificat existe déjà pour cet enrollment."
+            : "Impossible de générer le certificat : insertion Supabase échouée.",
+        ),
+    );
   }
 
   revalidatePath("/admin/academy/certificates");
