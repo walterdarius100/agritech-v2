@@ -110,25 +110,64 @@ body {
 
   html,
   body {
+    width: 297mm !important;
+    height: 210mm !important;
+    margin: 0 !important;
+    overflow: hidden !important;
     background: #ffffff !important;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   body * {
     visibility: hidden;
   }
 
+  .no-print,
+  .print-hidden,
+  .no-print *,
+  .print-hidden * {
+    display: none !important;
+    visibility: hidden !important;
+  }
+
+  .certificate-print-page {
+    min-height: 0 !important;
+    width: 297mm !important;
+    height: 210mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: #ffffff !important;
+  }
+
   .certificate-print-area,
   .certificate-print-area * {
-    visibility: visible;
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .certificate-print-area {
     position: fixed !important;
     inset: 0 !important;
+    display: block !important;
     width: 297mm !important;
     max-width: none !important;
     height: 210mm !important;
+    max-height: 210mm !important;
     margin: 0 !important;
+    padding: 5mm !important;
+    overflow: hidden !important;
     box-shadow: none !important;
+    page-break-before: avoid !important;
+    page-break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-before: avoid !important;
+    break-after: avoid !important;
+    break-inside: avoid !important;
   }
 }
