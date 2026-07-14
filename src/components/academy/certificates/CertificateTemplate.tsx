@@ -70,7 +70,7 @@ function ProgramDescription({ courseDuration }: Pick<CertificateTemplateProps, "
 
 function CertificateBrandPanel() {
   return (
-    <aside className="absolute right-[2.5%] top-0 z-20 flex h-[71.8%] w-[36.8%] flex-col items-center bg-[#4775c8] px-[2.1%] pb-[6.2%] pt-[5.1%] text-center text-white [clip-path:polygon(0_0,100%_0,100%_80%,50%_100%,0_80%)]">
+    <aside className="absolute right-[2.8%] top-0 z-20 flex h-[70.5%] w-[36.2%] flex-col items-center bg-[#4775c8] px-[2.25%] pb-[6%] pt-[4.8%] text-center text-white [clip-path:polygon(0_0,100%_0,100%_80%,50%_100%,0_80%)]">
       <div className="flex w-full flex-col items-center">
         <div className="relative h-[58px] w-[220px] overflow-hidden">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -81,13 +81,13 @@ function CertificateBrandPanel() {
         </p>
       </div>
 
-      <div className="mt-[12.5%] h-px w-[64%] bg-white/95" />
-      <div className="mt-[10%]">
-        <p className="font-[Arial_Black,Arial,sans-serif] text-[clamp(2.4rem,5.2vw,4.9rem)] font-black leading-none tracking-[-0.055em] text-white">Certificat</p>
-        <p className="mt-[5.5%] whitespace-nowrap text-[clamp(1.35rem,2.15vw,2.35rem)] font-black leading-none text-white">de participation</p>
+      <div className="mt-[11.5%] h-px w-[66%] bg-white/95" />
+      <div className="mt-[9.2%]">
+        <p className="font-[Arial_Black,Arial,sans-serif] text-[clamp(2.35rem,5vw,4.75rem)] font-black leading-none tracking-[-0.055em] text-white">Certificat</p>
+        <p className="mt-[5%] whitespace-nowrap text-[clamp(1.35rem,2.1vw,2.25rem)] font-black leading-none text-white">de participation</p>
       </div>
-      <div className="mt-[13%] h-px w-[38%] bg-white/95" />
-      <div className="mt-[9%] flex justify-center gap-[18px] text-[clamp(1rem,1.55vw,1.45rem)] leading-none text-white">
+      <div className="mt-[12%] h-px w-[40%] bg-white/95" />
+      <div className="mt-[8.5%] flex justify-center gap-[18px] text-[clamp(1rem,1.55vw,1.45rem)] leading-none text-white">
         <span>★</span>
         <span>★</span>
         <span>★</span>
@@ -114,18 +114,18 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
 
 function CertificateQrBlock({ certificateId, qrCodeUrl, verificationUrl }: Pick<CertificateTemplateProps, "certificateId" | "qrCodeUrl" | "verificationUrl">) {
   return (
-    <div className="absolute bottom-[3.6%] right-[12%] z-30 flex w-[170px] flex-col items-center text-center">
+    <div className="absolute bottom-[4.6%] right-[11.6%] z-30 flex w-[180px] flex-col items-center text-center">
       {qrCodeUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-[118px] w-[118px] bg-white object-contain p-1 ring-1 ring-slate-200" />
+        <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-[112px] w-[112px] bg-white object-contain p-1.5 ring-1 ring-slate-200" />
       ) : (
-        <div className="grid h-[118px] w-[118px] grid-cols-4 gap-1 bg-white p-2 ring-1 ring-slate-200" aria-label={verificationUrl ? `QR code de vérification pour ${verificationUrl}` : "Emplacement QR code"}>
+        <div className="grid h-[112px] w-[112px] grid-cols-4 gap-1 bg-white p-2 ring-1 ring-slate-200" aria-label={verificationUrl ? `QR code de vérification pour ${verificationUrl}` : "Emplacement QR code"}>
           {Array.from({ length: 16 }).map((_, index) => (
             <span key={index} className={index % 2 === 0 || index === 5 || index === 10 ? "bg-slate-950" : "bg-slate-200"} />
           ))}
         </div>
       )}
-      <p className="mt-3 whitespace-nowrap text-[12px] font-normal leading-tight text-slate-950">
+      <p className="mt-2.5 whitespace-nowrap text-[11px] font-normal leading-tight text-slate-950">
         <strong>Numéro du certificat :</strong> {certificateId}
       </p>
       {verificationUrl ? <p className="sr-only">URL de vérification : {verificationUrl}</p> : null}
@@ -155,44 +155,44 @@ export function CertificateTemplate({
   const issuedDate = formatCertificateDate(issuedAt);
 
   return (
-    <article className="certificate-print-area mx-auto aspect-[1.294/1] w-full max-w-6xl overflow-hidden bg-white p-[1.65%] text-slate-950 shadow-2xl ring-1 ring-slate-200 print:shadow-none print:ring-0">
-      <div className="relative h-full overflow-hidden rounded-[3px] border border-[#2c5f9f] bg-white">
+    <article className="certificate-print-area mx-auto aspect-[1.294/1] w-full max-w-6xl overflow-hidden bg-white p-[1.75%] text-slate-950 shadow-2xl ring-1 ring-slate-200 print:shadow-none print:ring-0">
+      <div className="relative h-full overflow-hidden rounded-[3px] border-[1.5px] border-[#2c5f9f] bg-white">
         {(isRevoked || isDraft) && (
           <div className="pointer-events-none absolute inset-0 z-50 flex rotate-[-18deg] items-center justify-center text-6xl font-black uppercase tracking-[0.28em] text-red-700/10 sm:text-8xl">
             {isRevoked ? "Révoqué" : "Brouillon"}
           </div>
         )}
 
-        <section className="absolute left-[6.5%] top-[5.9%] z-10 w-[49%] text-left font-[Arial,Helvetica,sans-serif]">
-          <p className="text-[clamp(0.9rem,1.35vw,1.25rem)] font-black leading-none text-black">Agri-tech certifie que :</p>
+        <section className="absolute left-[6.8%] top-[6.2%] z-10 w-[48.5%] text-left font-[Arial,Helvetica,sans-serif]">
+          <p className="text-[clamp(0.9rem,1.28vw,1.18rem)] font-black leading-none text-black">Agri-tech certifie que :</p>
 
-          <div className="mt-[3.8%] text-[#4674c4]">
-            <h1 className="break-words font-[Arial_Black,Arial,sans-serif] text-[clamp(3.2rem,7vw,6rem)] font-black leading-[0.9] tracking-[-0.045em]">{firstLine}</h1>
-            {secondLine ? <p className="mt-1 break-words font-[Arial_Black,Arial,sans-serif] text-[clamp(3.2rem,7vw,6rem)] font-black uppercase leading-[0.9] tracking-[-0.045em]">{secondLine}</p> : null}
+          <div className="mt-[3.6%] max-w-full text-[#4674c4]">
+            <h1 className="max-w-full break-words [overflow-wrap:anywhere] font-[Arial_Black,Arial,sans-serif] text-[clamp(2.8rem,6.2vw,5.25rem)] font-black leading-[0.92] tracking-[-0.04em]">{firstLine}</h1>
+            {secondLine ? <p className="mt-1 max-w-full break-words [overflow-wrap:anywhere] font-[Arial_Black,Arial,sans-serif] text-[clamp(2.8rem,6.2vw,5.25rem)] font-black uppercase leading-[0.92] tracking-[-0.04em]">{secondLine}</p> : null}
           </div>
 
-          <div className="mt-[4.2%] max-w-[620px] space-y-3 text-[clamp(0.75rem,1.3vw,1.12rem)] leading-[1.5] text-black">
+          <div className="mt-[4.6%] max-w-[610px] space-y-[0.82rem] text-[clamp(0.78rem,1.18vw,1.02rem)] leading-[1.58] text-black">
             <p>
               A suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
             <ProgramDescription courseDuration={courseDuration} />
 
-            <p>En foi de quoi, le présent certificat est délivré pour servir et valoir ce que de droit.</p>
-            <p>
+            <p className="pt-[0.15rem]">En foi de quoi, le présent certificat est délivré pour servir et valoir ce que de droit.</p>
+            <p className="pt-[0.05rem]">
               Fait à <strong>{issuedLocation || "Jacmel"}</strong>, le <strong>{issuedDate}</strong>.
             </p>
           </div>
         </section>
 
-        <div className="absolute bottom-[4.5%] left-[9.5%] z-10">
+        <div className="absolute bottom-[5.2%] left-[9.2%] z-10">
           <CertificateSignatureBlock organizationName={organizationName} signatoryName={signatoryName} signatoryTitle={signatoryTitle} />
         </div>
 
         <CertificateBrandPanel />
         <CertificateQrBlock certificateId={certificateId} qrCodeUrl={qrCodeUrl} verificationUrl={verificationUrl} />
 
-        <div className="absolute bottom-[7.3%] right-[2.2%] z-30 flex h-[170px] w-[28px] items-center justify-center rounded-sm bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
+        <div className="absolute bottom-[7.8%] right-[2.25%] z-30 flex h-[158px] w-[26px] items-center justify-center rounded-sm bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
           <p className="rotate-[-90deg] whitespace-nowrap text-[12px] font-black leading-none">{academyName}</p>
           {projectName ? <span className="sr-only">Projet : {projectName}</span> : null}
         </div>
