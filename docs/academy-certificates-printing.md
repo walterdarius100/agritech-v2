@@ -49,6 +49,13 @@ Les styles print sont centralisés dans `src/app/globals.css` :
 - les couleurs et images du template sont conservées ;
 - le QR code et le numéro public du certificat restent visibles.
 
+
+## Note d’affinage visuel
+
+Le template HTML/CSS conserve les dimensions A4 paysage et les règles print existantes. Les derniers ajustements restent purement visuels : marges internes légèrement renforcées, bordure principale affinée, hiérarchie du nom étudiant stabilisée pour les noms longs, texte principal plus aéré, panneau bleu rééquilibré et bloc QR code + numéro remonté pour rester lisible sans chevauchement avec la bande orange.
+
+Ces changements ne modifient ni les données dynamiques, ni le `certificate_id`, ni l’URL de vérification, ni la génération automatique ou manuelle des certificats.
+
 ## Limites actuelles
 
 Le rendu PDF dépend du moteur d’impression du navigateur et des réglages utilisateur. Pour un résultat fidèle, l’utilisateur doit choisir une sortie paysage et activer l’impression des arrière-plans si son navigateur le demande.

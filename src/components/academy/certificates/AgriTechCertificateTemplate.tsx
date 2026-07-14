@@ -31,7 +31,7 @@ function AgriTechWordmark() {
 
 function StaticQrCode() {
   return (
-    <div className="grid h-[96px] w-[96px] grid-cols-[repeat(21,1fr)] gap-0.5 bg-white p-1 ring-1 ring-slate-300" aria-label="QR code de démonstration">
+    <div className="grid h-[92px] w-[92px] grid-cols-[repeat(21,1fr)] gap-0.5 bg-white p-1 ring-1 ring-slate-300" aria-label="QR code de démonstration">
       {qrCells.map((isDark, index) => (
         <span key={index} className={isDark ? "bg-black" : "bg-white"} />
       ))}
@@ -41,17 +41,17 @@ function StaticQrCode() {
 
 export function AgriTechCertificateTemplate() {
   return (
-    <article className="certificate-print-area relative mx-auto h-[612px] w-[792px] overflow-visible bg-white p-[17px] text-black shadow-2xl ring-1 ring-slate-200 print:shadow-none print:ring-0">
-      <div className="relative h-full w-full rounded-[3px] border border-[#2c5f9f] bg-white">
-        <section className="absolute left-[51px] top-[29px] z-10 w-[370px] text-left font-[Arial,Helvetica,sans-serif]">
+    <article className="certificate-print-area relative mx-auto h-[612px] w-[792px] overflow-visible bg-white p-[18px] text-black shadow-2xl ring-1 ring-slate-200 print:shadow-none print:ring-0">
+      <div className="relative h-full w-full rounded-[3px] border-[1.5px] border-[#2c5f9f] bg-white">
+        <section className="absolute left-[54px] top-[32px] z-10 w-[360px] text-left font-[Arial,Helvetica,sans-serif]">
           <p className="text-[13px] font-black leading-none text-black">Agri-tech certifie que :</p>
 
-          <h1 className="mt-[18px] font-[Arial_Black,Arial,sans-serif] text-[52px] font-black uppercase leading-[0.9] tracking-[-0.035em] text-[#4674c4]">
+          <h1 className="mt-[18px] font-[Arial_Black,Arial,sans-serif] text-[49px] font-black uppercase leading-[0.92] tracking-[-0.035em] text-[#4674c4]">
             <span className="block normal-case">Walter</span>
             <span className="block">DARIUS</span>
           </h1>
 
-          <div className="mt-[14px] space-y-[13px] text-[12.5px] leading-[1.55] text-black">
+          <div className="mt-[16px] space-y-[14px] text-[12.5px] leading-[1.6] text-black">
             <p>
               A suivi avec succès la formation « <strong>apiculture moderne</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
@@ -82,28 +82,28 @@ export function AgriTechCertificateTemplate() {
           </div>
         </section>
 
-        <aside className="absolute right-[22px] top-[-18px] z-20 h-[430px] w-[294px] bg-[#4775c8] px-[14px] pt-[42px] text-center text-white [clip-path:polygon(0_0,100%_0,100%_80%,50%_100%,0_80%)]">
+        <aside className="absolute right-[24px] top-[-18px] z-20 h-[422px] w-[286px] bg-[#4775c8] px-[16px] pt-[42px] text-center text-white [clip-path:polygon(0_0,100%_0,100%_80%,50%_100%,0_80%)]">
           <AgriTechWordmark />
-          <div className="mx-auto mt-[32px] h-px w-[190px] bg-white" />
-          <p className="mt-[30px] font-[Arial_Black,Arial,sans-serif] text-[50px] font-black leading-none tracking-[-0.04em]">Certificat</p>
-          <p className="mt-[15px] text-[27px] font-black leading-none">de participation</p>
-          <div className="mx-auto mt-[42px] h-px w-[111px] bg-white" />
-          <div className="mt-[30px] flex justify-center gap-[18px] text-[19px] leading-none text-white">
+          <div className="mx-auto mt-[30px] h-px w-[190px] bg-white" />
+          <p className="mt-[28px] font-[Arial_Black,Arial,sans-serif] text-[48px] font-black leading-none tracking-[-0.04em]">Certificat</p>
+          <p className="mt-[14px] text-[26px] font-black leading-none">de participation</p>
+          <div className="mx-auto mt-[38px] h-px w-[111px] bg-white" />
+          <div className="mt-[28px] flex justify-center gap-[18px] text-[19px] leading-none text-white">
             <span>★</span>
             <span>★</span>
             <span>★</span>
           </div>
         </aside>
 
-        <div className="absolute bottom-[42px] right-[118px] z-30 flex flex-col items-center">
+        <div className="absolute bottom-[48px] right-[112px] z-30 flex flex-col items-center">
           <StaticQrCode />
-          <p className="mt-[9px] whitespace-nowrap text-[9px] leading-none text-black">
+          <p className="mt-[8px] whitespace-nowrap text-[9px] leading-none text-black">
             <strong>Numéro du certificat :</strong> AGRI-API-2026-01
           </p>
         </div>
       </div>
 
-      <div className="absolute bottom-[39px] right-[19px] z-40 flex h-[171px] w-[18px] items-center justify-center bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
+      <div className="absolute bottom-[45px] right-[20px] z-40 flex h-[158px] w-[18px] items-center justify-center bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
         <p className="rotate-[-90deg] whitespace-nowrap text-[9px] font-black leading-none">Agri-tech Academy</p>
       </div>
     </article>
