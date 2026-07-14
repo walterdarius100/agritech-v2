@@ -35,8 +35,8 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
   const displayCertificate = toCertificateDisplayData(certificate);
 
   return (
-    <main className="min-h-screen bg-[#f8faf7] px-4 py-8 print:bg-white print:p-0">
-      <div className="mx-auto mb-6 flex max-w-6xl flex-wrap items-center justify-between gap-3 print:hidden">
+    <main className="certificate-print-page min-h-screen bg-[#f8faf7] px-4 py-8 print:bg-white print:p-0">
+      <div className="no-print mx-auto mb-6 flex max-w-6xl flex-wrap items-center justify-between gap-3 print:hidden">
         <div>
           <Link className="font-semibold text-emerald-700" href={isAdmin ? "/admin/academy/certificates" : "/academy/certificats"}>
             ← Retour aux certificats
@@ -48,7 +48,7 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
       </div>
 
       {certificate.status === "revoked" ? (
-        <div className="mx-auto mb-4 max-w-6xl rounded-2xl bg-red-50 p-4 font-semibold text-red-800 ring-1 ring-red-100 print:hidden">
+        <div className="no-print mx-auto mb-4 max-w-6xl rounded-2xl bg-red-50 p-4 font-semibold text-red-800 ring-1 ring-red-100 print:hidden">
           Ce certificat est révoqué. Il est affiché uniquement pour consultation et ne doit pas être présenté comme valide.
         </div>
       ) : null}
@@ -72,7 +72,7 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
         projectName={displayCertificate.courseTitle}
       />
 
-      <p className="mx-auto mt-5 max-w-6xl text-sm text-slate-600 print:hidden">
+      <p className="no-print mx-auto mt-5 max-w-6xl text-sm text-slate-600 print:hidden">
         Pour obtenir un PDF, cliquez sur « Imprimer / Enregistrer en PDF », puis choisissez « Enregistrer en PDF » dans la boîte d’impression de votre navigateur.
       </p>
     </main>

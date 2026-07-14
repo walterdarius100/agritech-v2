@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { AgriTechCertificateTemplate } from "@/components/academy/certificates/AgriTechCertificateTemplate";
+import { PrintCertificateButton } from "@/components/academy/certificates/PrintCertificateButton";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 
 export default async function CertificateTemplatePreviewPage() {
@@ -8,7 +9,7 @@ export default async function CertificateTemplatePreviewPage() {
 
   return (
     <main className="space-y-6">
-      <div className="print:hidden">
+      <div className="no-print print:hidden">
         <Link className="text-sm font-semibold text-emerald-800" href="/admin/academy/certificates">
           ← Retour aux certificats
         </Link>
@@ -19,9 +20,13 @@ export default async function CertificateTemplatePreviewPage() {
             Cette page admin sert uniquement à ajuster la reproduction visuelle HTML/CSS du modèle officiel avec des données de démonstration. Elle ne remplace pas le template réel utilisé par les certificats générés.
           </p>
         </div>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <PrintCertificateButton />
+          <p className="text-sm text-slate-600">Dans la fenêtre d’impression, choisissez “Enregistrer au format PDF” pour télécharger le certificat.</p>
+        </div>
       </div>
 
-      <div className="overflow-x-auto rounded-3xl bg-slate-100 p-6 print:overflow-visible print:rounded-none print:bg-white print:p-0">
+      <div className="certificate-print-page overflow-x-auto rounded-3xl bg-slate-100 p-6 print:overflow-visible print:rounded-none print:bg-white print:p-0">
         <AgriTechCertificateTemplate />
       </div>
     </main>
