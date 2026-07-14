@@ -13,6 +13,7 @@ export type CertificateTemplateProps = {
   startDate?: string | null;
   endDate?: string | null;
   issuedLocation?: string | null;
+  academyName?: string;
   signatoryName?: string;
   signatoryTitle?: string;
   projectName?: string | null;
@@ -25,13 +26,15 @@ const CERTIFICATE_ASSETS = {
   signature: "/images/brand/walter-darius-signature.png",
 };
 
-function formatCertificateDate(value: string) {
-  return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "long", year: "numeric" }).format(new Date(value));
+function formatCertificateDate(value: string, fallback = "date non précisée") {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return fallback;
+  return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
 function formatOptionalDate(value?: string | null) {
   if (!value) return null;
-  return formatCertificateDate(value);
+  return formatCertificateDate(value, "");
 }
 
 function statusLabel(status?: string) {
@@ -112,7 +115,7 @@ function CertificateQrBlock({ certificateId, qrCodeUrl, verificationUrl }: Pick<
         // eslint-disable-next-line @next/next/no-img-element
         <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-[118px] w-[118px] bg-white object-contain p-1 ring-1 ring-slate-200" />
       ) : (
-        <div className="grid h-[118px] w-[118px] grid-cols-4 gap-1 bg-white p-2 ring-1 ring-slate-200" aria-label="Emplacement QR code">
+        <div className="grid h-[118px] w-[118px] grid-cols-4 gap-1 bg-white p-2 ring-1 ring-slate-200" aria-label={verificationUrl ? `QR code de vérification pour ${verificationUrl}` : "Emplacement QR code"}>
           {Array.from({ length: 16 }).map((_, index) => (
             <span key={index} className={index % 2 === 0 || index === 5 || index === 10 ? "bg-slate-950" : "bg-slate-200"} />
           ))}
@@ -141,6 +144,7 @@ export function CertificateTemplate({
   issuedLocation = "Jacmel",
   signatoryName = "Walter Darius",
   signatoryTitle = "Directeur Général",
+  academyName = "Agri-tech Academy",
   projectName,
 }: CertificateTemplateProps) {
   const isRevoked = status === "revoked";
@@ -167,7 +171,7 @@ export function CertificateTemplate({
 
           <div className="mt-[4.2%] max-w-[620px] space-y-3 text-[clamp(0.75rem,1.3vw,1.12rem)] leading-[1.5] text-black">
             <p>
-              A suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
+              A suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par {academyName} dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
             <p>Le programme a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.</p>
@@ -189,7 +193,7 @@ export function CertificateTemplate({
         <CertificateQrBlock certificateId={certificateId} qrCodeUrl={qrCodeUrl} verificationUrl={verificationUrl} />
 
         <div className="absolute bottom-[7.3%] right-[2.2%] z-30 flex h-[170px] w-[28px] items-center justify-center rounded-sm bg-gradient-to-b from-[#ff9b58] to-[#f07116] text-white">
-          <p className="rotate-[-90deg] whitespace-nowrap text-[12px] font-black leading-none">Agri-tech Academy</p>
+          <p className="rotate-[-90deg] whitespace-nowrap text-[12px] font-black leading-none">{academyName}</p>
           {projectName ? <span className="sr-only">Projet : {projectName}</span> : null}
         </div>
 
