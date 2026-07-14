@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { generateManualCertificateForEnrollment, revokeCertificate } from "@/lib/academy/admin";
+import { formatFrenchDate, getCertificateStatusLabel } from "@/lib/academy/certificate-display";
 import { getCompletedEnrollmentsEligibleForCertificates } from "@/lib/academy/certificates";
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -9,11 +10,6 @@ import type { AcademyCertificate } from "@/types/academy";
 type CertificatesAdminProps = {
   searchParams: Promise<{ error?: string; success?: string }>;
 };
-
-function formatDate(value: string | null) {
-  if (!value) return "—";
-  return new Date(value).toLocaleDateString("fr-FR");
-}
 
 function getGenerationSource(certificate: AcademyCertificate) {
   const source = certificate.metadata?.generation_source ?? certificate.metadata?.generation_mode;
@@ -127,9 +123,9 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
                     <td className="p-3">{certificate.student_full_name}</td>
                     <td className="p-3">{certificate.course_title}</td>
                     <td className="p-3">
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800">{certificate.status}</span>
+                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800">{getCertificateStatusLabel(certificate.status)}</span>
                     </td>
-                    <td className="p-3">{formatDate(certificate.issued_at)}</td>
+                    <td className="p-3">{formatFrenchDate(certificate.issued_at, "—")}</td>
                     <td className="p-3 font-mono text-xs">{certificate.enrollment_id ?? "—"}</td>
                     <td className="p-3">{getGenerationSource(certificate)}</td>
                     <td className="p-3">
