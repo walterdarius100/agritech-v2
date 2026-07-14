@@ -234,3 +234,52 @@ Le choix actuel utilise l'UUID interne `id` pour la route technique de checkout.
 ## Limites actuelles du formulaire
 
 Cette étape ne met pas encore en place le vrai paiement. La page checkout existe uniquement comme étape de réception après création de demande afin d'éviter une 404 et de préparer l'intégration du paiement dans un prochain PR. Le prix reste fixe à `2 500 HTG`; le visiteur ne sélectionne plus de package dans le formulaire.
+
+## Checkout mock Consultation
+
+La route `/consultation/checkout/[requestId]` charge la demande via le client Supabase admin/service role et affiche un résumé avant paiement :
+
+- code de demande ;
+- nom du client ;
+- type de consultation ;
+- package fixe ;
+- montant ;
+- statut de paiement ;
+- résumé du besoin.
+
+Les moyens de paiement affichés sont actuellement des options de test :
+
+- MonCash ;
+- NatCash ;
+- paiement manuel / confirmation interne.
+
+Le formulaire de paiement affiche clairement que le paiement en ligne est en mode test et sert uniquement à valider le parcours de réservation.
+
+## Confirmation du paiement mock
+
+La confirmation du paiement mock utilise une Server Action. Elle vérifie d'abord que la demande existe, puis recherche un paiement `paid` existant pour éviter les doublons.
+
+Si la demande n'est pas déjà payée, l'action :
+
+1. crée une ligne dans `consultation_payments` ;
+2. enregistre `provider = mock` ;
+3. enregistre `status = paid` ;
+4. reprend le montant et la devise de `consultation_requests` ;
+5. stocke le moyen de paiement choisi dans `payment_method` et `metadata` ;
+6. met à jour `consultation_requests.payment_status` à `paid` ;
+7. met à jour `consultation_requests.request_status` à `paid` ;
+8. renseigne `paid_at` ;
+9. redirige vers `/consultation/confirmation/[requestId]`.
+
+## Anti-doublon du paiement mock
+
+Avant de créer un paiement mock, la Server Action vérifie :
+
+- si `consultation_requests.payment_status` vaut déjà `paid` ;
+- ou si un paiement `consultation_payments.status = paid` existe déjà pour la demande.
+
+Dans ces cas, elle ne crée pas de nouveau paiement et redirige directement vers la confirmation.
+
+## Limites avant paiement réel
+
+Le checkout ne contacte pas encore MonCash ou NatCash. Les providers affichés sont des choix UX de test, tandis que la ligne technique enregistrée dans `consultation_payments.provider` reste `mock`. L'intégration des vrais fournisseurs devra ajouter une vérification serveur, des webhooks et une stratégie d'idempotence plus stricte côté base de données.
