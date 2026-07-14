@@ -6,10 +6,7 @@ import { useFormStatus } from "react-dom";
 import { createConsultationRequest } from "@/lib/consultation/createConsultationRequest";
 import type { ConsultationRequestFormState } from "@/lib/consultation/createConsultationRequest";
 import {
-  consultationAmount,
-  consultationCurrency,
   consultationModes,
-  consultationPackage,
   consultationTypes,
   estimatedBudgets,
   projectStages,
@@ -26,7 +23,9 @@ function SubmitButton() {
       disabled={pending}
       className="inline-flex w-full items-center justify-center rounded-full bg-emerald-700 px-6 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 sm:w-auto"
     >
-      {pending ? "Envoi en cours..." : "Continuer vers le paiement"}
+      {pending
+        ? "Création de la demande..."
+        : "Envoyer ma demande et continuer vers le paiement"}
     </button>
   );
 }
@@ -276,45 +275,13 @@ export function ConsultationReservationForm() {
         </div>
       </section>
 
-      <section
-        aria-labelledby="package-title"
-        className="rounded-3xl bg-emerald-50 p-5 sm:p-6"
-      >
-        <p
-          id="package-title"
-          className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700"
-        >
-          Package sélectionné
-        </p>
-        <label className="mt-4 flex gap-3 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-emerald-100">
-          <input
-            type="radio"
-            name="consultation_package"
-            value={consultationPackage}
-            defaultChecked
-            required
-            className="mt-1 h-4 w-4 text-emerald-700 focus:ring-emerald-700"
-          />
-          <span>
-            <span className="block font-bold text-emerald-950">
-              {consultationPackage}
-            </span>
-            <span className="mt-1 block text-sm text-slate-600">
-              Montant enregistré : {consultationAmount.toLocaleString("fr-FR")}{" "}
-              {consultationCurrency}. Le paiement sera traité à l’étape
-              suivante.
-            </span>
-          </span>
-        </label>
-        <FieldError message={fieldErrors.consultation_package} />
-      </section>
-
-      <div className="flex flex-col gap-4 border-t border-emerald-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-6 text-slate-600">
-          Après validation du formulaire, votre demande sera créée avec le
-          statut paiement en attente puis vous serez redirigé vers le checkout.
-        </p>
+      <div className="border-t border-emerald-100 pt-6">
         <SubmitButton />
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+          Après validation du formulaire, votre demande sera créée avec le
+          statut « paiement en attente », puis vous serez redirigé vers le
+          checkout.
+        </p>
       </div>
     </form>
   );

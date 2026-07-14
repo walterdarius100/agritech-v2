@@ -36,7 +36,7 @@ export const estimatedBudgets = [
 ] as const;
 
 export const consultationPackage =
-  "Consultation agricole en ligne — 30 à 45 minutes — 2 500 HTG";
+  "Consultation agricole en ligne — 30 à 45 minutes";
 
 export const consultationAmount = 2500;
 export const consultationCurrency = "HTG";

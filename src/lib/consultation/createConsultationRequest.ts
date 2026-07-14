@@ -100,7 +100,6 @@ function validateConsultationRequestForm(
     formData.get("project_description"),
     limits.description,
   );
-  const selectedPackage = clean(formData.get("consultation_package"), 180);
 
   const fieldErrors: ConsultationRequestFormState["fieldErrors"] = {};
 
@@ -113,10 +112,6 @@ function validateConsultationRequestForm(
   if (!projectDescription)
     fieldErrors.project_description =
       "La description du besoin est obligatoire.";
-  if (selectedPackage !== consultationPackage)
-    fieldErrors.consultation_package =
-      "Le package de consultation est obligatoire.";
-
   if (Object.keys(fieldErrors).length > 0) {
     return {
       ok: false,

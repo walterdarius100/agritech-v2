@@ -64,5 +64,4 @@ export type CreateConsultationRequestInput = Pick<
   | "project_description"
   | "estimated_budget"
   | "consultation_mode"
-  | "consultation_package"
 >;

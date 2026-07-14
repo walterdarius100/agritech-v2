@@ -31,12 +31,12 @@ export default function ConsultationReservationPage() {
 
             <div className="mt-8 rounded-2xl bg-white/10 p-5 ring-1 ring-white/15">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-yellow-300">
-                Package de départ
+                Tarif fixe
               </p>
               <p className="mt-3 text-2xl font-extrabold">2 500 HTG</p>
               <p className="mt-2 text-sm leading-6 text-white/75">
-                Consultation agricole en ligne — 30 à 45 minutes. Le paiement
-                réel n’est pas encore intégré dans cette étape.
+                Durée indicative : 30 à 45 minutes. Le paiement réel n’est pas
+                encore intégré dans cette étape.
               </p>
             </div>
           </aside>
