@@ -53,7 +53,7 @@ export function AgriTechCertificateTemplate() {
 
           <div className="mt-[14px] space-y-[13px] text-[12.5px] leading-[1.55] text-black">
             <p>
-              a suivi avec succès la formation « <strong>apiculture moderne</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
+              A suivi avec succès la formation « <strong>apiculture moderne</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
             <p className="pt-[4px]">
@@ -95,7 +95,7 @@ export function AgriTechCertificateTemplate() {
           </div>
         </aside>
 
-        <div className="absolute bottom-[42px] right-[94px] z-30 flex flex-col items-center">
+        <div className="absolute bottom-[42px] right-[118px] z-30 flex flex-col items-center">
           <StaticQrCode />
           <p className="mt-[9px] whitespace-nowrap text-[9px] leading-none text-black">
             <strong>Numéro du certificat :</strong> AGRI-API-2026-01

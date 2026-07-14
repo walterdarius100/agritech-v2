@@ -114,7 +114,7 @@ function CertificateSignatureBlock({ organizationName, signatoryName, signatoryT
 
 function CertificateQrBlock({ certificateId, qrCodeUrl, verificationUrl }: Pick<CertificateTemplateProps, "certificateId" | "qrCodeUrl" | "verificationUrl">) {
   return (
-    <div className="absolute bottom-[3.6%] right-[9.2%] z-30 flex w-[170px] flex-col items-center text-center">
+    <div className="absolute bottom-[3.6%] right-[12%] z-30 flex w-[170px] flex-col items-center text-center">
       {qrCodeUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={qrCodeUrl} alt="QR code de vérification du certificat" className="h-[118px] w-[118px] bg-white object-contain p-1 ring-1 ring-slate-200" />
@@ -173,7 +173,7 @@ export function CertificateTemplate({
 
           <div className="mt-[4.2%] max-w-[620px] space-y-3 text-[clamp(0.75rem,1.3vw,1.12rem)] leading-[1.5] text-black">
             <p>
-              a suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
+              A suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
             <ProgramDescription courseDuration={courseDuration} />
