@@ -172,12 +172,66 @@ supabase db reset
 
 ## Limites actuelles
 
-Cette étape crée seulement la couche base de données et les types manuels. Elle ne crée pas encore :
+Le module dispose maintenant de la couche base de données, des types manuels, de la page publique `/consultation`, du formulaire `/consultation/reserver`, d'une Server Action de création de demande et d'une page de réception `/consultation/checkout/[requestId]`. Il ne crée pas encore :
 
-- la page `/consultation` ;
-- le formulaire `/consultation/reserver` ;
-- les routes serveur de création de demande ;
-- le checkout Consultation ;
-- la confirmation Consultation ;
+- le paiement réel Consultation ;
+- la confirmation finale après paiement ;
 - la page admin `/admin/consultations` ;
 - l'intégration à un vrai fournisseur de paiement.
+
+## Formulaire public `/consultation/reserver`
+
+La page `/consultation/reserver` contient maintenant le formulaire avancé de réservation. Les champs collectés sont :
+
+- `full_name` : nom complet obligatoire ;
+- `phone` : téléphone WhatsApp obligatoire ;
+- `email` : email optionnel, validé si renseigné ;
+- `department` : département ;
+- `commune` : commune ;
+- `consultation_type` : domaine concerné obligatoire ;
+- `project_stage` : niveau d'avancement ;
+- `consultation_mode` : mode souhaité ;
+- `estimated_budget` : budget approximatif ;
+- `project_description` : description obligatoire ;
+- `consultation_package` : package obligatoire.
+
+## Validation applicative
+
+La soumission passe par une Server Action afin d'éviter une insertion Supabase directe depuis le client. La validation applicative vérifie au minimum :
+
+- nom complet obligatoire ;
+- téléphone WhatsApp obligatoire ;
+- domaine concerné obligatoire et limité aux options autorisées ;
+- description obligatoire ;
+- package obligatoire et égal au package de départ ;
+- format email valide si l'email est renseigné.
+
+En cas d'erreur, le formulaire affiche un message clair et des erreurs par champ. Le bouton de soumission est désactivé pendant l'envoi et affiche `Envoi en cours...`.
+
+## Statut initial et insertion
+
+Lors d'une soumission valide, la Server Action insère une ligne dans `consultation_requests` via le client Supabase admin/service role. Les valeurs initiales métier sont :
+
+```txt
+payment_status = pending
+request_status = pending_payment
+amount = 2500
+currency = HTG
+consultation_package = Consultation agricole en ligne — 30 à 45 minutes — 2 500 HTG
+```
+
+Le `request_code` lisible est généré côté PostgreSQL par le trigger de la migration Consultation si l'application ne fournit pas de valeur.
+
+## Redirection après soumission
+
+Après insertion réussie, l'utilisateur est redirigé vers :
+
+```txt
+/consultation/checkout/[requestId]
+```
+
+Le choix actuel utilise l'UUID interne `id` pour la route technique de checkout. Le `request_code` reste prévu pour l'affichage client, la confirmation et les recherches admin lorsque les pages de checkout et d'administration seront complétées.
+
+## Limites actuelles du formulaire
+
+Cette étape ne met pas encore en place le vrai paiement. La page checkout existe uniquement comme étape de réception après création de demande afin d'éviter une 404 et de préparer l'intégration du paiement dans un prochain PR.
