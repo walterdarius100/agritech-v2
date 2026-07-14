@@ -3,10 +3,10 @@ import { notFound, redirect } from "next/navigation";
 
 import { CertificateTemplate } from "@/components/academy/certificates/CertificateTemplate";
 import { PrintCertificateButton } from "@/components/academy/certificates/PrintCertificateButton";
+import { toCertificateDisplayData } from "@/lib/academy/certificate-display";
+import { getCertificateByPublicId } from "@/lib/academy/certificate-queries";
 import { getCurrentStudentUser } from "@/lib/academy/auth";
 import { getCurrentAdminUser } from "@/lib/auth/adminAuth";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { AcademyCertificate } from "@/types/academy";
 
 type CertificateVisualPageProps = {
   params: Promise<{ certificateId: string }>;
@@ -22,20 +22,17 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
     redirect("/academy/login");
   }
 
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) notFound();
-
-  const { data } = await supabase
-    .from("academy_certificates")
-    .select("*")
-    .eq("certificate_id", decodedCertificateId)
-    .maybeSingle();
-
-  const certificate = data as AcademyCertificate | null;
+  const { certificate, error } = await getCertificateByPublicId(decodedCertificateId);
+  if (error) {
+    console.error("[Academy certificates] Certificate visual route failed", { certificateId: decodedCertificateId, message: error });
+    notFound();
+  }
   if (!certificate) notFound();
 
   const isOwner = Boolean(studentUser && certificate.student_id === studentUser.id);
   if (!isOwner && !isAdmin) notFound();
+
+  const displayCertificate = toCertificateDisplayData(certificate);
 
   return (
     <main className="min-h-screen bg-[#f8faf7] px-4 py-8 print:bg-white print:p-0">
@@ -57,14 +54,22 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
       ) : null}
 
       <CertificateTemplate
-        studentName={certificate.student_full_name}
-        courseTitle={certificate.course_title}
-        certificateId={certificate.certificate_id}
-        issuedAt={certificate.issued_at}
-        verificationUrl={certificate.verification_url}
-        qrCodeUrl={certificate.qr_code_url}
-        status={certificate.status}
-        projectName={certificate.course_title}
+        studentName={displayCertificate.studentName}
+        courseTitle={displayCertificate.courseTitle}
+        certificateId={displayCertificate.certificateId}
+        issuedAt={displayCertificate.issuedAt}
+        verificationUrl={displayCertificate.verificationUrl}
+        qrCodeUrl={displayCertificate.qrCodeUrl}
+        status={displayCertificate.status}
+        organizationName={displayCertificate.organizationName}
+        courseDuration={displayCertificate.duration}
+        startDate={displayCertificate.startDate}
+        endDate={displayCertificate.endDate}
+        issuedLocation={displayCertificate.issuedCity}
+        signatoryName={displayCertificate.signatoryName}
+        signatoryTitle={displayCertificate.signatoryTitle}
+        academyName={displayCertificate.academyName}
+        projectName={displayCertificate.courseTitle}
       />
 
       <p className="mx-auto mt-5 max-w-6xl text-sm text-slate-600 print:hidden">

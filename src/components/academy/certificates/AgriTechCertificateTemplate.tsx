@@ -56,10 +56,8 @@ export function AgriTechCertificateTemplate() {
               A suivi avec succès la formation « <strong>apiculture moderne</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
-            <p>Le programme a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.</p>
-
             <p className="pt-[4px]">
-              D’une durée de <strong>[nombre d’heures / jours]</strong>, la formation a été réalisée du <strong>[date début]</strong> au <strong>[date fin]</strong>.
+              Ce programme, d’une durée de <strong>[nombre d’heures / jours]</strong>, a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.
             </p>
 
             <p>En foi de quoi, le présent certificat est délivré pour servir et valoir ce que de droit.</p>
@@ -97,7 +95,7 @@ export function AgriTechCertificateTemplate() {
           </div>
         </aside>
 
-        <div className="absolute bottom-[42px] right-[94px] z-30 flex flex-col items-center">
+        <div className="absolute bottom-[42px] right-[118px] z-30 flex flex-col items-center">
           <StaticQrCode />
           <p className="mt-[9px] whitespace-nowrap text-[9px] leading-none text-black">
             <strong>Numéro du certificat :</strong> AGRI-API-2026-01
