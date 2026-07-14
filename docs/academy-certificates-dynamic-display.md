@@ -87,3 +87,25 @@ Elle n’affiche pas les emails, téléphones, UUID Supabase, paiements, notes p
 ## Limites restantes avant impression/PDF
 
 L’impression repose encore sur le navigateur via le bouton existant `Imprimer / Enregistrer en PDF`. Ce PR ne crée pas de génération PDF serveur et ne modifie pas le design principal du certificat.
+
+## Audit de cohérence corrigé
+
+- Le dashboard étudiant compte les certificats avec `academy_certificates.student_id = user.id`.
+- Les migrations indiquent que `academy_certificates.student_id` et `academy_enrollments.student_id` référencent `auth.users(id)`. Dans ce projet, `profiles.id` correspond également à l’identifiant utilisateur Auth ; il n’y a pas de colonne `profiles.user_id` dans le type actuel.
+- Les URLs visibles utilisent l’identifiant public `certificate_id` (`AGRITECH-CERT-...`) et non l’UUID interne `id`.
+- L’UUID interne `id` reste réservé aux opérations admin internes, par exemple la révocation via formulaire serveur.
+
+## Correction du chargement étudiant
+
+La page `/academy/certificats` utilise maintenant une fonction serveur partagée qui reprend la même clé que le dashboard : `student_id = user.id`. La requête principale charge `academy_certificates` sans jointure PostgREST fragile, puis hydrate séparément les informations optionnelles de cours et d’enrollment. Ainsi, une relation optionnelle absente ou une jointure non disponible ne masque plus un certificat existant.
+
+En cas d’erreur Supabase, la page affiche un message d’erreur de chargement au lieu de l’état vide. Les logs serveur incluent uniquement des informations non sensibles : `userId`, `profileId`, `studentIdUsedForQuery`, `certificatesCount`, `certificateId` et message d’erreur.
+
+## Correction du rendu protégé
+
+La route `/academy/certificats/[certificateId]` cherche le certificat par `certificate_id`, puis applique les permissions :
+
+- étudiant propriétaire si `certificate.student_id === user.id` ;
+- ou admin autorisé.
+
+Le bouton admin “Voir le certificat” continue de pointer vers cette route existante avec `certificate_id`, ce qui évite d’utiliser l’UUID interne ou une route admin inexistante.

@@ -1,25 +1,19 @@
 import Link from "next/link";
 
 import { requireStudent } from "@/lib/academy/auth";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import { formatFrenchDate, getCertificateStatusLabel, toCertificateDisplayData, type CertificateWithRelations } from "@/lib/academy/certificate-display";
+import { formatFrenchDate, getCertificateStatusLabel, toCertificateDisplayData } from "@/lib/academy/certificate-display";
+import { getStudentCertificates } from "@/lib/academy/certificate-queries";
 
 export default async function StudentCertificatesPage() {
   const user = await requireStudent();
-  const supabase = createSupabaseAdminClient();
-  const { data } = supabase
-    ? await supabase
-        .from("academy_certificates")
-        .select("*, academy_courses(id,title,duration), academy_enrollments(id,created_at,validated_at,updated_at), profiles(full_name)")
-        .eq("student_id", user.id)
-        .order("issued_at", { ascending: false })
-    : { data: [] };
-  const certificates = ((data ?? []) as CertificateWithRelations[]).map(toCertificateDisplayData);
+  const { certificates: certificateRows, error } = await getStudentCertificates(user.id);
+  const certificates = certificateRows.map(toCertificateDisplayData);
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
       <h1 className="text-4xl font-bold text-emerald-950">Mes certificats</h1>
       <p className="mt-3 text-slate-600">Consultez, vérifiez et imprimez vos certificats Agri-tech Academy.</p>
+      {error ? <div className="mt-8 rounded-2xl bg-red-50 p-4 font-semibold text-red-800 ring-1 ring-red-100">{error}</div> : null}
       <div className="mt-8 space-y-4">
         {certificates.map((certificate) => (
           <article key={certificate.certificateId} className="rounded-2xl border bg-white p-5 shadow-sm ring-1 ring-emerald-50">
@@ -44,7 +38,7 @@ export default async function StudentCertificatesPage() {
             </div>
           </article>
         ))}
-        {certificates.length === 0 ? <p>Aucun certificat disponible pour le moment.</p> : null}
+        {!error && certificates.length === 0 ? <p>Aucun certificat disponible pour le moment.</p> : null}
       </div>
     </main>
   );

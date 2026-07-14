@@ -3,10 +3,10 @@ import { notFound, redirect } from "next/navigation";
 
 import { CertificateTemplate } from "@/components/academy/certificates/CertificateTemplate";
 import { PrintCertificateButton } from "@/components/academy/certificates/PrintCertificateButton";
-import { toCertificateDisplayData, type CertificateWithRelations } from "@/lib/academy/certificate-display";
+import { toCertificateDisplayData } from "@/lib/academy/certificate-display";
+import { getCertificateByPublicId } from "@/lib/academy/certificate-queries";
 import { getCurrentStudentUser } from "@/lib/academy/auth";
 import { getCurrentAdminUser } from "@/lib/auth/adminAuth";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 type CertificateVisualPageProps = {
   params: Promise<{ certificateId: string }>;
@@ -22,16 +22,11 @@ export default async function CertificateVisualPage({ params }: CertificateVisua
     redirect("/academy/login");
   }
 
-  const supabase = createSupabaseAdminClient();
-  if (!supabase) notFound();
-
-  const { data } = await supabase
-    .from("academy_certificates")
-    .select("*, academy_courses(id,title,duration), academy_enrollments(id,created_at,validated_at,updated_at), profiles(full_name)")
-    .eq("certificate_id", decodedCertificateId)
-    .maybeSingle();
-
-  const certificate = data as CertificateWithRelations | null;
+  const { certificate, error } = await getCertificateByPublicId(decodedCertificateId);
+  if (error) {
+    console.error("[Academy certificates] Certificate visual route failed", { certificateId: decodedCertificateId, message: error });
+    notFound();
+  }
   if (!certificate) notFound();
 
   const isOwner = Boolean(studentUser && certificate.student_id === studentUser.id);

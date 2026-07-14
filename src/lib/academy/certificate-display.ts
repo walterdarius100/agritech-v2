@@ -12,7 +12,7 @@ export const CERTIFICATE_FALLBACKS = {
   signatoryTitle: "Directeur Général",
 } as const;
 
-export type CertificateWithRelations = AcademyCertificate & {
+export type CertificateWithRelations = Omit<AcademyCertificate, "academy_courses" | "profiles"> & {
   academy_courses?: Pick<AcademyCourse, "id" | "title" | "duration"> | null;
   academy_enrollments?: Pick<AcademyEnrollment, "id" | "created_at" | "validated_at" | "updated_at"> | null;
   profiles?: Pick<Profile, "full_name"> | null;
