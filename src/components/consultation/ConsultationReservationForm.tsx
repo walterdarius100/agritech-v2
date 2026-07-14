@@ -275,9 +275,9 @@ export function ConsultationReservationForm() {
         </div>
       </section>
 
-      <div className="border-t border-emerald-100 pt-6">
+      <div className="flex flex-col items-center gap-3 border-t border-emerald-100 pt-6 text-center">
         <SubmitButton />
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">
+        <p className="max-w-md text-sm leading-6 text-slate-500">
           Après validation du formulaire, votre demande sera créée avec le
           statut « paiement en attente », puis vous serez redirigé vers le
           checkout.
