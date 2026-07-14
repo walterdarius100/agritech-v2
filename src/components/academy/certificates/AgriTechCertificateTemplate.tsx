@@ -2,7 +2,6 @@
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
   signature: "/images/brand/walter-darius-signature.png",
-  stamp: "/images/certificate/agritech-certificate-stamp.png",
 };
 
 const qrCells = Array.from({ length: 21 * 21 }, (_, index) => {
@@ -71,7 +70,7 @@ export function AgriTechCertificateTemplate() {
           </div>
         </section>
 
-        <section className="absolute bottom-[34px] left-[74px] z-10 flex items-end gap-[36px]">
+        <section className="absolute bottom-[34px] left-[74px] z-10">
           <div className="w-[156px] text-center text-black">
             <div className="mx-auto mb-[-4px] h-[40px] w-[120px]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -82,11 +81,6 @@ export function AgriTechCertificateTemplate() {
               <p className="text-[12px] leading-[1.45]">Directeur Général</p>
               <p className="text-[12px] leading-[1.45]">WAL AGRITECH</p>
             </div>
-          </div>
-
-          <div className="h-[91px] w-[91px] opacity-90">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={CERTIFICATE_ASSETS.stamp} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
           </div>
         </section>
 
