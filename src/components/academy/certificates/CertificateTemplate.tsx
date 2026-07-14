@@ -32,9 +32,17 @@ function formatCertificateDate(value: string, fallback = "date non précisée") 
   return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric" }).format(date);
 }
 
-function formatOptionalDate(value?: string | null) {
-  if (!value) return null;
-  return formatCertificateDate(value, "");
+function formatCertificateDuration(value?: string | null) {
+  const duration = value?.trim();
+  if (!duration) return "durée définie par le programme";
+
+  const compactHourMatch = duration.match(/^(\d+(?:[,.]\d+)?)\s*h(?:eures?)?$/i);
+  if (compactHourMatch) {
+    const amount = compactHourMatch[1].replace(",", ".");
+    return `${amount} ${amount === "1" ? "heure" : "heures"}`;
+  }
+
+  return duration;
 }
 
 function statusLabel(status?: string) {
@@ -50,16 +58,12 @@ function splitStudentName(studentName: string) {
   return { firstLine: parts.slice(0, -1).join(" "), secondLine: parts.at(-1) ?? "" };
 }
 
-function TrainingDates({ courseDuration, startDate, endDate }: Pick<CertificateTemplateProps, "courseDuration" | "startDate" | "endDate">) {
-  const start = formatOptionalDate(startDate);
-  const end = formatOptionalDate(endDate);
-  const durationLabel = courseDuration || "durée définie par le programme";
-  const startLabel = start || "date de début non précisée";
-  const endLabel = end || "date de fin non précisée";
+function ProgramDescription({ courseDuration }: Pick<CertificateTemplateProps, "courseDuration">) {
+  const durationLabel = formatCertificateDuration(courseDuration);
 
   return (
     <p>
-      D’une durée de <strong>{durationLabel}</strong>, la formation a été réalisée du <strong>{startLabel}</strong> au <strong>{endLabel}</strong>.
+      Ce programme, d’une durée de <strong>{durationLabel}</strong>, a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.
     </p>
   );
 }
@@ -139,8 +143,6 @@ export function CertificateTemplate({
   status = "valid",
   organizationName = "WAL AGRITECH",
   courseDuration,
-  startDate,
-  endDate,
   issuedLocation = "Jacmel",
   signatoryName = "Walter Darius",
   signatoryTitle = "Directeur Général",
@@ -171,12 +173,10 @@ export function CertificateTemplate({
 
           <div className="mt-[4.2%] max-w-[620px] space-y-3 text-[clamp(0.75rem,1.3vw,1.12rem)] leading-[1.5] text-black">
             <p>
-              A suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par {academyName} dans le cadre de son programme de renforcement des compétences agricoles.
+              a suivi avec succès la formation « <strong>{courseTitle}</strong> », organisée par Agri-tech Academy dans le cadre de son programme de renforcement des compétences agricoles.
             </p>
 
-            <p>Le programme a couvert les notions fondamentales, les pratiques techniques et les méthodes d’application liées au domaine étudié.</p>
-
-            <TrainingDates courseDuration={courseDuration} startDate={startDate} endDate={endDate} />
+            <ProgramDescription courseDuration={courseDuration} />
 
             <p>En foi de quoi, le présent certificat est délivré pour servir et valoir ce que de droit.</p>
             <p>
