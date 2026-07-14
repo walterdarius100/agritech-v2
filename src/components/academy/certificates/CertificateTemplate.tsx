@@ -19,10 +19,10 @@ export type CertificateTemplateProps = {
   coveredTopics?: string[];
 };
 
+// Files are stored in public/images/* and served without the public/ prefix.
 const CERTIFICATE_ASSETS = {
   logo: "/images/brand/Untitled-1.png",
-  signature: "/images/brand/walter-darius-signature.svg",
-  stamp: "/images/brand/agritech-certificate-stamp.svg",
+  signature: "/images/brand/walter-darius-signature.png",
 };
 
 function formatCertificateDate(value: string) {
@@ -91,22 +91,15 @@ function CertificateBrandPanel() {
 
 function CertificateSignatureBlock({ organizationName, signatoryName, signatoryTitle }: Pick<CertificateTemplateProps, "organizationName" | "signatoryName" | "signatoryTitle">) {
   return (
-    <div className="flex items-end gap-[30px]">
-      <div className="w-[200px] text-center text-black">
-        <div className="mx-auto mb-[-4px] h-[48px] w-[150px]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={CERTIFICATE_ASSETS.signature} alt="Signature Walter Darius" className="h-full w-full object-contain" />
-        </div>
-        <div className="border-t border-slate-700 pt-1">
-          <p className="text-[17px] leading-[1.25] text-slate-950">{signatoryName}</p>
-          <p className="mt-1 text-[14px] leading-[1.2] text-slate-950">{signatoryTitle}</p>
-          <p className="mt-1 text-[14px] font-semibold leading-[1.2] text-slate-950">{organizationName}</p>
-        </div>
-      </div>
-
-      <div className="h-[116px] w-[116px] opacity-90">
+    <div className="w-[220px] text-center text-black">
+      <div className="mx-auto mb-[-4px] h-[64px] w-[150px]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={CERTIFICATE_ASSETS.stamp} alt="Cachet Agri-tech" className="h-full w-full object-contain" />
+        <img src={CERTIFICATE_ASSETS.signature} alt="Signature de Walter Darius" className="h-full w-full object-contain" />
+      </div>
+      <div className="border-t border-slate-700 pt-1">
+        <p className="text-[17px] leading-[1.25] text-slate-950">{signatoryName}</p>
+        <p className="mt-1 text-[14px] leading-[1.2] text-slate-950">{signatoryTitle}</p>
+        <p className="mt-1 text-[14px] font-semibold leading-[1.2] text-slate-950">{organizationName}</p>
       </div>
     </div>
   );
