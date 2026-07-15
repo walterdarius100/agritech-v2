@@ -283,3 +283,30 @@ Dans ces cas, elle ne crée pas de nouveau paiement et redirige directement vers
 ## Limites avant paiement réel
 
 Le checkout ne contacte pas encore MonCash ou NatCash. Les providers affichés sont des choix UX de test, tandis que la ligne technique enregistrée dans `consultation_payments.provider` reste `mock`. L'intégration des vrais fournisseurs devra ajouter une vérification serveur, des webhooks et une stratégie d'idempotence plus stricte côté base de données.
+
+## Page de confirmation finale
+
+La route `/consultation/confirmation/[requestId]` affiche l'état final visible par le client après le checkout mock.
+
+La page gère trois états :
+
+- demande introuvable : message `Demande introuvable` et liens de retour ;
+- demande enregistrée mais non payée : message indiquant que le paiement n'a pas encore été confirmé et lien vers le checkout ;
+- demande payée : badge `Paiement confirmé`, résumé client et prochaine étape.
+
+Pour limiter l'exposition d'informations sensibles, la page n'affiche pas l'UUID interne, les notes admin, les métadonnées de paiement ou les détails techniques. Elle affiche uniquement :
+
+- `request_code` ;
+- nom du client ;
+- type de consultation ;
+- montant ;
+- statut de demande ;
+- statut de paiement ;
+- prochaine étape.
+
+Les CTA disponibles sont :
+
+- retour à l'accueil ;
+- voir les services ;
+- contacter Agri-tech ;
+- retour au checkout uniquement si le paiement n'est pas confirmé.
