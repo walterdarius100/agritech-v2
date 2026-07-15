@@ -2,6 +2,7 @@ export const mainNavigation = [
   { label: "Accueil", href: "/" },
   { label: "Services", href: "/services" },
   { label: "Academy", href: "/academy" },
+  { label: "Consultation", href: "/consultation" },
   { label: "Actualités", href: "/actualites" },
   { label: "Contact", href: "/contact" },
 ] as const;
