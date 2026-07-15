@@ -2,6 +2,11 @@
 
 import { redirect } from "next/navigation";
 
+import {
+  createConsultationPayment,
+  confirmConsultationPayment,
+} from "@/lib/consultation-payments";
+import type { ConsultationPaymentMethod } from "@/lib/consultation-payments/types";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   ConsultationPayment,
@@ -30,12 +35,12 @@ function getAdminClientOrThrow() {
   return supabase;
 }
 
-function cleanPaymentMethod(value: FormDataEntryValue | null) {
+function cleanPaymentMethod(
+  value: FormDataEntryValue | null,
+): ConsultationPaymentMethod {
   const text = typeof value === "string" ? value.trim() : "";
-  return mockPaymentMethods.includes(
-    text as (typeof mockPaymentMethods)[number],
-  )
-    ? text
+  return mockPaymentMethods.includes(text as ConsultationPaymentMethod)
+    ? (text as ConsultationPaymentMethod)
     : "manual";
 }
 
@@ -114,21 +119,34 @@ export async function confirmConsultationMockPayment(
     redirect(`/consultation/confirmation/${requestId}`);
   }
 
-  const paidAt = new Date().toISOString();
+  const createdPayment = await createConsultationPayment({
+    provider: "mock",
+    requestId,
+    requestCode: consultationRequest.request_code,
+    amount: consultationRequest.amount,
+    currency: consultationRequest.currency,
+    paymentMethod,
+  });
+  const confirmedPayment = await confirmConsultationPayment({
+    provider: "mock",
+    requestId,
+    providerTransactionId: createdPayment.providerTransactionId,
+  });
+  const paidAt = confirmedPayment.paidAt ?? new Date().toISOString();
+
   const { error: insertPaymentError } = await supabase
     .from("consultation_payments")
     .insert({
       consultation_request_id: requestId,
-      provider: "mock",
-      provider_transaction_id: `mock-${requestId}-${Date.now()}`,
+      provider: createdPayment.provider,
+      provider_transaction_id: createdPayment.providerTransactionId,
       amount: consultationRequest.amount,
       currency: consultationRequest.currency,
-      status: "paid",
+      status: confirmedPayment.status,
       payment_method: paymentMethod,
       metadata: {
-        mode: "mock",
-        selected_method: paymentMethod,
-        request_code: consultationRequest.request_code,
+        ...createdPayment.metadata,
+        ...confirmedPayment.metadata,
       },
       paid_at: paidAt,
     });
@@ -143,7 +161,7 @@ export async function confirmConsultationMockPayment(
   const { error: updateRequestError } = await supabase
     .from("consultation_requests")
     .update({
-      payment_status: "paid",
+      payment_status: confirmedPayment.status,
       request_status: "paid",
       paid_at: paidAt,
     })
