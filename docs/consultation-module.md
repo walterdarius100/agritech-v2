@@ -310,3 +310,41 @@ Les CTA disponibles sont :
 - voir les services ;
 - contacter Agri-tech ;
 - retour au checkout uniquement si le paiement n'est pas confirmé.
+
+## Administration des consultations
+
+Les demandes de consultation sont consultables dans l'espace admin :
+
+```txt
+/admin/consultations
+```
+
+La liste admin affiche les colonnes principales : code demande, nom, téléphone, email, domaine, commune, package, montant, statut de paiement, statut de demande, date et action de consultation du détail.
+
+Des filtres simples permettent d'afficher :
+
+- toutes les demandes ;
+- `pending_payment` ;
+- `paid` ;
+- `scheduled` ;
+- `completed` ;
+- `cancelled` ;
+- `failed_payment`.
+
+La page détail est disponible ici :
+
+```txt
+/admin/consultations/[requestId]
+```
+
+Elle affiche les informations client, le besoin, les détails du projet, l'historique de paiement, le statut de paiement, le statut de demande et les notes internes.
+
+Actions disponibles dans cette première version :
+
+- modifier le statut de demande ;
+- marquer une demande comme `scheduled` ;
+- marquer une demande comme `completed` ;
+- annuler une demande avec `cancelled` ;
+- ajouter ou modifier les notes internes.
+
+Ces pages utilisent la protection admin existante du projet et les lectures/écritures passent par le client Supabase admin/service role côté serveur. Aucune route publique de lecture des demandes n'est ajoutée.
