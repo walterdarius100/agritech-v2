@@ -348,3 +348,82 @@ Actions disponibles dans cette première version :
 - ajouter ou modifier les notes internes.
 
 Ces pages utilisent la protection admin existante du projet et les lectures/écritures passent par le client Supabase admin/service role côté serveur. Aucune route publique de lecture des demandes n'est ajoutée.
+
+## Emails transactionnels Consultation
+
+Les emails transactionnels Consultation sont branchés après confirmation du paiement mock, lorsque la demande passe à :
+
+```txt
+payment_status = paid
+request_status = paid
+```
+
+Le formulaire de réservation ne déclenche aucun email. Le workflow reste :
+
+```txt
+paiement confirmé
+→ demande paid
+→ tentative d’envoi email
+→ redirection confirmation
+```
+
+Deux emails sont prévus :
+
+- confirmation client après paiement, uniquement si `consultation_requests.email` est renseigné ;
+- notification interne Agri-tech après paiement.
+
+### Organisation des adresses
+
+La logique officielle des adresses Agri-tech est :
+
+```txt
+noreply = expéditeur automatique
+support = réponses générales
+projet = consultations/projets
+formation = Academy
+contact = messages généraux
+admin = interne technique
+```
+
+Pour les consultations :
+
+- l’expéditeur automatique global reste `EMAIL_FROM_ADDRESS`, typiquement `noreply@agritech509ht.com` ;
+- le nom expéditeur global reste `EMAIL_FROM_NAME`, typiquement `Agri-tech` ;
+- le `Reply-To` consultation doit utiliser `CONSULTATION_REPLY_TO_EMAIL`, typiquement `projet@agritech509ht.com` ;
+- si `CONSULTATION_REPLY_TO_EMAIL` est absent, le fallback serveur est `EMAIL_REPLY_TO` ;
+- la notification interne consultation doit utiliser `CONSULTATION_NOTIFICATION_EMAIL`, typiquement `projet@agritech509ht.com` ;
+- si `CONSULTATION_NOTIFICATION_EMAIL` est absent, le fallback serveur est `AGRI_TECH_NOTIFICATION_EMAIL`.
+
+`admin@agritech509ht.com` ne doit pas être utilisé pour les emails clients, notifications consultation, expéditeur automatique ou reply-to consultation. Cette adresse reste réservée à l’interne technique.
+
+### Anti-doublon
+
+La migration suivante ajoute les marqueurs d’envoi :
+
+```txt
+supabase/migrations/20260716_add_consultation_email_sent_at.sql
+```
+
+Champs ajoutés à `consultation_requests` :
+
+```txt
+client_email_sent_at timestamptz
+internal_email_sent_at timestamptz
+```
+
+Avant envoi, le service vérifie ces champs :
+
+- si `client_email_sent_at` est déjà rempli, l’email client n’est pas renvoyé ;
+- si `internal_email_sent_at` est déjà rempli, l’email interne n’est pas renvoyé ;
+- si le client n’a pas fourni d’email, `client_email_sent_at` n’est pas rempli artificiellement ;
+- après succès Brevo, le champ correspondant est horodaté ;
+- après échec Brevo ou configuration manquante, le champ reste vide pour permettre une relance future.
+
+### Résilience
+
+L’email est traité comme un effet secondaire non bloquant. En cas d’échec Brevo, de configuration absente ou d’email client absent :
+
+- le paiement confirmé n’est pas annulé ;
+- la demande ne repasse pas en attente ;
+- la page de confirmation reste accessible ;
+- l’erreur ou l’ignorance contrôlée est loggée côté serveur sans secret.
