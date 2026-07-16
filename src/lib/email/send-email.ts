@@ -1,6 +1,10 @@
 import "server-only";
 
-import { hasBrevoApiKey, sendBrevoTransactionalEmail } from "@/lib/email/brevo";
+import {
+  BrevoTransactionalEmailError,
+  hasBrevoApiKey,
+  sendBrevoTransactionalEmail,
+} from "@/lib/email/brevo";
 import type {
   EmailRecipient,
   SendTransactionalEmailInput,
@@ -71,7 +75,8 @@ export async function sendTransactionalEmail({
       ok: false,
       skipped: true,
       reason: "missing_configuration",
-      message: "Email sender configuration is missing.",
+      message:
+        "EMAIL_FROM_ADDRESS is missing or invalid. Configure EMAIL_FROM_NAME and EMAIL_FROM_ADDRESS on the server.",
     };
   }
 
@@ -85,7 +90,7 @@ export async function sendTransactionalEmail({
       ok: false,
       skipped: true,
       reason: "missing_configuration",
-      message: "Brevo API key is missing.",
+      message: "BREVO_API_KEY is missing from the server environment.",
     };
   }
 
@@ -105,16 +110,26 @@ export async function sendTransactionalEmail({
       messageId: result.messageId,
     };
   } catch (error) {
+    const status =
+      error instanceof BrevoTransactionalEmailError ? error.status : undefined;
+    const code =
+      error instanceof BrevoTransactionalEmailError ? error.code : undefined;
+    const message = error instanceof Error ? error.message : "Unknown email error";
+
     console.error("[Email] Brevo transactional email failed", {
       recipientCount: recipients.length,
       subject,
-      message: error instanceof Error ? error.message : "Unknown email error",
+      status,
+      code,
+      message,
     });
 
     return {
       ok: false,
       reason: "brevo_error",
-      message: "Brevo transactional email failed.",
+      status,
+      code,
+      message,
     };
   }
 }

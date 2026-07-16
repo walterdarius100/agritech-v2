@@ -22,7 +22,6 @@ BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
 EMAIL_REPLY_TO=support@agritech509ht.com
-AGRI_TECH_NOTIFICATION_EMAIL=projet@agritech509ht.com
 CONSULTATION_REPLY_TO_EMAIL=projet@agritech509ht.com
 CONSULTATION_NOTIFICATION_EMAIL=projet@agritech509ht.com
 ```
@@ -33,7 +32,6 @@ Règles importantes :
 - ne jamais créer de variable `NEXT_PUBLIC_BREVO_API_KEY` ;
 - `EMAIL_FROM_ADDRESS` doit utiliser un domaine ou expéditeur vérifié dans Brevo ;
 - `EMAIL_REPLY_TO` est le fallback général, typiquement `support@agritech509ht.com` ;
-- `AGRI_TECH_NOTIFICATION_EMAIL` est un fallback interne global ;
 - `CONSULTATION_REPLY_TO_EMAIL` doit être utilisé pour les réponses aux emails Consultation, typiquement `projet@agritech509ht.com` ;
 - `CONSULTATION_NOTIFICATION_EMAIL` doit recevoir les notifications internes Consultation, typiquement `projet@agritech509ht.com`.
 
@@ -88,7 +86,7 @@ Les emails Consultation sont envoyés uniquement après confirmation du paiement
 Emails branchés :
 
 - confirmation client : destinataire `consultation_requests.email` si fourni, objet `Confirmation de votre demande de consultation — Agri-tech`, reply-to `CONSULTATION_REPLY_TO_EMAIL` puis fallback `EMAIL_REPLY_TO` ;
-- notification interne : destinataire `CONSULTATION_NOTIFICATION_EMAIL` puis fallback `AGRI_TECH_NOTIFICATION_EMAIL`, objet `Nouvelle consultation payée — [REQUEST_CODE]`.
+- notification interne : destinataire `CONSULTATION_NOTIFICATION_EMAIL`, objet `Nouvelle consultation payée — [REQUEST_CODE]`.
 
 Le service n’utilise jamais `admin@agritech509ht.com` pour les consultations. L’expéditeur automatique reste la configuration globale `EMAIL_FROM_NAME` + `EMAIL_FROM_ADDRESS`, typiquement `Agri-tech <noreply@agritech509ht.com>`.
 
@@ -101,7 +99,7 @@ client_email_sent_at
 internal_email_sent_at
 ```
 
-Le service n’envoie pas un email dont le marqueur est déjà rempli. Si le client n’a pas fourni d’email, l’email client est ignoré proprement et `client_email_sent_at` reste vide. Si Brevo échoue ou si la configuration est absente, le paiement reste confirmé et le marqueur correspondant reste vide pour permettre une relance future.
+Le service n’envoie pas un email dont le marqueur est déjà rempli. Le formulaire Consultation rend désormais l’email client obligatoire, mais une ancienne demande sans email est ignorée proprement côté client et `client_email_sent_at` reste vide. Si Brevo échoue ou si la configuration est absente, le paiement reste confirmé et le marqueur correspondant reste vide pour permettre une relance future.
 
 ## Mode développement
 
@@ -136,7 +134,7 @@ npm run build
 Test manuel futur, uniquement après configuration serveur :
 
 1. créer une action ou route admin protégée ;
-2. envoyer un email à `AGRI_TECH_NOTIFICATION_EMAIL` uniquement ;
+2. envoyer un email à `CONSULTATION_NOTIFICATION_EMAIL` uniquement ;
 3. vérifier les logs serveur et la réception Brevo ;
 4. supprimer ou garder la route uniquement si elle reste strictement protégée.
 
@@ -149,3 +147,9 @@ Aucune route de test admin n’est créée dans ce PR, car l’infrastructure ce
 - Les templates métier Consultation payée sont créés ; les autres domaines n’ont pas encore de templates spécialisés.
 - Une migration Supabase anti-doublon Consultation ajoute `client_email_sent_at` et `internal_email_sent_at`.
 - Aucun tableau d’historique `email_events` n’est ajouté.
+
+## Diagnostic et configuration Consultation
+
+Les emails Consultation partent uniquement côté serveur après paiement confirmé. Les variables attendues sont `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `EMAIL_REPLY_TO`, `CONSULTATION_REPLY_TO_EMAIL` et `CONSULTATION_NOTIFICATION_EMAIL`. Si `BREVO_API_KEY`, `EMAIL_FROM_ADDRESS` ou `CONSULTATION_NOTIFICATION_EMAIL` manque, le paiement reste confirmé, l’erreur est loggée et le marqueur `client_email_sent_at` ou `internal_email_sent_at` concerné reste vide.
+
+Checklist Vercel/Brevo : vérifier que `noreply@agritech509ht.com` est un sender Brevo autorisé, que `agritech509ht.com` est authentifié, que `BREVO_API_KEY` est configurée dans l’environnement Vercel réellement déployé, que le déploiement a été relancé après ajout des variables, que le plan Brevo autorise l’envoi transactionnel et que les logs Brevo montrent les tentatives d’envoi.
