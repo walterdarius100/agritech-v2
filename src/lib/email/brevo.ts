@@ -10,6 +10,17 @@ type BrevoApiResponse = {
   message?: string;
 };
 
+export class BrevoTransactionalEmailError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string,
+  ) {
+    super(message);
+    this.name = "BrevoTransactionalEmailError";
+  }
+}
+
 export function hasBrevoApiKey() {
   return Boolean(process.env.BREVO_API_KEY?.trim());
 }
@@ -33,8 +44,11 @@ export async function sendBrevoTransactionalEmail(payload: BrevoSendEmailPayload
   const data = (await response.json().catch(() => ({}))) as BrevoApiResponse;
 
   if (!response.ok) {
-    throw new Error(
-      data.message || `Brevo transactional email request failed with status ${response.status}.`,
+    throw new BrevoTransactionalEmailError(
+      data.message ||
+        `Brevo transactional email request failed with status ${response.status}.`,
+      response.status,
+      data.code,
     );
   }
 

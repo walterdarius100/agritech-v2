@@ -28,6 +28,8 @@ export type SendTransactionalEmailResult =
         | "brevo_error"
         | "unexpected_error";
       message: string;
+      status?: number;
+      code?: string;
     };
 
 export type BrevoSendEmailPayload = {

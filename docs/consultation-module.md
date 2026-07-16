@@ -27,7 +27,7 @@ Cette table stocke la demande métier créée après soumission du formulaire pu
 | `id`                   | Identifiant UUID interne.                                                            |
 | `request_code`         | Code lisible unique, généré automatiquement si absent, par exemple `CONS-2026-0001`. |
 | `full_name`            | Nom complet du client.                                                               |
-| `email`                | Email du client, optionnel au niveau base.                                           |
+| `email`                | Email du client. Obligatoire pour les nouvelles demandes via formulaire et contrainte Supabase `consultation_requests_email_required`. |
 | `phone`                | Téléphone du client.                                                                 |
 | `department`           | Département.                                                                         |
 | `commune`              | Commune.                                                                             |
@@ -185,7 +185,7 @@ La page `/consultation/reserver` contient maintenant le formulaire avancé de r�
 
 - `full_name` : nom complet obligatoire ;
 - `phone` : téléphone WhatsApp obligatoire ;
-- `email` : email optionnel, validé si renseigné ;
+- `email` : email obligatoire, validé côté client et côté Server Action ;
 - `department` : département ;
 - `commune` : commune ;
 - `consultation_type` : domaine concerné obligatoire ;
@@ -203,7 +203,7 @@ La soumission passe par une Server Action afin d'éviter une insertion Supabase 
 - téléphone WhatsApp obligatoire ;
 - domaine concerné obligatoire et limité aux options autorisées ;
 - description obligatoire ;
-- format email valide si l'email est renseigné.
+- email obligatoire avec format valide.
 
 En cas d'erreur, le formulaire affiche un message clair et des erreurs par champ. Le bouton de soumission est désactivé pendant l'envoi et affiche `Création de la demande...`.
 
@@ -369,7 +369,7 @@ paiement confirmé
 
 Deux emails sont prévus :
 
-- confirmation client après paiement, uniquement si `consultation_requests.email` est renseigné ;
+- confirmation client après paiement, uniquement si `consultation_requests.email` est renseigné ; les nouvelles demandes doivent toujours le renseigner ;
 - notification interne Agri-tech après paiement.
 
 ### Organisation des adresses
@@ -392,7 +392,7 @@ Pour les consultations :
 - le `Reply-To` consultation doit utiliser `CONSULTATION_REPLY_TO_EMAIL`, typiquement `projet@agritech509ht.com` ;
 - si `CONSULTATION_REPLY_TO_EMAIL` est absent, le fallback serveur est `EMAIL_REPLY_TO` ;
 - la notification interne consultation doit utiliser `CONSULTATION_NOTIFICATION_EMAIL`, typiquement `projet@agritech509ht.com` ;
-- si `CONSULTATION_NOTIFICATION_EMAIL` est absent, le fallback serveur est `AGRI_TECH_NOTIFICATION_EMAIL`.
+- `CONSULTATION_NOTIFICATION_EMAIL` est obligatoire pour la notification interne Consultation ; aucun secret Brevo ne doit être exposé côté client.
 
 `admin@agritech509ht.com` ne doit pas être utilisé pour les emails clients, notifications consultation, expéditeur automatique ou reply-to consultation. Cette adresse reste réservée à l’interne technique.
 
@@ -427,3 +427,16 @@ L’email est traité comme un effet secondaire non bloquant. En cas d’échec 
 - la demande ne repasse pas en attente ;
 - la page de confirmation reste accessible ;
 - l’erreur ou l’ignorance contrôlée est loggée côté serveur sans secret.
+
+## Diagnostic du non-envoi automatique après paiement mock
+
+Le workflow s’arrêtait après la confirmation du paiement mock lorsque la demande était déjà considérée payée : la Server Action redirigeait directement vers la confirmation sans retenter le workflow email. En parallèle, l’email du formulaire était optionnel, ce qui pouvait créer `consultation_requests.email = NULL` et empêcher l’email client.
+
+Corrections appliquées :
+
+- le champ email du formulaire `/consultation/reserver` est obligatoire ;
+- la Server Action refuse une soumission sans email valide ;
+- la contrainte Supabase `consultation_requests_email_required` protège les nouvelles lignes tout en restant compatible avec d’anciennes lignes nulles grâce à `not valid` ;
+- le checkout mock appelle le workflow email après passage à `payment_status = paid` / `request_status = paid`, et le retente aussi si la demande était déjà payée mais que les marqueurs anti-doublon sont encore vides ;
+- les logs serveur `[consultation-email]` affichent l’ID, le code demande, la présence email, les statuts, les marqueurs, les tentatives et les erreurs Brevo sans exposer de secret ;
+- Brevo reste non bloquant : en cas d’échec, la confirmation paiement n’est pas annulée et les marqueurs non envoyés restent vides.

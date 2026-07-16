@@ -20,7 +20,7 @@ export type ConsultationRequestFormState = {
 
 type ConsultationRequestPayload = {
   full_name: string;
-  email: string | null;
+  email: string;
   phone: string;
   department: string | null;
   commune: string | null;
@@ -105,7 +105,8 @@ function validateConsultationRequestForm(
 
   if (!fullName) fieldErrors.full_name = "Le nom complet est obligatoire.";
   if (!phone) fieldErrors.phone = "Le téléphone WhatsApp est obligatoire.";
-  if (email && !emailPattern.test(email))
+  if (!email) fieldErrors.email = "L’email est obligatoire.";
+  else if (!emailPattern.test(email))
     fieldErrors.email = "Veuillez saisir un email valide.";
   if (!consultationType)
     fieldErrors.consultation_type = "Le domaine concerné est obligatoire.";
@@ -126,7 +127,7 @@ function validateConsultationRequestForm(
     ok: true,
     payload: {
       full_name: fullName,
-      email: nullable(email),
+      email,
       phone,
       department: nullable(department),
       commune: nullable(commune),
