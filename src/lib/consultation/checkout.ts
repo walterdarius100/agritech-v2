@@ -7,6 +7,7 @@ import {
   confirmConsultationPayment,
 } from "@/lib/consultation-payments";
 import type { ConsultationPaymentMethod } from "@/lib/consultation-payments/types";
+import { sendConsultationPaidEmails } from "@/lib/consultation/emails";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   ConsultationPayment,
@@ -14,7 +15,7 @@ import type {
 } from "@/types/consultation";
 
 const CONSULTATION_REQUEST_COLUMNS =
-  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,created_at,updated_at";
+  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,created_at,updated_at";
 
 const CONSULTATION_PAYMENT_COLUMNS =
   "id,consultation_request_id,provider,provider_transaction_id,amount,currency,status,payment_method,metadata,created_at,updated_at,paid_at";
@@ -158,20 +159,40 @@ export async function confirmConsultationMockPayment(
     };
   }
 
-  const { error: updateRequestError } = await supabase
+  const { data: paidRequest, error: updateRequestError } = await supabase
     .from("consultation_requests")
     .update({
       payment_status: confirmedPayment.status,
       request_status: "paid",
       paid_at: paidAt,
     })
-    .eq("id", requestId);
+    .eq("id", requestId)
+    .select(CONSULTATION_REQUEST_COLUMNS)
+    .single();
 
-  if (updateRequestError) {
+  if (updateRequestError || !paidRequest) {
     return {
       error:
         "Le paiement a été enregistré, mais la demande n’a pas pu être mise à jour. Veuillez contacter Agri-tech.",
     };
+  }
+
+  try {
+    await sendConsultationPaidEmails(
+      supabase,
+      paidRequest as ConsultationRequest,
+    );
+  } catch (error) {
+    console.error(
+      "[Consultation email] Paid consultation email workflow failed",
+      {
+        requestId,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Unknown email workflow error",
+      },
+    );
   }
 
   redirect(`/consultation/confirmation/${requestId}`);

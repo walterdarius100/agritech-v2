@@ -33,6 +33,8 @@ export type ConsultationRequest = {
   paid_at: string | null;
   scheduled_at: string | null;
   admin_notes: string | null;
+  client_email_sent_at: string | null;
+  internal_email_sent_at: string | null;
   created_at: string;
   updated_at: string;
 };

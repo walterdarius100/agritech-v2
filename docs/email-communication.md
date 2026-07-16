@@ -21,8 +21,10 @@ Variables attendues côté serveur :
 BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
+EMAIL_REPLY_TO=support@agritech509ht.com
 AGRI_TECH_NOTIFICATION_EMAIL=projet@agritech509ht.com
-EMAIL_REPLY_TO=projet@agritech509ht.com
+CONSULTATION_REPLY_TO_EMAIL=projet@agritech509ht.com
+CONSULTATION_NOTIFICATION_EMAIL=projet@agritech509ht.com
 ```
 
 Règles importantes :
@@ -30,8 +32,10 @@ Règles importantes :
 - `BREVO_API_KEY` doit rester côté serveur uniquement ;
 - ne jamais créer de variable `NEXT_PUBLIC_BREVO_API_KEY` ;
 - `EMAIL_FROM_ADDRESS` doit utiliser un domaine ou expéditeur vérifié dans Brevo ;
-- `EMAIL_REPLY_TO` peut pointer vers l’adresse opérationnelle de l’équipe ;
-- `AGRI_TECH_NOTIFICATION_EMAIL` est l’adresse interne cible pour les futurs emails admin.
+- `EMAIL_REPLY_TO` est le fallback général, typiquement `support@agritech509ht.com` ;
+- `AGRI_TECH_NOTIFICATION_EMAIL` est un fallback interne global ;
+- `CONSULTATION_REPLY_TO_EMAIL` doit être utilisé pour les réponses aux emails Consultation, typiquement `projet@agritech509ht.com` ;
+- `CONSULTATION_NOTIFICATION_EMAIL` doit recevoir les notifications internes Consultation, typiquement `projet@agritech509ht.com`.
 
 ## Configuration Brevo
 
@@ -77,6 +81,28 @@ Elle retourne un résultat typé :
 
 Ce template est volontairement minimal afin de rester maintenable et compatible avec les clients email.
 
+## Emails Consultation payée
+
+Les emails Consultation sont envoyés uniquement après confirmation du paiement mock, quand la demande est mise à jour en `payment_status = paid` et `request_status = paid`. Aucun email n’est envoyé à la simple soumission du formulaire.
+
+Emails branchés :
+
+- confirmation client : destinataire `consultation_requests.email` si fourni, objet `Confirmation de votre demande de consultation — Agri-tech`, reply-to `CONSULTATION_REPLY_TO_EMAIL` puis fallback `EMAIL_REPLY_TO` ;
+- notification interne : destinataire `CONSULTATION_NOTIFICATION_EMAIL` puis fallback `AGRI_TECH_NOTIFICATION_EMAIL`, objet `Nouvelle consultation payée — [REQUEST_CODE]`.
+
+Le service n’utilise jamais `admin@agritech509ht.com` pour les consultations. L’expéditeur automatique reste la configuration globale `EMAIL_FROM_NAME` + `EMAIL_FROM_ADDRESS`, typiquement `Agri-tech <noreply@agritech509ht.com>`.
+
+### Anti-doublon Consultation
+
+La table `consultation_requests` contient deux marqueurs :
+
+```txt
+client_email_sent_at
+internal_email_sent_at
+```
+
+Le service n’envoie pas un email dont le marqueur est déjà rempli. Si le client n’a pas fourni d’email, l’email client est ignoré proprement et `client_email_sent_at` reste vide. Si Brevo échoue ou si la configuration est absente, le paiement reste confirmé et le marqueur correspondant reste vide pour permettre une relance future.
+
 ## Mode développement
 
 Si `BREVO_API_KEY` ou l’expéditeur sont absents, `sendTransactionalEmail()` ne plante pas l’application. La fonction :
@@ -95,7 +121,8 @@ Ce comportement permet de développer localement sans envoyer d’emails réels.
 - Aucun secret n’est écrit dans les logs ou dans les résultats retournés.
 - Les destinataires sont normalisés et validés avant envoi.
 - Les erreurs Brevo sont loggées côté serveur avec un contexte minimal.
-- Les futurs workflows métier devront traiter l’email comme un effet secondaire non bloquant.
+- Les workflows métier doivent traiter l’email comme un effet secondaire non bloquant.
+- `admin@agritech509ht.com` reste réservé à l’interne technique et ne doit pas être utilisé comme expéditeur public, reply-to client ou notification Consultation.
 
 ## Comment tester
 
@@ -117,8 +144,8 @@ Aucune route de test admin n’est créée dans ce PR, car l’infrastructure ce
 
 ## Limites actuelles
 
-- Aucun workflow Consultation, Academy, certificats ou paiements n’appelle encore `sendTransactionalEmail()`.
-- Aucun email métier automatique n’est envoyé.
-- Aucun template métier spécialisé n’est encore créé.
-- Aucune migration Supabase anti-doublon n’est ajoutée.
+- Le workflow Consultation mock appelle maintenant `sendTransactionalEmail()` uniquement après paiement confirmé.
+- Academy, certificats et paiements Academy n’appellent pas encore `sendTransactionalEmail()`.
+- Les templates métier Consultation payée sont créés ; les autres domaines n’ont pas encore de templates spécialisés.
+- Une migration Supabase anti-doublon Consultation ajoute `client_email_sent_at` et `internal_email_sent_at`.
 - Aucun tableau d’historique `email_events` n’est ajouté.
