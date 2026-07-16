@@ -161,12 +161,13 @@ export function ConsultationReservationForm() {
               htmlFor="email"
               className="text-sm font-bold text-emerald-950"
             >
-              Email
+              Email *
             </label>
             <input
               id="email"
               name="email"
               type="email"
+              required
               autoComplete="email"
               aria-invalid={Boolean(fieldErrors.email)}
               className="mt-2 w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"

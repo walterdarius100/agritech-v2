@@ -117,6 +117,21 @@ export async function confirmConsultationMockPayment(
   }
 
   if (consultationRequest.payment_status === "paid" || existingPaidPayment) {
+    try {
+      await sendConsultationPaidEmails(supabase, consultationRequest);
+    } catch (error) {
+      console.error(
+        "[consultation-email] paid consultation email workflow failed",
+        {
+          requestId,
+          message:
+            error instanceof Error
+              ? error.message
+              : "Unknown email workflow error",
+        },
+      );
+    }
+
     redirect(`/consultation/confirmation/${requestId}`);
   }
 
@@ -184,7 +199,7 @@ export async function confirmConsultationMockPayment(
     );
   } catch (error) {
     console.error(
-      "[Consultation email] Paid consultation email workflow failed",
+      "[consultation-email] paid consultation email workflow failed",
       {
         requestId,
         message:

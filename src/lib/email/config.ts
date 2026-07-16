@@ -18,10 +18,7 @@ export function getConsultationReplyTo(): EmailRecipient | null {
 }
 
 export function getConsultationNotificationRecipient(): EmailRecipient | null {
-  const email = normalizeEmail(
-    process.env.CONSULTATION_NOTIFICATION_EMAIL ||
-      process.env.AGRI_TECH_NOTIFICATION_EMAIL,
-  );
+  const email = normalizeEmail(process.env.CONSULTATION_NOTIFICATION_EMAIL);
 
   return email ? { email, name: "Agri-tech consultations" } : null;
 }
