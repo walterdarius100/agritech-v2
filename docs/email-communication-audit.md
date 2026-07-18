@@ -171,8 +171,9 @@ Variables proposées, sans valeur secrète :
 BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
-AGRI_TECH_NOTIFICATION_EMAIL=projet@agritech509ht.com
-EMAIL_REPLY_TO=projet@agritech509ht.com
+EMAIL_REPLY_TO=support@agritech509ht.com
+CONSULTATION_REPLY_TO_EMAIL=projets@agritech509ht.com
+CONSULTATION_NOTIFICATION_EMAIL=projets@agritech509ht.com
 ```
 
 Règles :
@@ -181,7 +182,8 @@ Règles :
 - ne jamais préfixer `BREVO_API_KEY` avec `NEXT_PUBLIC_` ;
 - `EMAIL_FROM_ADDRESS` doit correspondre à un domaine vérifié chez Brevo avant activation ;
 - `EMAIL_REPLY_TO` peut pointer vers l’adresse opérationnelle de l’équipe ;
-- les valeurs ci-dessus sont des noms attendus et exemples non secrets, pas une configuration active.
+- les valeurs ci-dessus sont des noms attendus et exemples non secrets, pas une configuration active ;
+- `projets@agritech509ht.com` est l’adresse valide pour les consultations/projets clients ; `projet@agritech509ht.com` est invalide et ne doit pas être utilisée.
 
 ## 5. Sécurité et résilience
 

@@ -30,11 +30,22 @@ function buildAdminUrl(requestId: string) {
   return `${env.siteUrl.replace(/\/$/, "")}/admin/consultations/${encodeURIComponent(requestId)}`;
 }
 
-function logConsultationEmailContext(request: ConsultationRequest) {
+function getConfiguredFromEmail() {
+  return process.env.EMAIL_FROM_ADDRESS?.trim().toLowerCase() || null;
+}
+
+function logConsultationEmailContext(
+  request: ConsultationRequest,
+  replyTo: ReturnType<typeof getConsultationReplyTo>,
+  notificationRecipient: ReturnType<typeof getConsultationNotificationRecipient>,
+) {
   console.info("[consultation-email] workflow started", {
     requestId: request.id,
     request_code: request.request_code,
     clientEmailPresent: Boolean(request.email),
+    notificationEmailUsed: notificationRecipient?.email ?? null,
+    replyToUsed: replyTo?.email ?? null,
+    fromEmailUsed: getConfiguredFromEmail(),
     payment_status: request.payment_status,
     request_status: request.request_status,
     clientEmailSentAtPresent: Boolean(request.client_email_sent_at),
@@ -65,10 +76,10 @@ export async function sendConsultationPaidEmails(
   supabase: SupabaseAdminClient,
   request: ConsultationRequest,
 ): Promise<ConsultationEmailResult> {
-  logConsultationEmailContext(request);
-
   const replyTo = getConsultationReplyTo();
   const notificationRecipient = getConsultationNotificationRecipient();
+  logConsultationEmailContext(request, replyTo, notificationRecipient);
+
   const result: ConsultationEmailResult = {
     clientEmail: "failed",
     internalEmail: "failed",
@@ -96,6 +107,8 @@ export async function sendConsultationPaidEmails(
     console.info("[consultation-email] sending client email", {
       requestId: request.id,
       request_code: request.request_code,
+      replyToUsed: replyTo?.email ?? null,
+      fromEmailUsed: getConfiguredFromEmail(),
     });
     const template = consultationPaidClientEmailTemplate({
       request,
@@ -150,6 +163,9 @@ export async function sendConsultationPaidEmails(
     console.info("[consultation-email] sending internal email", {
       requestId: request.id,
       request_code: request.request_code,
+      notificationEmailUsed: notificationRecipient.email,
+      replyToUsed: replyTo?.email ?? null,
+      fromEmailUsed: getConfiguredFromEmail(),
     });
     const template = consultationPaidInternalEmailTemplate({
       request,

@@ -377,21 +377,23 @@ Deux emails sont prévus :
 La logique officielle des adresses Agri-tech est :
 
 ```txt
-noreply = expéditeur automatique
-support = réponses générales
-projet = consultations/projets
-formation = Academy
-contact = messages généraux
-admin = interne technique
+noreply@agritech509ht.com = expéditeur automatique
+support@agritech509ht.com = réponses générales
+projets@agritech509ht.com = consultations/projets clients
+formation@agritech509ht.com = Academy/formations
+contact@agritech509ht.com = messages généraux
+admin@agritech509ht.com = boîte principale / administration interne
 ```
+
+`projet@agritech509ht.com` est invalide et ne doit pas être utilisée.
 
 Pour les consultations :
 
 - l’expéditeur automatique global reste `EMAIL_FROM_ADDRESS`, typiquement `noreply@agritech509ht.com` ;
 - le nom expéditeur global reste `EMAIL_FROM_NAME`, typiquement `Agri-tech` ;
-- le `Reply-To` consultation doit utiliser `CONSULTATION_REPLY_TO_EMAIL`, typiquement `projet@agritech509ht.com` ;
+- le `Reply-To` consultation doit utiliser `CONSULTATION_REPLY_TO_EMAIL`, typiquement `projets@agritech509ht.com` ;
 - si `CONSULTATION_REPLY_TO_EMAIL` est absent, le fallback serveur est `EMAIL_REPLY_TO` ;
-- la notification interne consultation doit utiliser `CONSULTATION_NOTIFICATION_EMAIL`, typiquement `projet@agritech509ht.com` ;
+- la notification interne consultation doit utiliser `CONSULTATION_NOTIFICATION_EMAIL`, typiquement `projets@agritech509ht.com` ;
 - `CONSULTATION_NOTIFICATION_EMAIL` est obligatoire pour la notification interne Consultation ; aucun secret Brevo ne doit être exposé côté client.
 
 `admin@agritech509ht.com` ne doit pas être utilisé pour les emails clients, notifications consultation, expéditeur automatique ou reply-to consultation. Cette adresse reste réservée à l’interne technique.

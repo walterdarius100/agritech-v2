@@ -45,9 +45,17 @@ SUPABASE_SERVICE_ROLE_KEY=
 ADMIN_EMAILS=
 NEXT_PUBLIC_CLARITY_PROJECT_ID=
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
+BREVO_API_KEY=
+EMAIL_FROM_NAME=Agri-tech
+EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
+EMAIL_REPLY_TO=support@agritech509ht.com
+CONSULTATION_REPLY_TO_EMAIL=projets@agritech509ht.com
+CONSULTATION_NOTIFICATION_EMAIL=projets@agritech509ht.com
 ```
 
 Aucune vraie clé ne doit être commitée. Le projet démarre sans clés Supabase ou analytics tant que les fonctionnalités correspondantes ne sont pas utilisées.
+
+Pour les emails Consultation, `projets@agritech509ht.com` est l’adresse officielle des consultations/projets clients. L’ancienne adresse `projet@agritech509ht.com` est invalide et ne doit pas être utilisée.
 
 ## Structure des dossiers
 
