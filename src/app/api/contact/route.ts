@@ -16,11 +16,11 @@ export async function POST(request: Request) {
   const result = await createContactRequest(body);
 
   if (result.ok) {
-    return NextResponse.json({ ok: true, message: "Votre demande a bien été envoyée." });
+    return NextResponse.json({ ok: true, message: result.message });
   }
 
   if (result.spam) {
-    return NextResponse.json({ ok: true, message: "Votre demande a bien été envoyée." });
+    return NextResponse.json({ ok: true, message: result.message });
   }
 
   return NextResponse.json(

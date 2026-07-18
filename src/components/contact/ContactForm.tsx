@@ -103,7 +103,7 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
       setRequestType(initialRequestType);
       setSubmitState({
         type: "success",
-        message: "Votre demande a bien été envoyée. L’équipe Agri-tech vous répondra dès que possible.",
+        message: data.message || "Votre demande a bien été envoyée. L’équipe Agri-tech vous répondra dès que possible.",
       });
     } catch {
       setSubmitState({

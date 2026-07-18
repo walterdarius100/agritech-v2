@@ -1,4 +1,11 @@
+import { getContactNotificationRecipient, getContactReplyTo } from "@/lib/email/config";
+import { sendTransactionalEmail } from "@/lib/email/send-email";
+import {
+  contactInternalNotificationTemplate,
+  contactVisitorAcknowledgementTemplate,
+} from "@/lib/email/templates/contact-request";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { getContactRequestTypeLabel } from "@/lib/contact/requestLabels";
 import type {
   ContactRequestPriority,
   ContactRequestStatus,
@@ -47,6 +54,8 @@ const limits = {
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const recentSubmissionKeys = new Map<string, number>();
+const duplicateWindowMs = 15_000;
 
 function clean(value: unknown, maxLength: number) {
   const text = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
@@ -60,6 +69,100 @@ function cleanMultiline(value: unknown, maxLength: number) {
 
 function nullable(value: string) {
   return value.length > 0 ? value : null;
+}
+
+function getSubmissionKey(payload: CreateContactRequestInput) {
+  return [payload.full_name, payload.email, payload.phone ?? "", payload.subject ?? "", payload.message]
+    .join("|")
+    .toLowerCase();
+}
+
+function pruneRecentSubmissionKeys() {
+  const now = Date.now();
+  for (const [key, timestamp] of recentSubmissionKeys) {
+    if (now - timestamp > duplicateWindowMs) recentSubmissionKeys.delete(key);
+  }
+}
+
+function isDuplicateSubmission(payload: CreateContactRequestInput) {
+  pruneRecentSubmissionKeys();
+
+  const previousTimestamp = recentSubmissionKeys.get(getSubmissionKey(payload));
+  return Boolean(previousTimestamp && Date.now() - previousTimestamp <= duplicateWindowMs);
+}
+
+function markSubmissionReceived(payload: CreateContactRequestInput) {
+  pruneRecentSubmissionKeys();
+  recentSubmissionKeys.set(getSubmissionKey(payload), Date.now());
+}
+
+function logEmailResult(prefix: string, result: Awaited<ReturnType<typeof sendTransactionalEmail>>) {
+  if (result.ok) {
+    console.info(`[contact-email] ${prefix} success/messageId`, { messageId: result.messageId ?? null });
+    return;
+  }
+
+  console.error(`[contact-email] ${prefix} error`, {
+    reason: result.reason,
+    status: result.status,
+    code: result.code,
+    skipped: result.skipped ?? false,
+  });
+}
+
+async function sendContactEmails(payload: CreateContactRequestInput) {
+  console.info("[contact-email] contact submission received");
+
+  const contactReplyTo = getContactReplyTo();
+  const internalRecipient = getContactNotificationRecipient();
+  const visitorEmailPresent = Boolean(payload.email && emailPattern.test(payload.email));
+
+  console.info("[contact-email] visitor email present", { present: visitorEmailPresent });
+  console.info("[contact-email] internal notification email used", { configured: Boolean(internalRecipient) });
+  console.info("[contact-email] reply-to used", { configured: Boolean(contactReplyTo) });
+  console.info("[contact-email] sending visitor acknowledgement", { send: visitorEmailPresent });
+
+  let visitorEmailOk = false;
+  let internalEmailOk = false;
+
+  if (visitorEmailPresent) {
+    const visitorTemplate = contactVisitorAcknowledgementTemplate({
+      request: payload,
+      requestTypeLabel: getContactRequestTypeLabel(payload.request_type),
+      replyToEmail: contactReplyTo?.email,
+    });
+    const visitorResult = await sendTransactionalEmail({
+      to: { email: payload.email, name: payload.full_name },
+      subject: visitorTemplate.subject,
+      html: visitorTemplate.html,
+      text: visitorTemplate.text,
+      replyTo: contactReplyTo,
+    });
+    visitorEmailOk = visitorResult.ok;
+    logEmailResult("visitor email", visitorResult);
+  }
+
+  console.info("[contact-email] sending internal notification");
+  if (internalRecipient) {
+    const internalTemplate = contactInternalNotificationTemplate({
+      request: payload,
+      requestTypeLabel: getContactRequestTypeLabel(payload.request_type),
+      replyToEmail: contactReplyTo?.email,
+    });
+    const internalResult = await sendTransactionalEmail({
+      to: internalRecipient,
+      subject: internalTemplate.subject,
+      html: internalTemplate.html,
+      text: internalTemplate.text,
+      replyTo: contactReplyTo,
+    });
+    internalEmailOk = internalResult.ok;
+    logEmailResult("internal email", internalResult);
+  } else {
+    console.error("[contact-email] internal email error", { reason: "missing_contact_notification_email" });
+  }
+
+  return { visitorEmailOk, internalEmailOk, visitorEmailAttempted: visitorEmailPresent };
 }
 
 export function validateContactRequestInput(input: Record<string, unknown>): ContactValidationResult {
@@ -126,6 +229,10 @@ export async function createContactRequest(input: Record<string, unknown>) {
   const validated = validateContactRequestInput(input);
   if (!validated.ok) return validated;
 
+  if (isDuplicateSubmission(validated.payload)) {
+    return { ok: true as const, message: "Votre demande a bien été envoyée." };
+  }
+
   const supabase = createSupabaseAdminClient();
   if (!supabase) {
     return { ok: false as const, message: "Configuration Supabase manquante." };
@@ -173,5 +280,18 @@ export async function createContactRequest(input: Record<string, unknown>) {
     return { ok: false as const, message: "Impossible d’envoyer votre demande pour le moment." };
   }
 
-  return { ok: true as const, message: "Votre demande a bien été envoyée." };
+  markSubmissionReceived(validated.payload);
+
+  const emailStatus = await sendContactEmails(validated.payload);
+
+  const emailWarning =
+    !emailStatus.internalEmailOk ||
+    (emailStatus.visitorEmailAttempted && !emailStatus.visitorEmailOk);
+
+  return {
+    ok: true as const,
+    message: emailWarning
+      ? "Votre message a bien été reçu, mais l’envoi de l’accusé de réception n’a pas pu être confirmé."
+      : "Votre demande a bien été envoyée.",
+  };
 }

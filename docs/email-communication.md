@@ -22,8 +22,8 @@ BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
 EMAIL_REPLY_TO=support@agritech509ht.com
-CONSULTATION_REPLY_TO_EMAIL=projet@agritech509ht.com
-CONSULTATION_NOTIFICATION_EMAIL=projet@agritech509ht.com
+CONSULTATION_REPLY_TO_EMAIL=projets@agritech509ht.com
+CONSULTATION_NOTIFICATION_EMAIL=projets@agritech509ht.com
 ```
 
 Règles importantes :
@@ -32,8 +32,8 @@ Règles importantes :
 - ne jamais créer de variable `NEXT_PUBLIC_BREVO_API_KEY` ;
 - `EMAIL_FROM_ADDRESS` doit utiliser un domaine ou expéditeur vérifié dans Brevo ;
 - `EMAIL_REPLY_TO` est le fallback général, typiquement `support@agritech509ht.com` ;
-- `CONSULTATION_REPLY_TO_EMAIL` doit être utilisé pour les réponses aux emails Consultation, typiquement `projet@agritech509ht.com` ;
-- `CONSULTATION_NOTIFICATION_EMAIL` doit recevoir les notifications internes Consultation, typiquement `projet@agritech509ht.com`.
+- `CONSULTATION_REPLY_TO_EMAIL` doit être utilisé pour les réponses aux emails Consultation, typiquement `projets@agritech509ht.com` ;
+- `CONSULTATION_NOTIFICATION_EMAIL` doit recevoir les notifications internes Consultation, typiquement `projets@agritech509ht.com`.
 
 ## Configuration Brevo
 
@@ -153,3 +153,29 @@ Aucune route de test admin n’est créée dans ce PR, car l’infrastructure ce
 Les emails Consultation partent uniquement côté serveur après paiement confirmé. Les variables attendues sont `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `EMAIL_REPLY_TO`, `CONSULTATION_REPLY_TO_EMAIL` et `CONSULTATION_NOTIFICATION_EMAIL`. Si `BREVO_API_KEY`, `EMAIL_FROM_ADDRESS` ou `CONSULTATION_NOTIFICATION_EMAIL` manque, le paiement reste confirmé, l’erreur est loggée et le marqueur `client_email_sent_at` ou `internal_email_sent_at` concerné reste vide.
 
 Checklist Vercel/Brevo : vérifier que `noreply@agritech509ht.com` est un sender Brevo autorisé, que `agritech509ht.com` est authentifié, que `BREVO_API_KEY` est configurée dans l’environnement Vercel réellement déployé, que le déploiement a été relancé après ajout des variables, que le plan Brevo autorise l’envoi transactionnel et que les logs Brevo montrent les tentatives d’envoi.
+
+## Emails Contact
+
+Le formulaire public Contact se trouve sur la route `src/app/contact/page.tsx` et rend `src/components/contact/ContactForm.tsx` via `ContactFormShell`. La soumission côté client appelle `POST /api/contact`, puis la route `src/app/api/contact/route.ts` délègue au workflow serveur `src/lib/contact/createContactRequest.ts`.
+
+Champs réellement utilisés par le formulaire Contact : `full_name`, `email`, `phone`, `organization`, `request_type`, `subject`, `message`, ainsi que les champs de contexte `service_slug`, `service_title`, `formation_slug`, `course_slug`, `course_title` et `source_page` quand la page d’origine les fournit. Les messages sont enregistrés dans Supabase dans la table `contact_requests` avant tout envoi Brevo.
+
+Après une soumission validée et enregistrée, le workflow Contact déclenche deux emails transactionnels Brevo côté serveur :
+
+- notification interne à `CONTACT_NOTIFICATION_EMAIL`, attendue à `contact@agritech509ht.com`, avec l’objet `Nouveau message reçu depuis le site Agri-tech` ;
+- accusé de réception visiteur à l’adresse du formulaire, uniquement si l’email visiteur est présent et valide, avec l’objet `Nous avons bien reçu votre message — Agri-tech`.
+
+Les emails Contact utilisent l’expéditeur global `EMAIL_FROM_NAME` + `EMAIL_FROM_ADDRESS`, typiquement `Agri-tech <noreply@agritech509ht.com>`. Le reply-to Contact est `CONTACT_REPLY_TO_EMAIL`, attendu à `contact@agritech509ht.com`, avec fallback technique sur `EMAIL_REPLY_TO` si la variable dédiée manque.
+
+Variables Contact attendues :
+
+```env
+CONTACT_NOTIFICATION_EMAIL=contact@agritech509ht.com
+CONTACT_REPLY_TO_EMAIL=contact@agritech509ht.com
+```
+
+Le workflow Contact n’utilise pas `AGRI_TECH_NOTIFICATION_EMAIL`, `CONSULTATION_NOTIFICATION_EMAIL` ni `CONSULTATION_REPLY_TO_EMAIL`. L’adresse `projet@agritech509ht.com` est invalide et ne doit jamais être utilisée. L’adresse `projets@agritech509ht.com` avec `s` est réservée aux consultations/projets clients, pas au formulaire Contact.
+
+Si Brevo échoue ou si la configuration email serveur est absente, la demande Contact reste enregistrée dans Supabase. L’erreur est loggée côté serveur sans secret et l’API retourne un message utilisateur contrôlé indiquant que le message est reçu mais que l’accusé de réception n’a pas pu être confirmé. L’échec de l’accusé visiteur n’empêche pas la tentative de notification interne.
+
+Protection anti-doublon Contact : le formulaire client possède déjà un état `isSubmitting` qui désactive la soumission rapide. Le serveur ajoute aussi une fenêtre anti-doublon courte en mémoire sur les champs principaux de la demande. Aucun marqueur `visitor_email_sent_at` ou `internal_email_sent_at` n’est ajouté car la table Contact existante est seulement utilisée via une insertion simple et aucune migration Contact dédiée n’est introduite dans ce PR.

@@ -45,9 +45,15 @@ SUPABASE_SERVICE_ROLE_KEY=
 ADMIN_EMAILS=
 NEXT_PUBLIC_CLARITY_PROJECT_ID=
 NEXT_PUBLIC_GA_MEASUREMENT_ID=
+BREVO_API_KEY=
+EMAIL_FROM_NAME=Agri-tech
+EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
+EMAIL_REPLY_TO=support@agritech509ht.com
+CONTACT_NOTIFICATION_EMAIL=contact@agritech509ht.com
+CONTACT_REPLY_TO_EMAIL=contact@agritech509ht.com
 ```
 
-Aucune vraie clé ne doit être commitée. Le projet démarre sans clés Supabase ou analytics tant que les fonctionnalités correspondantes ne sont pas utilisées.
+Aucune vraie clé ne doit être commitée. Le projet démarre sans clés Supabase, Brevo ou analytics tant que les fonctionnalités correspondantes ne sont pas utilisées. La clé Brevo doit rester serveur uniquement via `BREVO_API_KEY` ; ne jamais créer `NEXT_PUBLIC_BREVO_API_KEY`. Le formulaire Contact envoie sa notification interne à `CONTACT_NOTIFICATION_EMAIL=contact@agritech509ht.com` et utilise `CONTACT_REPLY_TO_EMAIL=contact@agritech509ht.com` pour les réponses. `projet@agritech509ht.com` est invalide ; `projets@agritech509ht.com` avec `s` est réservé aux consultations/projets clients.
 
 ## Structure des dossiers
 
