@@ -34,12 +34,38 @@ function getConfiguredFromEmail() {
   return process.env.EMAIL_FROM_ADDRESS?.trim().toLowerCase() || null;
 }
 
+function getConfiguredEmailRuntime() {
+  return {
+    brevoApiKeyPresent: Boolean(process.env.BREVO_API_KEY?.trim()),
+    emailFromNameUsed: process.env.EMAIL_FROM_NAME?.trim() || "Agri-tech",
+    emailFromAddressUsed: getConfiguredFromEmail(),
+    emailReplyToUsed: process.env.EMAIL_REPLY_TO?.trim().toLowerCase() || null,
+    consultationReplyToEmailUsed:
+      process.env.CONSULTATION_REPLY_TO_EMAIL?.trim().toLowerCase() || null,
+    consultationNotificationEmailUsed:
+      process.env.CONSULTATION_NOTIFICATION_EMAIL?.trim().toLowerCase() || null,
+  };
+}
+
 function logConsultationEmailContext(
   request: ConsultationRequest,
   replyTo: ReturnType<typeof getConsultationReplyTo>,
   notificationRecipient: ReturnType<typeof getConsultationNotificationRecipient>,
 ) {
-  console.info("[consultation-email] workflow started", {
+  const shouldSendClientEmail = Boolean(
+    request.email && !request.client_email_sent_at,
+  );
+  const shouldSendInternalEmail = Boolean(
+    notificationRecipient && !request.internal_email_sent_at,
+  );
+
+  console.info("[consultation-email] sendConsultationPaidEmails started", {
+    requestId: request.id,
+    request_code: request.request_code,
+    ...getConfiguredEmailRuntime(),
+  });
+
+  console.info("[consultation-email] request loaded", {
     requestId: request.id,
     request_code: request.request_code,
     clientEmailPresent: Boolean(request.email),
@@ -50,6 +76,8 @@ function logConsultationEmailContext(
     request_status: request.request_status,
     clientEmailSentAtPresent: Boolean(request.client_email_sent_at),
     internalEmailSentAtPresent: Boolean(request.internal_email_sent_at),
+    shouldSendClientEmail,
+    shouldSendInternalEmail,
   });
 }
 
@@ -69,7 +97,14 @@ async function markConsultationEmailSent(
       field,
       message: error.message,
     });
+    return false;
   }
+
+  console.info("[consultation-email] marker update success", {
+    requestId,
+    field,
+  });
+  return true;
 }
 
 export async function sendConsultationPaidEmails(
@@ -96,19 +131,27 @@ export async function sendConsultationPaidEmails(
   }
 
   if (request.client_email_sent_at) {
+    console.info("[consultation-email] client email skipped: already sent", {
+      requestId: request.id,
+      request_code: request.request_code,
+      shouldSendClientEmail: false,
+    });
     result.clientEmail = "skipped_already_sent";
   } else if (!request.email) {
     console.info("[consultation-email] client email skipped: no client email provided", {
       requestId: request.id,
       request_code: request.request_code,
+      shouldSendClientEmail: false,
     });
     result.clientEmail = "skipped_no_email";
   } else {
     console.info("[consultation-email] sending client email", {
       requestId: request.id,
       request_code: request.request_code,
+      to: request.email,
       replyToUsed: replyTo?.email ?? null,
       fromEmailUsed: getConfiguredFromEmail(),
+      shouldSendClientEmail: true,
     });
     const template = consultationPaidClientEmailTemplate({
       request,
@@ -123,10 +166,9 @@ export async function sendConsultationPaidEmails(
     });
 
     if (sendResult.ok) {
-      console.info("[consultation-email] Brevo success", {
+      console.info("[consultation-email] client email Brevo success", {
         requestId: request.id,
         request_code: request.request_code,
-        emailType: "client",
         messageId: sendResult.messageId,
       });
       await markConsultationEmailSent(
@@ -136,10 +178,9 @@ export async function sendConsultationPaidEmails(
       );
       result.clientEmail = "sent";
     } else {
-      console.error("[consultation-email] Brevo error", {
+      console.error("[consultation-email] client email Brevo error", {
         requestId: request.id,
         request_code: request.request_code,
-        emailType: "client",
         reason: sendResult.reason,
         status: sendResult.status,
         code: sendResult.code,
@@ -151,21 +192,29 @@ export async function sendConsultationPaidEmails(
   }
 
   if (request.internal_email_sent_at) {
+    console.info("[consultation-email] internal email skipped: already sent", {
+      requestId: request.id,
+      request_code: request.request_code,
+      shouldSendInternalEmail: false,
+    });
     result.internalEmail = "skipped_already_sent";
   } else if (!notificationRecipient) {
     console.error("[consultation-email] internal email skipped: notification recipient is missing", {
       requestId: request.id,
       request_code: request.request_code,
       expectedVariable: "CONSULTATION_NOTIFICATION_EMAIL",
+      shouldSendInternalEmail: false,
     });
     result.internalEmail = "skipped_missing_recipient";
   } else {
     console.info("[consultation-email] sending internal email", {
       requestId: request.id,
       request_code: request.request_code,
+      to: notificationRecipient.email,
       notificationEmailUsed: notificationRecipient.email,
       replyToUsed: replyTo?.email ?? null,
       fromEmailUsed: getConfiguredFromEmail(),
+      shouldSendInternalEmail: true,
     });
     const template = consultationPaidInternalEmailTemplate({
       request,
@@ -181,10 +230,9 @@ export async function sendConsultationPaidEmails(
     });
 
     if (sendResult.ok) {
-      console.info("[consultation-email] Brevo success", {
+      console.info("[consultation-email] internal email Brevo success", {
         requestId: request.id,
         request_code: request.request_code,
-        emailType: "internal",
         messageId: sendResult.messageId,
       });
       await markConsultationEmailSent(
@@ -194,10 +242,9 @@ export async function sendConsultationPaidEmails(
       );
       result.internalEmail = "sent";
     } else {
-      console.error("[consultation-email] Brevo error", {
+      console.error("[consultation-email] internal email Brevo error", {
         requestId: request.id,
         request_code: request.request_code,
-        emailType: "internal",
         reason: sendResult.reason,
         status: sendResult.status,
         code: sendResult.code,

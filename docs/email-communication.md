@@ -155,3 +155,9 @@ Aucune route de test admin n’est créée dans ce PR, car l’infrastructure ce
 Les emails Consultation partent uniquement côté serveur après paiement confirmé. Les variables attendues sont `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `EMAIL_REPLY_TO`, `CONSULTATION_REPLY_TO_EMAIL` et `CONSULTATION_NOTIFICATION_EMAIL`. Si `BREVO_API_KEY`, `EMAIL_FROM_ADDRESS` ou `CONSULTATION_NOTIFICATION_EMAIL` manque, le paiement reste confirmé, l’erreur est loggée et le marqueur `client_email_sent_at` ou `internal_email_sent_at` concerné reste vide.
 
 Checklist Vercel/Brevo : vérifier que `noreply@agritech509ht.com` est un sender Brevo autorisé, que `agritech509ht.com` est authentifié, que `BREVO_API_KEY` est configurée dans l’environnement Vercel réellement déployé, que le déploiement a été relancé après ajout des variables, que le plan Brevo autorise l’envoi transactionnel et que les logs Brevo montrent les tentatives d’envoi.
+
+## Vérification runtime Vercel/Brevo
+
+Après déploiement, vérifier les logs serveur Vercel sur le même environnement que le test : Production pour le domaine public, Preview pour une URL de preview. Le workflow Consultation logge sans secret la présence de `BREVO_API_KEY`, le `EMAIL_FROM_NAME`, le `EMAIL_FROM_ADDRESS`, le `EMAIL_REPLY_TO`, le `CONSULTATION_REPLY_TO_EMAIL`, le `CONSULTATION_NOTIFICATION_EMAIL`, les statuts paiement/demande, les décisions `shouldSendClientEmail` / `shouldSendInternalEmail`, puis la réponse Brevo ou l’erreur Brevo.
+
+Dans Brevo, vérifier les logs transactionnels pour confirmer si chaque email est `sent`, `delivered`, `bounced` ou `blocked`. `projets@agritech509ht.com` doit être débloquée si elle est valide et bloquée par erreur ; l’ancienne adresse invalide `projet@agritech509ht.com` ne doit pas être réutilisée.

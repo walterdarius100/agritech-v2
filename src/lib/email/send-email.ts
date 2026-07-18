@@ -94,15 +94,17 @@ export async function sendTransactionalEmail({
     };
   }
 
+  const explicitReplyTo = replyTo ? normalizeRecipient(replyTo) : null;
+  const finalReplyTo = explicitReplyTo ?? configuration.replyTo;
+
   try {
-    const explicitReplyTo = replyTo ? normalizeRecipient(replyTo) : null;
     const result = await sendBrevoTransactionalEmail({
       sender: configuration.sender,
       to: recipients,
       subject,
       htmlContent: html,
       textContent: text,
-      replyTo: explicitReplyTo ?? configuration.replyTo,
+      replyTo: finalReplyTo,
     });
 
     return {
@@ -122,6 +124,13 @@ export async function sendTransactionalEmail({
       status,
       code,
       message,
+      payload: {
+        sender: configuration.sender.email,
+        to: recipients.map((recipient) => recipient.email),
+        replyTo: finalReplyTo?.email,
+        hasHtmlContent: Boolean(html),
+        hasTextContent: Boolean(text),
+      },
     });
 
     return {

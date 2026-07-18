@@ -421,6 +421,11 @@ Avant envoi, le service vérifie ces champs :
 - après succès Brevo, le champ correspondant est horodaté ;
 - après échec Brevo ou configuration manquante, le champ reste vide pour permettre une relance future.
 
+
+### Diagnostic production
+
+Pour diagnostiquer une non-réception, ouvrir les logs serveur Vercel du même environnement que le test. Une URL Preview nécessite les variables Preview ; le domaine de production nécessite les variables Production. Les logs `[consultation-payment]` confirment la confirmation du paiement mock et la mise à jour `paid`. Les logs `[consultation-email]` confirment la présence runtime de la clé Brevo sans l’exposer, les adresses utilisées, les décisions anti-doublon, chaque tentative client/interne, la réponse Brevo et la mise à jour des marqueurs. Vérifier ensuite les logs transactionnels Brevo et la boîte Zoho `projets@agritech509ht.com`.
+
 ### Résilience
 
 L’email est traité comme un effet secondaire non bloquant. En cas d’échec Brevo, de configuration absente ou d’email client absent :
