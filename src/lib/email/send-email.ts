@@ -65,11 +65,27 @@ export async function sendTransactionalEmail({
   }
 
   const configuration = getEmailConfiguration();
+  console.info("[email-config] BREVO_API_KEY present", hasBrevoApiKey());
+  console.info("[email-config] EMAIL_FROM_ADDRESS used", {
+    configured: Boolean(process.env.EMAIL_FROM_ADDRESS?.trim()),
+  });
+  console.info("[email-config] EMAIL_REPLY_TO used", {
+    configured: Boolean(process.env.EMAIL_REPLY_TO?.trim()),
+  });
+  console.info("[email-config] CONSULTATION_REPLY_TO_EMAIL used", {
+    configured: Boolean(process.env.CONSULTATION_REPLY_TO_EMAIL?.trim()),
+  });
+  console.info("[email-config] CONSULTATION_NOTIFICATION_EMAIL used", {
+    configured: Boolean(process.env.CONSULTATION_NOTIFICATION_EMAIL?.trim()),
+  });
   if (!configuration) {
-    console.info("[Email] Transactional email skipped: sender configuration is missing.", {
-      recipientCount: recipients.length,
-      subject,
-    });
+    console.info(
+      "[Email] Transactional email skipped: sender configuration is missing.",
+      {
+        recipientCount: recipients.length,
+        subject,
+      },
+    );
 
     return {
       ok: false,
@@ -81,10 +97,13 @@ export async function sendTransactionalEmail({
   }
 
   if (!hasBrevoApiKey()) {
-    console.info("[Email] Transactional email skipped: BREVO_API_KEY is not configured.", {
-      recipientCount: recipients.length,
-      subject,
-    });
+    console.info(
+      "[Email] Transactional email skipped: BREVO_API_KEY is not configured.",
+      {
+        recipientCount: recipients.length,
+        subject,
+      },
+    );
 
     return {
       ok: false,
@@ -114,7 +133,8 @@ export async function sendTransactionalEmail({
       error instanceof BrevoTransactionalEmailError ? error.status : undefined;
     const code =
       error instanceof BrevoTransactionalEmailError ? error.code : undefined;
-    const message = error instanceof Error ? error.message : "Unknown email error";
+    const message =
+      error instanceof Error ? error.message : "Unknown email error";
 
     console.error("[Email] Brevo transactional email failed", {
       recipientCount: recipients.length,

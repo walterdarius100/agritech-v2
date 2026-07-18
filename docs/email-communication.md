@@ -22,8 +22,8 @@ BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
 EMAIL_REPLY_TO=support@agritech509ht.com
-CONSULTATION_REPLY_TO_EMAIL=projet@agritech509ht.com
-CONSULTATION_NOTIFICATION_EMAIL=projet@agritech509ht.com
+CONSULTATION_REPLY_TO_EMAIL=projets@agritech509ht.com
+CONSULTATION_NOTIFICATION_EMAIL=projets@agritech509ht.com
 ```
 
 Règles importantes :
@@ -32,8 +32,8 @@ Règles importantes :
 - ne jamais créer de variable `NEXT_PUBLIC_BREVO_API_KEY` ;
 - `EMAIL_FROM_ADDRESS` doit utiliser un domaine ou expéditeur vérifié dans Brevo ;
 - `EMAIL_REPLY_TO` est le fallback général, typiquement `support@agritech509ht.com` ;
-- `CONSULTATION_REPLY_TO_EMAIL` doit être utilisé pour les réponses aux emails Consultation, typiquement `projet@agritech509ht.com` ;
-- `CONSULTATION_NOTIFICATION_EMAIL` doit recevoir les notifications internes Consultation, typiquement `projet@agritech509ht.com`.
+- `CONSULTATION_REPLY_TO_EMAIL` doit être utilisé pour les réponses aux emails Consultation, typiquement `projets@agritech509ht.com` ;
+- `CONSULTATION_NOTIFICATION_EMAIL` doit recevoir les notifications internes Consultation, typiquement `projets@agritech509ht.com`.
 
 ## Configuration Brevo
 

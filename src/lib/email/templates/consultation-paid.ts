@@ -94,12 +94,14 @@ export function consultationPaidInternalEmailTemplate({
     contentHtml: `
       <p style="margin:0 0 16px;">Une nouvelle demande de consultation a été enregistrée et payée.</p>
       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-top:1px solid #e2e8d8;border-bottom:1px solid #e2e8d8;">
+        ${detailRow("Code de demande", request.request_code)}
         ${detailRow("Client", request.full_name)}
         ${detailRow("Téléphone", request.phone)}
         ${detailRow("Email", formatOptional(request.email))}
         ${detailRow("Département", formatOptional(request.department))}
         ${detailRow("Commune", formatOptional(request.commune))}
         ${detailRow("Domaine", request.consultation_type)}
+        ${detailRow("Stade du projet", formatOptional(request.project_stage))}
         ${detailRow("Mode souhaité", formatOptional(request.consultation_mode))}
         ${detailRow("Budget approximatif", formatOptional(request.estimated_budget))}
         ${detailRow("Montant", amount)}
@@ -120,6 +122,7 @@ export function consultationPaidInternalEmailTemplate({
     `Département : ${formatOptional(request.department)}`,
     `Commune : ${formatOptional(request.commune)}`,
     `Domaine : ${request.consultation_type}`,
+    `Stade du projet : ${formatOptional(request.project_stage)}`,
     `Mode souhaité : ${formatOptional(request.consultation_mode)}`,
     `Budget approximatif : ${formatOptional(request.estimated_budget)}`,
     `Montant : ${amount}`,

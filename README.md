@@ -101,3 +101,22 @@ Cette fondation ne construit pas encore l'Academy. Elle prépare l'organisation 
 
 - Documentation Supabase : [docs/SUPABASE_CONFIGURATION.md](docs/SUPABASE_CONFIGURATION.md)
 - Documentation Articles : [docs/SUPABASE_ARTICLES.md](docs/SUPABASE_ARTICLES.md)
+
+## Consultation — emails transactionnels après paiement mock
+
+Les emails Consultation sont envoyés uniquement côté serveur après confirmation du paiement mock. La création d’une demande seule n’envoie pas d’email.
+
+Variables serveur attendues dans Vercel Development, Preview et Production selon l’environnement réellement testé :
+
+```env
+BREVO_API_KEY=...
+EMAIL_FROM_NAME=Agri-tech
+EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
+EMAIL_REPLY_TO=support@agritech509ht.com
+CONSULTATION_REPLY_TO_EMAIL=projets@agritech509ht.com
+CONSULTATION_NOTIFICATION_EMAIL=projets@agritech509ht.com
+```
+
+`projets@agritech509ht.com` est l’adresse officielle Consultation. `projet@agritech509ht.com` est invalide et ne doit pas être utilisée. Ne jamais créer `NEXT_PUBLIC_BREVO_API_KEY` : la clé Brevo reste strictement serveur.
+
+Après succès réel Brevo, `consultation_requests.client_email_sent_at` et `consultation_requests.internal_email_sent_at` sont remplis. Si Brevo échoue, le paiement reste confirmé et le marqueur concerné reste vide pour permettre une relance sans doublon. Vérifier les événements dans les logs Vercel (`[consultation-payment]`, `[consultation-email]`, `[email-config]`) et dans les logs transactionnels Brevo.

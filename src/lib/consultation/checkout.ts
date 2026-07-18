@@ -79,11 +79,16 @@ export async function confirmConsultationMockPayment(
   _state: ConsultationPaymentActionState,
   formData: FormData,
 ): Promise<ConsultationPaymentActionState> {
+  console.info("[consultation-payment] mock payment confirmation started");
   const requestId =
     typeof formData.get("request_id") === "string"
       ? String(formData.get("request_id"))
       : "";
   const paymentMethod = cleanPaymentMethod(formData.get("payment_method"));
+
+  console.info("[consultation-payment] requestId received", {
+    requestIdPresent: Boolean(requestId),
+  });
 
   if (!requestId) return { error: "Demande introuvable." };
 
@@ -93,6 +98,16 @@ export async function confirmConsultationMockPayment(
     .select(CONSULTATION_REQUEST_COLUMNS)
     .eq("id", requestId)
     .maybeSingle();
+
+  console.info("[consultation-payment] request found", Boolean(request));
+  if (request) {
+    console.info("[consultation-payment] payment_status before update", {
+      payment_status: request.payment_status,
+    });
+    console.info("[consultation-payment] request_status before update", {
+      request_status: request.request_status,
+    });
+  }
 
   if (requestError || !request) {
     return { error: "Demande introuvable." };
@@ -118,7 +133,11 @@ export async function confirmConsultationMockPayment(
 
   if (consultationRequest.payment_status === "paid" || existingPaidPayment) {
     try {
-      await sendConsultationPaidEmails(supabase, consultationRequest);
+      console.info("[consultation-payment] calling sendConsultationPaidEmails");
+      await sendConsultationPaidEmails(supabase, requestId);
+      console.info(
+        "[consultation-payment] sendConsultationPaidEmails finished",
+      );
     } catch (error) {
       console.error(
         "[consultation-email] paid consultation email workflow failed",
@@ -185,6 +204,11 @@ export async function confirmConsultationMockPayment(
     .select(CONSULTATION_REQUEST_COLUMNS)
     .single();
 
+  console.info(
+    "[consultation-payment] payment update success",
+    Boolean(paidRequest && !updateRequestError),
+  );
+
   if (updateRequestError || !paidRequest) {
     return {
       error:
@@ -193,10 +217,9 @@ export async function confirmConsultationMockPayment(
   }
 
   try {
-    await sendConsultationPaidEmails(
-      supabase,
-      paidRequest as ConsultationRequest,
-    );
+    console.info("[consultation-payment] calling sendConsultationPaidEmails");
+    await sendConsultationPaidEmails(supabase, requestId);
+    console.info("[consultation-payment] sendConsultationPaidEmails finished");
   } catch (error) {
     console.error(
       "[consultation-email] paid consultation email workflow failed",

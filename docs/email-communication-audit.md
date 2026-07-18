@@ -171,8 +171,8 @@ Variables proposées, sans valeur secrète :
 BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
-AGRI_TECH_NOTIFICATION_EMAIL=projet@agritech509ht.com
-EMAIL_REPLY_TO=projet@agritech509ht.com
+AGRI_TECH_NOTIFICATION_EMAIL=projets@agritech509ht.com  # obsolète, utiliser CONSULTATION_NOTIFICATION_EMAIL
+EMAIL_REPLY_TO=projets@agritech509ht.com
 ```
 
 Règles :
