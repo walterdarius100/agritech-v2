@@ -179,3 +179,36 @@ Le workflow Contact n’utilise pas `AGRI_TECH_NOTIFICATION_EMAIL`, `CONSULTATIO
 Si Brevo échoue ou si la configuration email serveur est absente, la demande Contact reste enregistrée dans Supabase. L’erreur est loggée côté serveur sans secret et l’API retourne un message utilisateur contrôlé indiquant que le message est reçu mais que l’accusé de réception n’a pas pu être confirmé. L’échec de l’accusé visiteur n’empêche pas la tentative de notification interne.
 
 Protection anti-doublon Contact : le formulaire client possède déjà un état `isSubmitting` qui désactive la soumission rapide. Le serveur ajoute aussi une fenêtre anti-doublon courte en mémoire sur les champs principaux de la demande. Aucun marqueur `visitor_email_sent_at` ou `internal_email_sent_at` n’est ajouté car la table Contact existante est seulement utilisée via une insertion simple et aucune migration Contact dédiée n’est introduite dans ce PR.
+
+## Emails transactionnels Academy
+
+### Audit et décision inscription
+
+L’inscription Academy passe par `supabase.auth.signUp()` dans la Server Action `registerStudent`. Cette action configure déjà `emailRedirectTo` vers `/academy/login` pour le lien de confirmation Supabase Auth. Pour éviter une duplication inutile, aucun email custom Brevo « Bienvenue sur Agri-tech Academy » n’est envoyé dans ce PR : Supabase Auth reste responsable de l’email système de confirmation lorsque la confirmation email est activée côté Supabase.
+
+### Achat mock et accès formation
+
+Le paiement mock Academy est confirmé côté serveur par `POST /api/academy/payments/mock-confirm`. Quand le résultat mock est `success`, le statut devient `paid`, `paid_at` et `verified_at` sont renseignés, puis `activateCourseAccessAfterPayment()` active ou met à jour l’enrollment Academy. Les emails Academy sont déclenchés uniquement après cette activation d’accès, afin de ne pas annoncer un accès avant paiement confirmé.
+
+Un seul email étudiant combine la confirmation d’achat et l’accès à la formation avec l’objet `Confirmation de votre inscription à la formation « [COURSE_TITLE] »`. Le lien principal pointe vers `/academy/mes-cours`, qui est la page stable de consultation des cours actifs.
+
+### Notification interne Academy
+
+Après achat confirmé, une notification interne est envoyée à `ACADEMY_NOTIFICATION_EMAIL`, attendu à `formation@agritech509ht.com`. Le `Reply-To` Academy utilise `ACADEMY_REPLY_TO_EMAIL`, attendu à `formation@agritech509ht.com`. Ces variables dédiées évitent toute confusion avec les variables Contact ou Consultation.
+
+### Anti-doublon et échecs Brevo
+
+La table `academy_payments` reçoit deux marqueurs anti-doublon : `student_purchase_email_sent_at` et `internal_purchase_email_sent_at`. Chaque marqueur est rempli uniquement après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si la configuration serveur est absente ou si l’email étudiant est invalide, le paiement et l’accès restent valides, l’erreur est loggée côté serveur sans secret et le marqueur reste vide pour permettre une relance future. L’échec de l’email étudiant n’empêche pas la tentative de notification interne.
+
+### Variables et adresses officielles
+
+Variables Academy à configurer côté serveur, notamment sur Vercel :
+
+```txt
+ACADEMY_NOTIFICATION_EMAIL=formation@agritech509ht.com
+ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com
+```
+
+Le module continue d’utiliser les variables globales serveur `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS` et `EMAIL_REPLY_TO`. Ne jamais créer ni utiliser `NEXT_PUBLIC_BREVO_API_KEY`.
+
+Adresse officielle Academy : `formation@agritech509ht.com`. L’adresse `projet@agritech509ht.com` est invalide et ne doit jamais être utilisée. L’adresse `projets@agritech509ht.com` avec `s` est réservée aux consultations/projets clients, pas à Academy.

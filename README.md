@@ -49,11 +49,22 @@ BREVO_API_KEY=
 EMAIL_FROM_NAME=Agri-tech
 EMAIL_FROM_ADDRESS=noreply@agritech509ht.com
 EMAIL_REPLY_TO=support@agritech509ht.com
+ACADEMY_NOTIFICATION_EMAIL=formation@agritech509ht.com
+ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com
 CONTACT_NOTIFICATION_EMAIL=contact@agritech509ht.com
 CONTACT_REPLY_TO_EMAIL=contact@agritech509ht.com
 ```
 
 Aucune vraie clé ne doit être commitée. Le projet démarre sans clés Supabase, Brevo ou analytics tant que les fonctionnalités correspondantes ne sont pas utilisées. La clé Brevo doit rester serveur uniquement via `BREVO_API_KEY` ; ne jamais créer `NEXT_PUBLIC_BREVO_API_KEY`. Le formulaire Contact envoie sa notification interne à `CONTACT_NOTIFICATION_EMAIL=contact@agritech509ht.com` et utilise `CONTACT_REPLY_TO_EMAIL=contact@agritech509ht.com` pour les réponses. `projet@agritech509ht.com` est invalide ; `projets@agritech509ht.com` avec `s` est réservé aux consultations/projets clients.
+
+
+### Emails transactionnels Academy
+
+Les emails Academy utilisent Brevo côté serveur après confirmation du paiement mock Academy et activation de l’accès formation. Configurer `ACADEMY_NOTIFICATION_EMAIL=formation@agritech509ht.com` et `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com` en plus des variables globales `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS` et `EMAIL_REPLY_TO`.
+
+L’email d’inscription Academy n’est pas dupliqué dans Brevo lorsque Supabase Auth gère déjà l’email système de confirmation. Après achat confirmé, l’étudiant reçoit un email unique confirmation achat + accès, et Agri-tech reçoit une notification interne à l’adresse Academy officielle. Les marqueurs `student_purchase_email_sent_at` et `internal_purchase_email_sent_at` dans `academy_payments` protègent contre les doublons et ne sont remplis qu’après succès Brevo.
+
+`projet@agritech509ht.com` est invalide ; `projets@agritech509ht.com` avec `s` reste réservé aux consultations/projets clients. La clé Brevo ne doit jamais être exposée côté client via `NEXT_PUBLIC_BREVO_API_KEY`.
 
 ## Structure des dossiers
 

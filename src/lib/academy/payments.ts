@@ -3,7 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { AcademyCourse, AcademyEnrollment } from "@/types/academy";
 import type { PaymentProvider, PaymentStatus } from "@/lib/payments/types";
 
-export type AcademyPayment = { id:string; student_id:string; course_id:string; enrollment_id:string|null; provider:PaymentProvider; amount:number; currency:string; status:PaymentStatus; provider_reference:string|null; provider_checkout_url:string|null; provider_payload:Record<string, unknown>; metadata:Record<string, unknown>; paid_at:string|null; verified_at:string|null; created_at:string; updated_at:string; academy_courses?:AcademyCourse|null; profiles?:{full_name:string|null; email?:string|null}|null; };
+export type AcademyPayment = { id:string; student_id:string; course_id:string; enrollment_id:string|null; provider:PaymentProvider; amount:number; currency:string; status:PaymentStatus; provider_reference:string|null; provider_checkout_url:string|null; provider_payload:Record<string, unknown>; metadata:Record<string, unknown>; paid_at:string|null; verified_at:string|null; student_purchase_email_sent_at?:string|null; internal_purchase_email_sent_at?:string|null; created_at:string; updated_at:string; academy_courses?:AcademyCourse|null; profiles?:{full_name:string|null; email?:string|null}|null; };
 
 export async function activateCourseAccessAfterPayment(paymentId: string) {
   const supabase = createSupabaseAdminClient();
