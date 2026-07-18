@@ -141,6 +141,7 @@ export async function sendTransactionalEmail({
       ok: true,
       messageId: result.messageId,
       status: result.status,
+      rawBody: result.rawBody,
     };
   } catch (error) {
     const status =
@@ -149,6 +150,8 @@ export async function sendTransactionalEmail({
       error instanceof BrevoTransactionalEmailError ? error.code : undefined;
     const message =
       error instanceof Error ? error.message : "Unknown email error";
+    const rawBody =
+      error instanceof BrevoTransactionalEmailError ? error.rawBody : undefined;
     const stack = error instanceof Error ? error.stack : undefined;
 
     console.error("[Email] Brevo transactional email failed", {
@@ -157,6 +160,7 @@ export async function sendTransactionalEmail({
       status,
       code,
       message,
+      rawBody,
       stack,
     });
 
@@ -166,6 +170,7 @@ export async function sendTransactionalEmail({
       status,
       code,
       message,
+      rawBody,
       stack,
     };
   }

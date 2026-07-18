@@ -15,7 +15,7 @@ import type {
 } from "@/types/consultation";
 
 const CONSULTATION_REQUEST_COLUMNS =
-  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,client_email_message_id,internal_email_message_id,email_last_attempt_at,email_last_error,client_email_processing_at,internal_email_processing_at,created_at,updated_at";
+  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,client_email_message_id,internal_email_message_id,email_last_attempt_at,email_last_error,client_email_last_error,internal_email_last_error,client_email_processing_at,internal_email_processing_at,created_at,updated_at";
 
 const CONSULTATION_PAYMENT_COLUMNS =
   "id,consultation_request_id,provider,provider_transaction_id,amount,currency,status,payment_method,metadata,created_at,updated_at,paid_at";

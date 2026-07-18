@@ -100,3 +100,51 @@ Les verrous `client_email_processing_at` et `internal_email_processing_at` évit
 ## Paiement réel ou webhook de test futur
 
 Le module Consultation ne possède toujours pas de webhook réel MonCash/NatCash. Pour un futur test de paiement réel, ajouter d’abord une route `/api/consultation/payments/webhook/[provider]` qui vérifie la signature fournisseur, normalise les statuts (`paid`, `successful`, `completed`, etc.), met à jour Supabase côté serveur, puis appelle `await sendConsultationPaidEmails(supabase, requestId)`. Ne jamais valider un paiement réel uniquement depuis un paramètre d’URL navigateur.
+
+## Diagnostic ciblé — `internal: Key not found`
+
+Recherche code effectuée : aucune chaîne littérale `Key not found` n’existe dans le dépôt. Le préfixe `internal:` était généré par `recordEmailFailure()` dans `src/lib/consultation/emails.ts`, qui préfixait le message retourné par la couche Brevo avec le type d’email. Le texte `Key not found` provient donc de la réponse de Brevo, propagée par `BrevoTransactionalEmailError`, puis stockée dans `email_last_error`.
+
+Le cas le plus probable est une réponse Brevo `401 Unauthorized` avec un corps du type `{"code":"unauthorized","message":"Key not found"}`. Cela indique une clé API rejetée par Brevo : mauvaise clé, clé révoquée, clé SMTP utilisée à la place d’une clé API, clé du mauvais compte, guillemets/espaces dans la valeur, ou variable ajoutée dans le mauvais environnement Vercel/Supabase.
+
+La correction conserve maintenant la réponse brute Brevo (`rawBody`), le code HTTP, le `statusText`, les diagnostics sécurisés de clé (`exists`, longueur, préfixe partiel, espaces, guillemets, apparence SMTP), le runtime Node/Deno, et le host Supabase public utilisé. `email_last_error` devient un JSON structuré, tandis que `client_email_last_error` et `internal_email_last_error` évitent qu’une erreur interne écrase l’erreur client.
+
+## Test Brevo indépendant
+
+Une route serveur protégée admin est disponible :
+
+```http
+POST /api/admin/email/brevo-diagnostic
+Content-Type: application/json
+
+{"recipient":"adresse-de-test@example.com"}
+```
+
+Elle ne dépend ni du paiement, ni de Supabase, ni des templates Consultation. Elle appelle directement l’endpoint transactionnel Brevo avec `BREVO_API_KEY` et `EMAIL_FROM_ADDRESS`. Un succès doit retourner :
+
+```json
+{ "ok": true, "status": 201, "messageId": "..." }
+```
+
+Si elle retourne `Brevo API error 401: ...Key not found...`, remplacer `BREVO_API_KEY` dans l’environnement réellement exécuté, redéployer, puis rejouer ce test avant de retenter un paiement.
+
+## Redéploiement après remplacement de clé
+
+### Vercel
+
+1. Remplacer `BREVO_API_KEY` dans l’environnement testé : Preview ou Production.
+2. Vérifier `EMAIL_FROM_ADDRESS=noreply@agritech509ht.com` et son statut d’expéditeur Brevo.
+3. Redéployer la branche ou relancer le déploiement.
+4. Appeler `/api/admin/email/brevo-diagnostic` avec un compte admin.
+5. Continuer uniquement si la réponse contient un `messageId`.
+
+### Supabase Edge Functions futures
+
+Le module actuel s’exécute dans Next.js/Vercel, pas dans une Supabase Edge Function. Si une Edge Function Consultation est ajoutée plus tard, définir le secret sur le projet Supabase exact :
+
+```bash
+supabase secrets set BREVO_API_KEY="NOUVELLE_CLE_API_BREVO"
+supabase functions deploy <nom-de-la-fonction>
+```
+
+Vérifier que le CLI est lié au même project ref que `NEXT_PUBLIC_SUPABASE_URL`.

@@ -10,6 +10,14 @@ const migrationSource = readFileSync(
   "supabase/migrations/20260718_add_consultation_email_delivery_audit.sql",
   "utf8",
 );
+const errorDetailsMigrationSource = readFileSync(
+  "supabase/migrations/20260718_add_consultation_email_error_details.sql",
+  "utf8",
+);
+const diagnosticRouteSource = readFileSync(
+  "src/app/api/admin/email/brevo-diagnostic/route.ts",
+  "utf8",
+);
 
 test("paiement confirmé: le checkout attend le workflow email après statut paid", () => {
   assert.match(checkoutSource, /payment_status:\s*confirmedPayment\.status/);
@@ -73,8 +81,14 @@ test("configuration Brevo absente: erreur explicite et pas d'appel silencieux", 
 test("réponse Brevo: le succès exige HTTP ok et messageId", () => {
   assert.match(brevoSource, /if \(!response\.ok\)/);
   assert.match(brevoSource, /if \(!data\.messageId\)/);
+  assert.match(brevoSource, /const rawBody = await response\.text\(\)/);
+  assert.match(
+    brevoSource,
+    /Brevo API error \${response\.status}: \${rawBody}/,
+  );
   assert.match(sendEmailSource, /status: result\.status/);
   assert.match(sendEmailSource, /messageId: result\.messageId/);
+  assert.match(sendEmailSource, /rawBody/);
 });
 
 test("erreurs Supabase: les requêtes critiques inspectent error", () => {
@@ -100,4 +114,12 @@ test("migration: audit de livraison et relance des emails échoués", () => {
   assert.match(migrationSource, /email_last_attempt_at/);
   assert.match(migrationSource, /client_email_processing_at/);
   assert.match(migrationSource, /internal_email_processing_at/);
+  assert.match(errorDetailsMigrationSource, /client_email_last_error/);
+  assert.match(errorDetailsMigrationSource, /internal_email_last_error/);
+});
+
+test("diagnostic Brevo indépendant: route admin protégée et messageId retourné", () => {
+  assert.match(diagnosticRouteSource, /requireAuthorizedAdmin/);
+  assert.match(diagnosticRouteSource, /sendBrevoDiagnosticEmail/);
+  assert.match(diagnosticRouteSource, /messageId/);
 });

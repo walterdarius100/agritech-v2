@@ -18,6 +18,7 @@ export type SendTransactionalEmailResult =
       ok: true;
       messageId: string;
       status: number;
+      rawBody?: string;
       skipped?: false;
     }
   | {
@@ -32,6 +33,7 @@ export type SendTransactionalEmailResult =
       status?: number;
       code?: string;
       stack?: string;
+      rawBody?: string;
     };
 
 export type BrevoSendEmailPayload = {

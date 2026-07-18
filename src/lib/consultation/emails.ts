@@ -23,7 +23,7 @@ type SupabaseAdminClient = NonNullable<
 >;
 
 const CONSULTATION_REQUEST_COLUMNS =
-  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,client_email_message_id,internal_email_message_id,email_last_attempt_at,email_last_error,client_email_processing_at,internal_email_processing_at,created_at,updated_at";
+  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,client_email_message_id,internal_email_message_id,email_last_attempt_at,email_last_error,client_email_last_error,internal_email_last_error,client_email_processing_at,internal_email_processing_at,created_at,updated_at";
 
 const CONSULTATION_PAYMENT_COLUMNS =
   "id,consultation_request_id,provider,provider_transaction_id,amount,currency,status,payment_method,metadata,created_at,updated_at,paid_at";
@@ -66,6 +66,46 @@ function isValidEmail(email: string | null) {
 
 function truncateLogValue(value: string, maxLength = 1000) {
   return value.length > maxLength ? `${value.slice(0, maxLength)}…` : value;
+}
+
+function buildCombinedEmailLastError(input: {
+  client: string | null;
+  internal: string | null;
+}) {
+  if (!input.client && !input.internal) return null;
+
+  return truncateLogValue(
+    JSON.stringify({
+      client: input.client,
+      internal: input.internal,
+    }),
+  );
+}
+
+async function getCurrentEmailErrors(
+  supabase: SupabaseAdminClient,
+  requestId: string,
+) {
+  const { data, error } = await supabase
+    .from("consultation_requests")
+    .select("client_email_last_error,internal_email_last_error")
+    .eq("id", requestId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[consultation-email] unable to load current email errors", {
+      step: "load_current_email_errors",
+      requestId,
+      supabaseMessage: error.message,
+    });
+  }
+
+  return {
+    client:
+      (data?.client_email_last_error as string | null | undefined) ?? null,
+    internal:
+      (data?.internal_email_last_error as string | null | undefined) ?? null,
+  };
 }
 
 function logConsultationEmailContext({
@@ -165,7 +205,6 @@ async function claimEmailSend(
     .update({
       [processingField]: nowIso,
       email_last_attempt_at: nowIso,
-      email_last_error: null,
     })
     .eq("id", requestId)
     .is(sentField, null)
@@ -217,13 +256,24 @@ async function markConsultationEmailSent({
       ? "client_email_processing_at"
       : "internal_email_processing_at";
 
+  const lastErrorField =
+    emailKind === "client"
+      ? "client_email_last_error"
+      : "internal_email_last_error";
+  const currentErrors = await getCurrentEmailErrors(supabase, requestId);
+  const combinedEmailLastError = buildCombinedEmailLastError({
+    client: emailKind === "client" ? null : currentErrors.client,
+    internal: emailKind === "internal" ? null : currentErrors.internal,
+  });
+
   const { error } = await supabase
     .from("consultation_requests")
     .update({
       [sentField]: new Date().toISOString(),
       [messageIdField]: messageId,
       [processingField]: null,
-      email_last_error: null,
+      [lastErrorField]: null,
+      email_last_error: combinedEmailLastError,
     })
     .eq("id", requestId);
 
@@ -260,12 +310,31 @@ async function recordEmailFailure({
     emailKind === "client"
       ? "client_email_processing_at"
       : "internal_email_processing_at";
+  const lastErrorField =
+    emailKind === "client"
+      ? "client_email_last_error"
+      : "internal_email_last_error";
+  const normalizedError = truncateLogValue(
+    JSON.stringify({
+      step: "send_consultation_paid_email",
+      emailType: emailKind,
+      message,
+    }),
+  );
+  const currentErrors = await getCurrentEmailErrors(supabase, requestId);
+  const combinedEmailLastError = buildCombinedEmailLastError({
+    client: emailKind === "client" ? normalizedError : currentErrors.client,
+    internal:
+      emailKind === "internal" ? normalizedError : currentErrors.internal,
+  });
+
   const { error } = await supabase
     .from("consultation_requests")
     .update({
       [processingField]: null,
+      [lastErrorField]: normalizedError,
       email_last_attempt_at: new Date().toISOString(),
-      email_last_error: truncateLogValue(`${emailKind}: ${message}`),
+      email_last_error: combinedEmailLastError,
     })
     .eq("id", requestId);
 
@@ -425,7 +494,9 @@ export async function sendConsultationPaidEmails(
         supabase,
         requestId: request.id,
         emailKind: "client",
-        message: sendResult.message,
+        message: sendResult.rawBody
+          ? `${sendResult.message} | raw=${sendResult.rawBody}`
+          : sendResult.message,
       });
       result.clientEmail = "failed";
     }
@@ -518,7 +589,9 @@ export async function sendConsultationPaidEmails(
         supabase,
         requestId: request.id,
         emailKind: "internal",
-        message: sendResult.message,
+        message: sendResult.rawBody
+          ? `${sendResult.message} | raw=${sendResult.rawBody}`
+          : sendResult.message,
       });
       result.internalEmail = "failed";
     }
