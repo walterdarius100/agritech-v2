@@ -15,7 +15,7 @@ import type {
 } from "@/types/consultation";
 
 const CONSULTATION_REQUEST_COLUMNS =
-  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,created_at,updated_at";
+  "id,request_code,full_name,email,phone,department,commune,consultation_type,project_stage,project_description,estimated_budget,consultation_mode,consultation_package,amount,currency,payment_status,request_status,paid_at,scheduled_at,admin_notes,client_email_sent_at,internal_email_sent_at,client_email_message_id,internal_email_message_id,email_last_attempt_at,email_last_error,client_email_processing_at,internal_email_processing_at,created_at,updated_at";
 
 const CONSULTATION_PAYMENT_COLUMNS =
   "id,consultation_request_id,provider,provider_transaction_id,amount,currency,status,payment_method,metadata,created_at,updated_at,paid_at";
@@ -79,7 +79,12 @@ export async function confirmConsultationMockPayment(
   _state: ConsultationPaymentActionState,
   formData: FormData,
 ): Promise<ConsultationPaymentActionState> {
-  console.info("[consultation-payment] mock payment confirmation started");
+  const processingStartedAt = new Date().toISOString();
+  console.info("[consultation-payment] mock payment confirmation started", {
+    processingStartedAt,
+    entrypoint: "server_action:confirmConsultationMockPayment",
+    userId: null,
+  });
   const requestId =
     typeof formData.get("request_id") === "string"
       ? String(formData.get("request_id"))
@@ -143,6 +148,9 @@ export async function confirmConsultationMockPayment(
         "[consultation-email] paid consultation email workflow failed",
         {
           requestId,
+          step: "send_consultation_paid_emails",
+          transactionId: existingPaidPayment?.id,
+          stack: error instanceof Error ? error.stack : undefined,
           message:
             error instanceof Error
               ? error.message
@@ -162,10 +170,27 @@ export async function confirmConsultationMockPayment(
     currency: consultationRequest.currency,
     paymentMethod,
   });
+  console.info("[consultation-payment] provider confirmation started", {
+    requestId,
+    orderId: requestId,
+    transactionId: createdPayment.providerTransactionId,
+    provider: createdPayment.provider,
+    userId: null,
+    processedAt: new Date().toISOString(),
+  });
   const confirmedPayment = await confirmConsultationPayment({
     provider: "mock",
     requestId,
     providerTransactionId: createdPayment.providerTransactionId,
+  });
+  console.info("[consultation-payment] provider confirmation finished", {
+    requestId,
+    orderId: requestId,
+    transactionId: createdPayment.providerTransactionId,
+    providerStatus: confirmedPayment.status,
+    paidAt: confirmedPayment.paidAt,
+    userId: null,
+    processedAt: new Date().toISOString(),
   });
   const paidAt = confirmedPayment.paidAt ?? new Date().toISOString();
 
@@ -204,10 +229,15 @@ export async function confirmConsultationMockPayment(
     .select(CONSULTATION_REQUEST_COLUMNS)
     .single();
 
-  console.info(
-    "[consultation-payment] payment update success",
-    Boolean(paidRequest && !updateRequestError),
-  );
+  console.info("[consultation-payment] payment update success", {
+    success: Boolean(paidRequest && !updateRequestError),
+    requestId,
+    orderId: requestId,
+    transactionId: createdPayment.providerTransactionId,
+    providerStatus: confirmedPayment.status,
+    userId: null,
+    processedAt: new Date().toISOString(),
+  });
 
   if (updateRequestError || !paidRequest) {
     return {
@@ -225,6 +255,9 @@ export async function confirmConsultationMockPayment(
       "[consultation-email] paid consultation email workflow failed",
       {
         requestId,
+        step: "send_consultation_paid_emails",
+        transactionId: createdPayment.providerTransactionId,
+        stack: error instanceof Error ? error.stack : undefined,
         message:
           error instanceof Error
             ? error.message

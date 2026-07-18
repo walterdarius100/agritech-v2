@@ -15,6 +15,7 @@ export class BrevoTransactionalEmailError extends Error {
     message: string,
     readonly status: number,
     readonly code?: string,
+    readonly responseBody?: BrevoApiResponse,
   ) {
     super(message);
     this.name = "BrevoTransactionalEmailError";
@@ -25,7 +26,9 @@ export function hasBrevoApiKey() {
   return Boolean(process.env.BREVO_API_KEY?.trim());
 }
 
-export async function sendBrevoTransactionalEmail(payload: BrevoSendEmailPayload) {
+export async function sendBrevoTransactionalEmail(
+  payload: BrevoSendEmailPayload,
+) {
   const apiKey = process.env.BREVO_API_KEY?.trim();
   if (!apiKey) {
     throw new Error("BREVO_API_KEY is not configured.");
@@ -49,10 +52,21 @@ export async function sendBrevoTransactionalEmail(payload: BrevoSendEmailPayload
         `Brevo transactional email request failed with status ${response.status}.`,
       response.status,
       data.code,
+      data,
+    );
+  }
+
+  if (!data.messageId) {
+    throw new BrevoTransactionalEmailError(
+      "Brevo response did not include a messageId.",
+      response.status,
+      data.code,
+      data,
     );
   }
 
   return {
     messageId: data.messageId,
+    status: response.status,
   };
 }

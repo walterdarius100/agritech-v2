@@ -153,3 +153,11 @@ Aucune route de test admin n’est créée dans ce PR, car l’infrastructure ce
 Les emails Consultation partent uniquement côté serveur après paiement confirmé. Les variables attendues sont `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS`, `EMAIL_REPLY_TO`, `CONSULTATION_REPLY_TO_EMAIL` et `CONSULTATION_NOTIFICATION_EMAIL`. Si `BREVO_API_KEY`, `EMAIL_FROM_ADDRESS` ou `CONSULTATION_NOTIFICATION_EMAIL` manque, le paiement reste confirmé, l’erreur est loggée et le marqueur `client_email_sent_at` ou `internal_email_sent_at` concerné reste vide.
 
 Checklist Vercel/Brevo : vérifier que `noreply@agritech509ht.com` est un sender Brevo autorisé, que `agritech509ht.com` est authentifié, que `BREVO_API_KEY` est configurée dans l’environnement Vercel réellement déployé, que le déploiement a été relancé après ajout des variables, que le plan Brevo autorise l’envoi transactionnel et que les logs Brevo montrent les tentatives d’envoi.
+
+## Diagnostic et relance Consultation
+
+Le point d’entrée actif du paiement Consultation mock est la Server Action `confirmConsultationMockPayment()`. Après confirmation backend, elle relit la demande et appelle `sendConsultationPaidEmails(supabase, requestId)` avec `await`.
+
+La fonction email vérifie maintenant un contexte payé complet : demande `paid`, ligne `consultation_payments` `paid`, dates `paid_at`, email client valide, destinataire interne configuré, puis réponse Brevo avec `messageId`. Les marqueurs `client_email_sent_at` et `internal_email_sent_at` ne sont renseignés qu’après acceptation Brevo ; les identifiants `client_email_message_id` et `internal_email_message_id` permettent de rapprocher Supabase des logs transactionnels Brevo.
+
+Pour relancer une notification échouée, rejouer la confirmation mock d’une demande déjà payée ou appeler le workflow serveur depuis un outil admin protégé. Les marqueurs déjà remplis empêchent les doublons, tandis que `client_email_processing_at` et `internal_email_processing_at` protègent contre deux exécutions concurrentes.

@@ -92,7 +92,7 @@ export async function sendTransactionalEmail({
       skipped: true,
       reason: "missing_configuration",
       message:
-        "EMAIL_FROM_ADDRESS is missing or invalid. Configure EMAIL_FROM_NAME and EMAIL_FROM_ADDRESS on the server.",
+        "Missing required email configuration: EMAIL_FROM_ADDRESS must be configured with a valid verified Brevo sender address.",
     };
   }
 
@@ -109,12 +109,18 @@ export async function sendTransactionalEmail({
       ok: false,
       skipped: true,
       reason: "missing_configuration",
-      message: "BREVO_API_KEY is missing from the server environment.",
+      message:
+        "Missing required email configuration: BREVO_API_KEY must be configured on the server environment.",
     };
   }
 
   try {
     const explicitReplyTo = replyTo ? normalizeRecipient(replyTo) : null;
+    console.info("[Email] calling Brevo transactional endpoint", {
+      recipientCount: recipients.length,
+      subject,
+      hasTextContent: Boolean(text),
+    });
     const result = await sendBrevoTransactionalEmail({
       sender: configuration.sender,
       to: recipients,
@@ -124,9 +130,17 @@ export async function sendTransactionalEmail({
       replyTo: explicitReplyTo ?? configuration.replyTo,
     });
 
+    console.info("[Email] Brevo transactional endpoint accepted message", {
+      recipientCount: recipients.length,
+      subject,
+      status: result.status,
+      messageId: result.messageId,
+    });
+
     return {
       ok: true,
       messageId: result.messageId,
+      status: result.status,
     };
   } catch (error) {
     const status =
@@ -135,6 +149,7 @@ export async function sendTransactionalEmail({
       error instanceof BrevoTransactionalEmailError ? error.code : undefined;
     const message =
       error instanceof Error ? error.message : "Unknown email error";
+    const stack = error instanceof Error ? error.stack : undefined;
 
     console.error("[Email] Brevo transactional email failed", {
       recipientCount: recipients.length,
@@ -142,6 +157,7 @@ export async function sendTransactionalEmail({
       status,
       code,
       message,
+      stack,
     });
 
     return {
@@ -150,6 +166,7 @@ export async function sendTransactionalEmail({
       status,
       code,
       message,
+      stack,
     };
   }
 }

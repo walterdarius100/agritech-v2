@@ -35,6 +35,12 @@ export type ConsultationRequest = {
   admin_notes: string | null;
   client_email_sent_at: string | null;
   internal_email_sent_at: string | null;
+  client_email_message_id: string | null;
+  internal_email_message_id: string | null;
+  email_last_attempt_at: string | null;
+  email_last_error: string | null;
+  client_email_processing_at: string | null;
+  internal_email_processing_at: string | null;
   created_at: string;
   updated_at: string;
 };

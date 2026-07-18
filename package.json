@@ -8,7 +8,8 @@
     "build": "next build",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:consultation-emails": "node --test tests/consultation-email-workflow.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",

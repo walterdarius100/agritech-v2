@@ -16,7 +16,8 @@ export type SendTransactionalEmailInput = {
 export type SendTransactionalEmailResult =
   | {
       ok: true;
-      messageId?: string;
+      messageId: string;
+      status: number;
       skipped?: false;
     }
   | {
@@ -30,6 +31,7 @@ export type SendTransactionalEmailResult =
       message: string;
       status?: number;
       code?: string;
+      stack?: string;
     };
 
 export type BrevoSendEmailPayload = {
