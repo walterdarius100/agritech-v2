@@ -184,7 +184,13 @@ Protection anti-doublon Contact : le formulaire client possède déjà un état 
 
 ### Audit et décision inscription
 
-L’inscription Academy passe par `supabase.auth.signUp()` dans la Server Action `registerStudent`. Cette action configure déjà `emailRedirectTo` vers `/academy/login` pour le lien de confirmation Supabase Auth. Pour éviter une duplication inutile, aucun email custom Brevo « Bienvenue sur Agri-tech Academy » n’est envoyé dans ce PR : Supabase Auth reste responsable de l’email système de confirmation lorsque la confirmation email est activée côté Supabase.
+L’inscription Academy passe par `supabase.auth.signUp()` dans la Server Action `registerStudent`. Cette action configure déjà `emailRedirectTo` vers `/academy/login` pour le lien de confirmation Supabase Auth, puis crée ou complète la ligne `profiles` avec `role = student`. Le déclencheur Brevo de bienvenue est exécuté côté serveur juste après cette création de profil, sans activer d’enrollment, sans paiement et sans notification interne d’achat. Si la confirmation email Supabase est activée, l’email système de confirmation reste séparé : le message Brevo de bienvenue ne remplace pas cet email technique et précise que l’étudiant doit confirmer son adresse si une vérification est requise.
+
+### Bienvenue après inscription simple
+
+L’email de bienvenue Academy a pour objet `Bienvenue sur Agri-tech Academy`, pointe vers `/academy/dashboard` avec une URL absolue basée sur `NEXT_PUBLIC_SITE_URL`, utilise l’expéditeur global `EMAIL_FROM_NAME=Agri-tech` / `EMAIL_FROM_ADDRESS=noreply@agritech509ht.com`, et force le `Reply-To` via `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com`. Une inscription simple ne déclenche aucun email achat/accès, aucune notification interne Academy et aucun marqueur lié à `academy_payments`.
+
+Le marqueur anti-doublon choisi est `profiles.welcome_email_sent_at`, ajouté par la migration `supabase/migrations/20260718_add_academy_welcome_email_marker.sql`. Il est rempli uniquement après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si `BREVO_API_KEY` ou l’expéditeur sont absents, ou si l’email étudiant est invalide, la création du compte reste valide, l’erreur est loggée côté serveur sans secret et `welcome_email_sent_at` reste `NULL` pour permettre une relance future.
 
 ### Achat mock et accès formation
 
@@ -198,7 +204,7 @@ Après achat confirmé, une notification interne est envoyée à `ACADEMY_NOTIFI
 
 ### Anti-doublon et échecs Brevo
 
-La table `academy_payments` reçoit deux marqueurs anti-doublon : `student_purchase_email_sent_at` et `internal_purchase_email_sent_at`. Chaque marqueur est rempli uniquement après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si la configuration serveur est absente ou si l’email étudiant est invalide, le paiement et l’accès restent valides, l’erreur est loggée côté serveur sans secret et le marqueur reste vide pour permettre une relance future. L’échec de l’email étudiant n’empêche pas la tentative de notification interne.
+Pour les inscriptions simples, la table `profiles` reçoit le marqueur `welcome_email_sent_at`. Pour les achats, la table `academy_payments` reçoit deux marqueurs anti-doublon : `student_purchase_email_sent_at` et `internal_purchase_email_sent_at`. Chaque marqueur est rempli uniquement après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si la configuration serveur est absente ou si l’email étudiant est invalide, le paiement et l’accès restent valides, l’erreur est loggée côté serveur sans secret et le marqueur reste vide pour permettre une relance future. L’échec de l’email étudiant n’empêche pas la tentative de notification interne.
 
 ### Variables et adresses officielles
 

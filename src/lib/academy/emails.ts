@@ -12,6 +12,12 @@ type AcademyPurchaseEmailInput = {
   studentName?: string | null;
 };
 
+type AcademyWelcomeProfile = {
+  id: string;
+  full_name: string | null;
+  welcome_email_sent_at?: string | null;
+};
+
 type AcademyPurchasePayment = AcademyPayment & {
   student_purchase_email_sent_at?: string | null;
   internal_purchase_email_sent_at?: string | null;
@@ -54,6 +60,87 @@ function formatAmount(amount: number | string, currency: string) {
 
 function getAbsoluteAcademyCoursesUrl() {
   return `${env.siteUrl.replace(/\/$/, "")}/academy/mes-cours`;
+}
+
+function getAbsoluteAcademyDashboardUrl() {
+  return `${env.siteUrl.replace(/\/$/, "")}/academy/dashboard`;
+}
+
+
+function buildAcademyWelcomeEmail(studentName: string) {
+  const dashboardUrl = getAbsoluteAcademyDashboardUrl();
+  const safeStudentName = escapeHtml(studentName);
+  const safeDashboardUrl = escapeHtml(dashboardUrl);
+
+  return {
+    subject: "Bienvenue sur Agri-tech Academy",
+    text: `Bonjour ${studentName},\n\nVotre compte Agri-tech Academy a été créé. Si une vérification par email est requise, veuillez confirmer votre adresse afin d’accéder pleinement à votre espace étudiant.\n\nVous pouvez maintenant accéder à votre espace étudiant, consulter les formations disponibles et choisir celles qui correspondent à vos objectifs.\n\nAccéder à mon espace étudiant :\n${dashboardUrl}\n\nCordialement,\nL’équipe Agri-tech Academy`,
+    html: `<p>Bonjour ${safeStudentName},</p><p>Votre compte Agri-tech Academy a été créé. Si une vérification par email est requise, veuillez confirmer votre adresse afin d’accéder pleinement à votre espace étudiant.</p><p>Vous pouvez maintenant accéder à votre espace étudiant, consulter les formations disponibles et choisir celles qui correspondent à vos objectifs.</p><p><a href="${safeDashboardUrl}">Accéder à mon espace étudiant</a></p><p>Cordialement,<br />L’équipe Agri-tech Academy</p>`,
+  };
+}
+
+async function markWelcomeEmailSent(userId: string) {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ welcome_email_sent_at: new Date().toISOString() })
+    .eq("id", userId)
+    .is("welcome_email_sent_at", null);
+
+  const success = !error;
+  console.info("[academy-welcome-email] marker update success/failure", { success, error: error?.message });
+  return success;
+}
+
+export async function sendAcademyWelcomeEmail(userId: string) {
+  console.info("[academy-welcome-email] started", { userId });
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    console.error("[academy-welcome-email] Supabase admin client missing", { userId });
+    return;
+  }
+
+  const [{ data: profileData, error: profileError }, { data: userData, error: userError }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("id, full_name, welcome_email_sent_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    supabase.auth.admin.getUserById(userId),
+  ]);
+
+  const profile = profileData as AcademyWelcomeProfile | null;
+  const studentEmail = userData.user?.email?.trim().toLowerCase() || null;
+  const studentName = profile?.full_name?.trim() || userData.user?.user_metadata?.full_name?.trim() || "Étudiant";
+  const welcomeEmailAlreadySent = Boolean(profile?.welcome_email_sent_at);
+  const replyToEmail = getAcademyReplyToEmail();
+
+  console.info("[academy-welcome-email] user/profile found true/false", { userFound: Boolean(userData.user), profileFound: Boolean(profile), profileError: profileError?.message, userError: userError?.message });
+  console.info("[academy-welcome-email] student email present true/false", { present: isValidEmail(studentEmail) });
+  console.info("[academy-welcome-email] welcome_email_sent_at present true/false", { present: welcomeEmailAlreadySent });
+  console.info("[academy-welcome-email] reply-to used", { replyToEmail });
+
+  if (!profile || !userData.user || !isValidEmail(studentEmail) || welcomeEmailAlreadySent) return;
+
+  console.info("[academy-welcome-email] sending welcome email", { userId });
+  const email = buildAcademyWelcomeEmail(studentName);
+  const result = await sendTransactionalEmail({
+    to: { email: studentEmail!, name: studentName },
+    subject: email.subject,
+    html: email.html,
+    text: email.text,
+    replyTo: { email: replyToEmail, name: "Agri-tech Academy" },
+  });
+
+  if (result.ok) {
+    console.info("[academy-welcome-email] Brevo success/messageId", { messageId: result.messageId });
+    await markWelcomeEmailSent(userId);
+  } else {
+    console.error("[academy-welcome-email] Brevo error status/code/message", { reason: result.reason, status: result.status, code: result.code, message: result.message });
+  }
 }
 
 function buildStudentPurchaseEmail(payment: AcademyPurchasePayment, studentName: string, courseTitle: string) {

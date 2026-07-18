@@ -5,7 +5,7 @@
 - `/admin/login` reste l’entrée administration et l’autorisation admin reste basée sur `ADMIN_EMAILS`.
 - `/academy/login` et `/academy/register` sont dédiées aux étudiants.
 - Un étudiant n’a pas besoin d’être ajouté à `ADMIN_EMAILS` pour se connecter à l’Academy.
-- À l’inscription, une ligne `profiles` est créée ou complétée avec `role = student`.
+- À l’inscription, une ligne `profiles` est créée ou complétée avec `role = student`. Après cette création de profil, le serveur tente d’envoyer l’email Brevo de bienvenue Academy avec `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com`; l’échec Brevo ne bloque pas le compte et `profiles.welcome_email_sent_at` reste `NULL` pour éviter les doublons uniquement après succès réel.
 
 ## Confirmation email Supabase
 
