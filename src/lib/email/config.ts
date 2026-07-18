@@ -22,3 +22,18 @@ export function getConsultationNotificationRecipient(): EmailRecipient | null {
 
   return email ? { email, name: "Agri-tech consultations" } : null;
 }
+
+
+export function getContactReplyTo(): EmailRecipient | null {
+  const email = normalizeEmail(
+    process.env.CONTACT_REPLY_TO_EMAIL || process.env.EMAIL_REPLY_TO,
+  );
+
+  return email ? { email, name: "Agri-tech" } : null;
+}
+
+export function getContactNotificationRecipient(): EmailRecipient | null {
+  const email = normalizeEmail(process.env.CONTACT_NOTIFICATION_EMAIL);
+
+  return email ? { email, name: "Agri-tech contact" } : null;
+}
