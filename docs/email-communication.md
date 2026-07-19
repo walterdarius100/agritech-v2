@@ -237,7 +237,7 @@ Ce changement ne modifie pas le template visuel du certificat, l’impression/PD
 
 ## Certificats Academy — PDF en pièce jointe
 
-Quand un certificat Academy est créé, le flux d’email existant conserve le marqueur anti-doublon `academy_certificates.certificate_email_sent_at` et envoie maintenant le message étudiant avec une pièce jointe PDF. Le fichier joint est généré côté serveur par `generateAcademyCertificatePdf(certificateId)` à partir des mêmes données certificat que l’affichage étudiant : nom de l’étudiant, formation, numéro de certificat, date de délivrance, statut et lien public de vérification.
+Quand un certificat Academy est créé, le flux d’email existant conserve le marqueur anti-doublon `academy_certificates.certificate_email_sent_at` et envoie maintenant le message étudiant avec une pièce jointe PDF. Le fichier joint est généré côté serveur par `generateAcademyCertificatePdf(certificateId)` à partir des mêmes données certificat que l’affichage étudiant : nom de l’étudiant, formation, texte officiel, durée, ville/date de délivrance, signature, panneau latéral, numéro de certificat, statut et lien public de vérification.
 
 La pièce jointe Brevo utilise un contenu PDF encodé en base64, avec un nom sécurisé de la forme `certificat-agritech-academy-[CERTIFICATE_ID].pdf` et le type logique `application/pdf`. La clé `BREVO_API_KEY` reste uniquement utilisée côté serveur par le service transactionnel.
 

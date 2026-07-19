@@ -125,9 +125,9 @@ L’anti-doublon est `academy_certificates.certificate_email_sent_at`. Le marque
 
 ## Envoi email avec PDF serveur attaché
 
-Le certificat affiché à l’écran continue d’être rendu par le template React existant et l’impression navigateur reste inchangée. Pour l’email transactionnel, une version PDF serveur indépendante et légère est produite depuis les données normalisées du certificat afin d’éviter toute dépendance à un contexte navigateur.
+Le certificat affiché à l’écran continue d’être rendu par le template React existant et l’impression navigateur reste inchangée. Pour l’email transactionnel, une version PDF serveur vectorielle reprend les proportions, couleurs, blocs et textes du template certificat original depuis les données normalisées du certificat afin d’éviter toute dépendance à un contexte navigateur.
 
-La génération PDF reprend les informations certifiantes utilisées par l’affichage : étudiant, formation, date de délivrance, numéro de certificat, statut et URL publique de vérification. Elle ne modifie ni le template visuel écran, ni la page publique de vérification, ni la progression Academy, ni les paiements Academy.
+La génération PDF reprend les informations certifiantes et la structure visuelle utilisées par l’affichage : zone texte à gauche, nom étudiant en grand, panneau bleu latéral, bande Academy orange, signature, date/ville, numéro de certificat, motif QR/lien de vérification, statut et URL publique de vérification. Elle ne modifie ni le template visuel écran, ni la page publique de vérification, ni la progression Academy, ni les paiements Academy.
 
 Anti-doublon et erreurs :
 
