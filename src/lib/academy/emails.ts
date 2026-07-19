@@ -19,6 +19,21 @@ type AcademyWelcomeProfile = {
   welcome_email_sent_at?: string | null;
 };
 
+
+type AcademyCertificateEmailRecord = {
+  id: string;
+  certificate_id: string;
+  student_id: string | null;
+  course_id: string | null;
+  student_full_name: string | null;
+  course_title: string | null;
+  issued_at: string | null;
+  verification_url: string | null;
+  certificate_email_sent_at?: string | null;
+  academy_courses?: Pick<AcademyCourse, "title"> | null;
+  profiles?: { full_name: string | null; email?: string | null } | null;
+};
+
 type AcademyPurchasePayment = AcademyPayment & {
   student_purchase_email_sent_at?: string | null;
   internal_purchase_email_sent_at?: string | null;
@@ -59,6 +74,23 @@ function formatAmount(amount: number | string, currency: string) {
   return `${formatted} ${currency}`;
 }
 
+
+function getAbsoluteAcademyCertificateUrl(certificateId: string) {
+  return `${env.siteUrl.replace(/\/$/, "")}/academy/certificats/${encodeURIComponent(certificateId)}`;
+}
+
+function getAbsoluteCertificateVerificationUrl(certificateId: string, storedVerificationUrl?: string | null) {
+  if (storedVerificationUrl?.trim()) return storedVerificationUrl.trim();
+  return `${env.siteUrl.replace(/\/$/, "")}/certificats/verifier/${encodeURIComponent(certificateId)}`;
+}
+
+function formatCertificateIssuedDate(value?: string | null) {
+  if (!value) return "Non renseignée";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Non renseignée";
+  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" });
+}
+
 function getAbsoluteAcademyCoursesUrl() {
   return `${env.siteUrl.replace(/\/$/, "")}/academy/mes-cours`;
 }
@@ -82,6 +114,128 @@ function actionButton(href: string, label: string) {
       </td>
     </tr>
   </table>`;
+}
+
+
+function buildAcademyCertificateEmail(params: {
+  studentName: string;
+  courseTitle: string;
+  certificateId: string;
+  issuedDate: string;
+  certificateUrl: string;
+  verificationUrl: string | null;
+}) {
+  const { studentName, courseTitle, certificateId, issuedDate, certificateUrl, verificationUrl } = params;
+  const verificationHtml = verificationUrl
+    ? `<p style="margin:0 0 16px;color:#52614f;font-size:14px;">Lien de vérification publique : <a href="${escapeHtml(verificationUrl)}" style="color:#1f4d2b;font-weight:700;">${escapeHtml(verificationUrl)}</a></p>`
+    : "";
+  const verificationText = verificationUrl ? `\nLien de vérification publique : ${verificationUrl}\n` : "";
+
+  const html = baseEmailTemplate({
+    title: "Votre certificat est disponible — Agri-tech Academy",
+    previewText: `Votre certificat pour la formation « ${courseTitle} » est maintenant disponible.`,
+    replyTo: getAcademyReplyToEmail(),
+    contentHtml: `
+      <p style="margin:0 0 16px;">Bonjour ${escapeHtml(studentName)},</p>
+      <p style="margin:0 0 16px;">Votre certificat pour la formation « <strong>${escapeHtml(courseTitle)}</strong> » est maintenant disponible.</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-top:1px solid #e2e8d8;border-bottom:1px solid #e2e8d8;">
+        ${detailRow("Numéro du certificat", certificateId)}
+        ${detailRow("Date de délivrance", issuedDate)}
+        ${detailRow("Formation", courseTitle)}
+      </table>
+      <p style="margin:0 0 16px;">Vous pouvez le consulter et l’enregistrer en PDF depuis votre espace étudiant.</p>
+      ${actionButton(certificateUrl, "Voir mon certificat")}
+      ${verificationHtml}
+      <p style="margin:0;">Cordialement,<br />L’équipe Agri-tech Academy</p>
+    `,
+  });
+
+  return {
+    subject: "Votre certificat est disponible — Agri-tech Academy",
+    text: `Bonjour ${studentName},\n\nVotre certificat pour la formation « ${courseTitle} » est maintenant disponible.\n\nNuméro du certificat : ${certificateId}\nDate de délivrance : ${issuedDate}\n\nVous pouvez le consulter et l’enregistrer en PDF depuis votre espace étudiant.\n\nVoir mon certificat :\n${certificateUrl}\n${verificationText}\nCordialement,\nL’équipe Agri-tech Academy`,
+    html,
+  };
+}
+
+async function markCertificateEmailSent(certificateRowId: string) {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return false;
+
+  const { error } = await supabase
+    .from("academy_certificates")
+    .update({ certificate_email_sent_at: new Date().toISOString() })
+    .eq("id", certificateRowId)
+    .is("certificate_email_sent_at", null);
+
+  const success = !error;
+  console.info("[academy-certificate-email] marker update success/failure", { success, error: error?.message });
+  return success;
+}
+
+export async function sendAcademyCertificateEmail(certificateId: string) {
+  console.info("[academy-certificate-email] started", { certificateId });
+
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) {
+    console.error("[academy-certificate-email] Supabase admin client missing", { certificateId });
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from("academy_certificates")
+    .select("id, certificate_id, student_id, course_id, student_full_name, course_title, issued_at, verification_url, certificate_email_sent_at, academy_courses(title)")
+    .eq("certificate_id", certificateId)
+    .maybeSingle();
+
+  console.info("[academy-certificate-email] certificate found true/false", { found: Boolean(data), error: error?.message });
+  if (error || !data) return;
+
+  const certificate = data as unknown as AcademyCertificateEmailRecord;
+  const emailAlreadySent = Boolean(certificate.certificate_email_sent_at);
+  console.info("[academy-certificate-email] certificate email already sent true/false", { sent: emailAlreadySent });
+  if (emailAlreadySent) return;
+
+  console.info("[academy-certificate-email] student found true/false", { found: Boolean(certificate.student_id) });
+  if (!certificate.student_id) return;
+
+  const [{ data: profileData }, { data: userData, error: userError }] = await Promise.all([
+    supabase.from("profiles").select("full_name").eq("id", certificate.student_id).maybeSingle(),
+    supabase.auth.admin.getUserById(certificate.student_id),
+  ]);
+
+  const studentEmail = userData.user?.email?.trim().toLowerCase() || null;
+  const studentName = certificate.student_full_name?.trim() || (profileData?.full_name as string | null | undefined)?.trim() || userData.user?.user_metadata?.full_name?.trim() || "Étudiant";
+  const courseTitle = certificate.course_title?.trim() || certificate.academy_courses?.title?.trim() || "Formation Academy";
+  const issuedDate = formatCertificateIssuedDate(certificate.issued_at);
+  const replyToEmail = getAcademyReplyToEmail();
+  const certificateUrl = getAbsoluteAcademyCertificateUrl(certificate.certificate_id);
+  const verificationUrl = getAbsoluteCertificateVerificationUrl(certificate.certificate_id, certificate.verification_url);
+
+  console.info("[academy-certificate-email] student found true/false", { found: Boolean(userData.user), userError: userError?.message });
+  console.info("[academy-certificate-email] student email present true/false", { present: isValidEmail(studentEmail) });
+  console.info("[academy-certificate-email] course title present true/false", { present: Boolean(courseTitle) });
+  console.info("[academy-certificate-email] reply-to used", { replyToEmail });
+  console.info("[academy-certificate-email] certificate URL generated true/false", { generated: Boolean(certificateUrl) });
+  console.info("[academy-certificate-email] verification URL generated true/false", { generated: Boolean(verificationUrl) });
+
+  if (!userData.user || !isValidEmail(studentEmail)) return;
+
+  console.info("[academy-certificate-email] sending certificate email", { certificateId: certificate.certificate_id });
+  const email = buildAcademyCertificateEmail({ studentName, courseTitle, certificateId: certificate.certificate_id, issuedDate, certificateUrl, verificationUrl });
+  const result = await sendTransactionalEmail({
+    to: { email: studentEmail!, name: studentName },
+    subject: email.subject,
+    html: email.html,
+    text: email.text,
+    replyTo: { email: replyToEmail, name: "Agri-tech Academy" },
+  });
+
+  if (result.ok) {
+    console.info("[academy-certificate-email] Brevo success/messageId", { messageId: result.messageId });
+    await markCertificateEmailSent(certificate.id);
+  } else {
+    console.error("[academy-certificate-email] Brevo error status/code/message", { reason: result.reason, status: result.status, code: result.code, message: result.message });
+  }
 }
 
 function buildAcademyWelcomeEmail(studentName: string) {

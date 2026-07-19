@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
 
+import { sendAcademyCertificateEmail } from "@/lib/academy/emails";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { AcademyCertificate, AcademyEnrollment, AcademyLesson, Profile } from "@/types/academy";
 
@@ -218,6 +219,18 @@ export async function createCertificateForEligibility(
       message: error.message,
     });
     return { attempted: true, created: false, skippedReason: "generation_failed" };
+  }
+
+  try {
+    await sendAcademyCertificateEmail(certificateId);
+  } catch (emailError) {
+    console.error("[Academy certificates] Certificate email trigger failed after certificate creation", {
+      certificateId,
+      enrollmentId: eligibility.enrollmentId,
+      studentId: eligibility.studentId,
+      courseId: eligibility.courseId,
+      message: emailError instanceof Error ? emailError.message : "Unknown certificate email error",
+    });
   }
 
   return { attempted: true, created: true, certificateId };
