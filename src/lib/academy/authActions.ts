@@ -9,6 +9,7 @@ import {
   type AcademyAuthState,
 } from "@/lib/academy/auth";
 import { env } from "@/lib/env";
+import { sendAcademyWelcomeEmail } from "@/lib/academy/emails";
 import { createSupabaseAdminClient, createSupabaseServerClient } from "@/lib/supabase/server";
 
 const cookieOptions = {
@@ -124,6 +125,15 @@ export async function registerStudent(_state: AcademyAuthState, formData: FormDa
   }
 
   await upsertStudentProfile(data.user.id, fullName, phone, organization);
+
+  try {
+    await sendAcademyWelcomeEmail(data.user.id);
+  } catch (error) {
+    console.error("[academy-welcome-email] non-blocking registration hook failed", {
+      userId: data.user.id,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 
   if (data.session) {
     await setSessionCookies(data.session);
