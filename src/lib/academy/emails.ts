@@ -2,6 +2,7 @@ import "server-only";
 
 import { env } from "@/lib/env";
 import { sendTransactionalEmail } from "@/lib/email/send-email";
+import { baseEmailTemplate } from "@/lib/email/templates/base-email-template";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type { AcademyPayment } from "@/lib/academy/payments";
 import type { AcademyCourse } from "@/types/academy";
@@ -66,16 +67,42 @@ function getAbsoluteAcademyDashboardUrl() {
   return `${env.siteUrl.replace(/\/$/, "")}/academy/dashboard`;
 }
 
+function detailRow(label: string, value: string) {
+  return `<tr>
+    <td style="padding:8px 0;color:#52614f;font-size:14px;">${escapeHtml(label)}</td>
+    <td style="padding:8px 0;color:#1f2a1f;font-size:14px;font-weight:700;text-align:right;">${escapeHtml(value)}</td>
+  </tr>`;
+}
+
+function actionButton(href: string, label: string) {
+  return `<table role="presentation" cellspacing="0" cellpadding="0" style="margin:22px 0;">
+    <tr>
+      <td style="border-radius:12px;background:#1f4d2b;">
+        <a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 18px;color:#ffffff;text-decoration:none;font-weight:700;font-size:15px;">${escapeHtml(label)}</a>
+      </td>
+    </tr>
+  </table>`;
+}
 
 function buildAcademyWelcomeEmail(studentName: string) {
   const dashboardUrl = getAbsoluteAcademyDashboardUrl();
-  const safeStudentName = escapeHtml(studentName);
-  const safeDashboardUrl = escapeHtml(dashboardUrl);
+  const html = baseEmailTemplate({
+    title: "Bienvenue sur Agri-tech Academy",
+    previewText: "Votre compte étudiant Agri-tech Academy est prêt.",
+    replyTo: getAcademyReplyToEmail(),
+    contentHtml: `
+      <p style="margin:0 0 16px;">Bonjour ${escapeHtml(studentName)},</p>
+      <p style="margin:0 0 16px;">Votre compte Agri-tech Academy a été créé. Si une vérification par email est requise, veuillez confirmer votre adresse afin d’accéder pleinement à votre espace étudiant.</p>
+      <p style="margin:0 0 16px;">Vous pouvez maintenant accéder à votre espace étudiant, consulter les formations disponibles et choisir celles qui correspondent à vos objectifs.</p>
+      ${actionButton(dashboardUrl, "Accéder à mon espace Academy")}
+      <p style="margin:0;">Cordialement,<br />L’équipe Agri-tech Academy</p>
+    `,
+  });
 
   return {
     subject: "Bienvenue sur Agri-tech Academy",
-    text: `Bonjour ${studentName},\n\nVotre compte Agri-tech Academy a été créé. Si une vérification par email est requise, veuillez confirmer votre adresse afin d’accéder pleinement à votre espace étudiant.\n\nVous pouvez maintenant accéder à votre espace étudiant, consulter les formations disponibles et choisir celles qui correspondent à vos objectifs.\n\nAccéder à mon espace étudiant :\n${dashboardUrl}\n\nCordialement,\nL’équipe Agri-tech Academy`,
-    html: `<p>Bonjour ${safeStudentName},</p><p>Votre compte Agri-tech Academy a été créé. Si une vérification par email est requise, veuillez confirmer votre adresse afin d’accéder pleinement à votre espace étudiant.</p><p>Vous pouvez maintenant accéder à votre espace étudiant, consulter les formations disponibles et choisir celles qui correspondent à vos objectifs.</p><p><a href="${safeDashboardUrl}">Accéder à mon espace étudiant</a></p><p>Cordialement,<br />L’équipe Agri-tech Academy</p>`,
+    text: `Bonjour ${studentName},\n\nVotre compte Agri-tech Academy a été créé. Si une vérification par email est requise, veuillez confirmer votre adresse afin d’accéder pleinement à votre espace étudiant.\n\nVous pouvez maintenant accéder à votre espace étudiant, consulter les formations disponibles et choisir celles qui correspondent à vos objectifs.\n\nAccéder à mon espace Academy :\n${dashboardUrl}\n\nCordialement,\nL’équipe Agri-tech Academy`,
+    html,
   };
 }
 
@@ -146,15 +173,28 @@ export async function sendAcademyWelcomeEmail(userId: string) {
 function buildStudentPurchaseEmail(payment: AcademyPurchasePayment, studentName: string, courseTitle: string) {
   const amount = formatAmount(payment.amount, payment.currency);
   const myCoursesUrl = getAbsoluteAcademyCoursesUrl();
-  const safeStudentName = escapeHtml(studentName);
-  const safeCourseTitle = escapeHtml(courseTitle);
-  const safeAmount = escapeHtml(amount);
-  const safeMyCoursesUrl = escapeHtml(myCoursesUrl);
+  const html = baseEmailTemplate({
+    title: `Confirmation de votre inscription à la formation « ${courseTitle} »`,
+    previewText: `Votre accès à la formation « ${courseTitle} » est activé.`,
+    replyTo: getAcademyReplyToEmail(),
+    contentHtml: `
+      <p style="margin:0 0 16px;">Bonjour ${escapeHtml(studentName)},</p>
+      <p style="margin:0 0 16px;">Nous confirmons votre inscription à la formation « <strong>${escapeHtml(courseTitle)}</strong> » sur Agri-tech Academy.</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-top:1px solid #e2e8d8;border-bottom:1px solid #e2e8d8;">
+        ${detailRow("Formation", courseTitle)}
+        ${detailRow("Montant", amount)}
+        ${detailRow("Statut", "Paiement confirmé")}
+      </table>
+      <p style="margin:0 0 16px;">Votre accès à la formation est maintenant activé. Vous pouvez retrouver votre cours depuis votre espace étudiant.</p>
+      ${actionButton(myCoursesUrl, "Voir mes cours")}
+      <p style="margin:0;">Cordialement,<br />L’équipe Agri-tech Academy</p>
+    `,
+  });
 
   return {
     subject: `Confirmation de votre inscription à la formation « ${courseTitle} »`,
-    text: `Bonjour ${studentName},\n\nNous confirmons votre inscription à la formation « ${courseTitle} » sur Agri-tech Academy.\n\nMontant : ${amount}\nStatut : Paiement confirmé\n\nVotre accès à la formation est maintenant activé. Vous pouvez retrouver votre cours depuis votre espace étudiant.\n\nAccéder à mes cours :\n${myCoursesUrl}\n\nCordialement,\nL’équipe Agri-tech Academy`,
-    html: `<p>Bonjour ${safeStudentName},</p><p>Nous confirmons votre inscription à la formation « <strong>${safeCourseTitle}</strong> » sur Agri-tech Academy.</p><p><strong>Montant :</strong> ${safeAmount}<br /><strong>Statut :</strong> Paiement confirmé</p><p>Votre accès à la formation est maintenant activé. Vous pouvez retrouver votre cours depuis votre espace étudiant.</p><p><a href="${safeMyCoursesUrl}">Accéder à mes cours</a></p><p>Cordialement,<br />L’équipe Agri-tech Academy</p>`,
+    text: `Bonjour ${studentName},\n\nNous confirmons votre inscription à la formation « ${courseTitle} » sur Agri-tech Academy.\n\nMontant : ${amount}\nStatut : Paiement confirmé\n\nVotre accès à la formation est maintenant activé. Vous pouvez retrouver votre cours depuis votre espace étudiant.\n\nVoir mes cours :\n${myCoursesUrl}\n\nCordialement,\nL’équipe Agri-tech Academy`,
+    html,
   };
 }
 
@@ -176,10 +216,30 @@ function buildInternalPurchaseEmail(payment: AcademyPurchasePayment, studentName
     `Lien admin Academy : ${adminUrl}`,
   ];
 
+  const html = baseEmailTemplate({
+    title: `Nouvelle inscription Academy — ${courseTitle}`,
+    previewText: `Inscription payée par ${studentName}.`,
+    replyTo: getAcademyReplyToEmail(),
+    contentHtml: `
+      <p style="margin:0 0 16px;">Une nouvelle inscription à une formation Academy a été enregistrée.</p>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:20px 0;border-top:1px solid #e2e8d8;border-bottom:1px solid #e2e8d8;">
+        ${detailRow("Étudiant", studentName)}
+        ${detailRow("Email", studentEmail)}
+        ${detailRow("Formation", courseTitle)}
+        ${detailRow("Montant", amount)}
+        ${detailRow("Statut", "Paiement confirmé")}
+        ${detailRow("Identifiant paiement", payment.id)}
+        ${detailRow("Date de paiement", paidAt)}
+        ${detailRow("Mode de paiement", payment.provider)}
+      </table>
+      <p style="margin:0;"><a href="${escapeHtml(adminUrl)}" style="color:#1f4d2b;font-weight:700;">Voir les paiements Academy</a></p>
+    `,
+  });
+
   return {
     subject: `Nouvelle inscription Academy — ${courseTitle}`,
     text: lines.join("\n"),
-    html: `<p>Une nouvelle inscription à une formation Academy a été enregistrée.</p><ul><li><strong>Étudiant :</strong> ${escapeHtml(studentName)}</li><li><strong>Email :</strong> ${escapeHtml(studentEmail)}</li><li><strong>Formation :</strong> ${escapeHtml(courseTitle)}</li><li><strong>Montant :</strong> ${escapeHtml(amount)}</li><li><strong>Statut :</strong> Paiement confirmé</li><li><strong>Identifiant paiement :</strong> ${escapeHtml(payment.id)}</li><li><strong>Date de paiement :</strong> ${escapeHtml(paidAt)}</li><li><strong>Mode de paiement :</strong> ${escapeHtml(payment.provider)}</li></ul><p><a href="${escapeHtml(adminUrl)}">Voir les paiements Academy</a></p>`,
+    html,
   };
 }
 

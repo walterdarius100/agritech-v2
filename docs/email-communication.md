@@ -186,9 +186,13 @@ Protection anti-doublon Contact : le formulaire client possède déjà un état 
 
 L’inscription Academy passe par `supabase.auth.signUp()` dans la Server Action `registerStudent`. Cette action configure déjà `emailRedirectTo` vers `/academy/login` pour le lien de confirmation Supabase Auth, puis crée ou complète la ligne `profiles` avec `role = student`. Le déclencheur Brevo de bienvenue est exécuté côté serveur juste après cette création de profil, sans activer d’enrollment, sans paiement et sans notification interne d’achat. Si la confirmation email Supabase est activée, l’email système de confirmation reste séparé : le message Brevo de bienvenue ne remplace pas cet email technique et précise que l’étudiant doit confirmer son adresse si une vérification est requise.
 
+### Layout graphique Agri-tech
+
+Les emails transactionnels partagent le layout HTML `baseEmailTemplate()` : fond clair `#f6f7f4`, carte centrale blanche, en-tête vert `#1f4d2b`, titre vert, tableaux de détails compatibles email et pied de page discret. Ce layout est déjà utilisé par les emails Consultation et Contact ; les emails Academy l’utilisent maintenant également pour garder une cohérence graphique sans modifier les déclencheurs métier.
+
 ### Bienvenue après inscription simple
 
-L’email de bienvenue Academy a pour objet `Bienvenue sur Agri-tech Academy`, pointe vers `/academy/dashboard` avec une URL absolue basée sur `NEXT_PUBLIC_SITE_URL`, utilise l’expéditeur global `EMAIL_FROM_NAME=Agri-tech` / `EMAIL_FROM_ADDRESS=noreply@agritech509ht.com`, et force le `Reply-To` via `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com`. Une inscription simple ne déclenche aucun email achat/accès, aucune notification interne Academy et aucun marqueur lié à `academy_payments`.
+L’email de bienvenue Academy a pour objet `Bienvenue sur Agri-tech Academy`, pointe vers `/academy/dashboard` avec une URL absolue basée sur `NEXT_PUBLIC_SITE_URL`, utilise l’expéditeur global `EMAIL_FROM_NAME=Agri-tech` / `EMAIL_FROM_ADDRESS=noreply@agritech509ht.com`, et force le `Reply-To` via `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com`. Son HTML reprend le layout Agri-tech avec carte centrale, contenu hiérarchisé, bouton `Accéder à mon espace Academy` et version texte brute. Une inscription simple ne déclenche aucun email achat/accès, aucune notification interne Academy et aucun marqueur lié à `academy_payments`.
 
 Le marqueur anti-doublon choisi est `profiles.welcome_email_sent_at`, ajouté par la migration `supabase/migrations/20260718_add_academy_welcome_email_marker.sql`. Il est rempli uniquement après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si `BREVO_API_KEY` ou l’expéditeur sont absents, ou si l’email étudiant est invalide, la création du compte reste valide, l’erreur est loggée côté serveur sans secret et `welcome_email_sent_at` reste `NULL` pour permettre une relance future.
 
@@ -196,11 +200,11 @@ Le marqueur anti-doublon choisi est `profiles.welcome_email_sent_at`, ajouté pa
 
 Le paiement mock Academy est confirmé côté serveur par `POST /api/academy/payments/mock-confirm`. Quand le résultat mock est `success`, le statut devient `paid`, `paid_at` et `verified_at` sont renseignés, puis `activateCourseAccessAfterPayment()` active ou met à jour l’enrollment Academy. Les emails Academy sont déclenchés uniquement après cette activation d’accès, afin de ne pas annoncer un accès avant paiement confirmé.
 
-Un seul email étudiant combine la confirmation d’achat et l’accès à la formation avec l’objet `Confirmation de votre inscription à la formation « [COURSE_TITLE] »`. Le lien principal pointe vers `/academy/mes-cours`, qui est la page stable de consultation des cours actifs.
+Un seul email étudiant combine la confirmation d’achat et l’accès à la formation avec l’objet `Confirmation de votre inscription à la formation « [COURSE_TITLE] »`. Le HTML reprend le layout Agri-tech, ajoute un tableau de détails formation/montant/statut et un bouton `Voir mes cours` vers `/academy/mes-cours`, qui est la page stable de consultation des cours actifs. La version texte brute reste disponible.
 
 ### Notification interne Academy
 
-Après achat confirmé, une notification interne est envoyée à `ACADEMY_NOTIFICATION_EMAIL`, attendu à `formation@agritech509ht.com`. Le `Reply-To` Academy utilise `ACADEMY_REPLY_TO_EMAIL`, attendu à `formation@agritech509ht.com`. Ces variables dédiées évitent toute confusion avec les variables Contact ou Consultation.
+Après achat confirmé, une notification interne est envoyée à `ACADEMY_NOTIFICATION_EMAIL`, attendu à `formation@agritech509ht.com`. Le HTML reprend le même style que la notification interne Consultation : phrase de contexte, tableau de détails et lien admin discret. Le `Reply-To` Academy utilise `ACADEMY_REPLY_TO_EMAIL`, attendu à `formation@agritech509ht.com`. Ces variables dédiées évitent toute confusion avec les variables Contact ou Consultation.
 
 ### Anti-doublon et échecs Brevo
 
