@@ -109,3 +109,16 @@ La route `/academy/certificats/[certificateId]` cherche le certificat par `certi
 - ou admin autorisé.
 
 Le bouton admin “Voir le certificat” continue de pointer vers cette route existante avec `certificate_id`, ce qui évite d’utiliser l’UUID interne ou une route admin inexistante.
+
+## Email de disponibilité du certificat
+
+Les certificats restent stockés dans `academy_certificates` et le template visuel n’est pas modifié. Après une insertion réussie seulement, le workflow serveur appelle `sendAcademyCertificateEmail(certificateId)` pour prévenir l’étudiant que son certificat est disponible.
+
+Déclencheurs couverts :
+
+- génération automatique après complétion réelle de la formation ;
+- génération manuelle admin depuis `/admin/academy/certificates`.
+
+L’email utilise le même layout graphique Agri-tech que les autres emails transactionnels Academy. Il contient le numéro public `certificate_id`, la date de délivrance `issued_at`, le titre de formation, un bouton vers `/academy/certificats/[certificateId]` et le lien public existant `/certificats/verifier/[certificateId]` quand disponible. Les URLs absolues sont construites avec `NEXT_PUBLIC_SITE_URL`.
+
+L’anti-doublon est `academy_certificates.certificate_email_sent_at`. Le marqueur est renseigné uniquement après succès Brevo ; en cas d’échec, le certificat reste généré, visible côté étudiant/admin, imprimable via navigateur et vérifiable publiquement. Le `Reply-To` Academy reste `formation@agritech509ht.com` via `ACADEMY_REPLY_TO_EMAIL`.

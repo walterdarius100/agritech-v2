@@ -222,3 +222,15 @@ ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com
 Le module continue d’utiliser les variables globales serveur `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS` et `EMAIL_REPLY_TO`. Ne jamais créer ni utiliser `NEXT_PUBLIC_BREVO_API_KEY`.
 
 Adresse officielle Academy : `formation@agritech509ht.com`. L’adresse `projet@agritech509ht.com` est invalide et ne doit jamais être utilisée. L’adresse `projets@agritech509ht.com` avec `s` est réservée aux consultations/projets clients, pas à Academy.
+
+### Certificat Academy disponible
+
+Lorsqu’un certificat Academy est réellement créé dans `academy_certificates`, le serveur déclenche `sendAcademyCertificateEmail(certificateId)` après l’insertion réussie. Ce déclencheur couvre les deux chemins existants : génération automatique après complétion de toutes les leçons publiées et génération manuelle depuis `/admin/academy/certificates`.
+
+L’email étudiant a pour objet `Votre certificat est disponible — Agri-tech Academy`. Il utilise le layout HTML Agri-tech partagé `baseEmailTemplate()` : en-tête vert, fond clair, carte centrale, tableau de détails, bouton principal `Voir mon certificat`, signature Agri-tech Academy et version texte brute. Le lien étudiant pointe vers `/academy/certificats/[certificateId]` avec une URL absolue basée sur `NEXT_PUBLIC_SITE_URL`. Le lien public de vérification existant `/certificats/verifier/[certificateId]` est inclus quand il peut être construit, sans modifier la page publique.
+
+Le `Reply-To` forcé est `ACADEMY_REPLY_TO_EMAIL`, attendu à `formation@agritech509ht.com`. Ce workflow n’utilise pas les variables Contact ou Consultation, n’utilise jamais `projet@agritech509ht.com` et ne crée pas de variable publique Brevo.
+
+L’anti-doublon choisi est le marqueur minimal `academy_certificates.certificate_email_sent_at`, ajouté par la migration `supabase/migrations/20260719_add_academy_certificate_email_marker.sql`. La fonction vérifie ce marqueur avant l’envoi et ne le remplit qu’après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si la configuration serveur est absente ou si l’email étudiant est indisponible, le certificat reste généré et visible, l’erreur est loggée côté serveur sans secret et le marqueur reste vide pour permettre une relance future.
+
+Ce changement ne modifie pas le template visuel du certificat, l’impression/PDF navigateur, la page publique de vérification, la progression Academy, Consultation, Contact, les paiements Academy, ni les emails Academy déjà existants d’inscription et d’achat/enrollment.
