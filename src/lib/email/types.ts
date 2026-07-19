@@ -5,12 +5,19 @@ export type EmailRecipient = {
   name?: string | null;
 };
 
+export type EmailAttachment = {
+  name: string;
+  content: string;
+  contentType?: string;
+};
+
 export type SendTransactionalEmailInput = {
   to: EmailRecipient | EmailRecipient[];
   subject: string;
   html: string;
   text?: string;
   replyTo?: EmailRecipient | null;
+  attachments?: EmailAttachment[];
 };
 
 export type SendTransactionalEmailResult =
@@ -39,4 +46,5 @@ export type BrevoSendEmailPayload = {
   htmlContent: string;
   textContent?: string;
   replyTo?: EmailRecipient;
+  attachment?: EmailAttachment[];
 };

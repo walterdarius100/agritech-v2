@@ -1,6 +1,7 @@
 import "server-only";
 
 import { env } from "@/lib/env";
+import { generateAcademyCertificatePdf } from "@/lib/academy/certificate-pdf";
 import { sendTransactionalEmail } from "@/lib/email/send-email";
 import { baseEmailTemplate } from "@/lib/email/templates/base-email-template";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -143,7 +144,7 @@ function buildAcademyCertificateEmail(params: {
         ${detailRow("Date de délivrance", issuedDate)}
         ${detailRow("Formation", courseTitle)}
       </table>
-      <p style="margin:0 0 16px;">Vous pouvez le consulter et l’enregistrer en PDF depuis votre espace étudiant.</p>
+      <p style="margin:0 0 16px;">Vous trouverez une version PDF de votre certificat en pièce jointe. Vous pouvez également le consulter depuis votre espace étudiant.</p>
       ${actionButton(certificateUrl, "Voir mon certificat")}
       ${verificationHtml}
       <p style="margin:0;">Cordialement,<br />L’équipe Agri-tech Academy</p>
@@ -152,7 +153,9 @@ function buildAcademyCertificateEmail(params: {
 
   return {
     subject: "Votre certificat est disponible — Agri-tech Academy",
-    text: `Bonjour ${studentName},\n\nVotre certificat pour la formation « ${courseTitle} » est maintenant disponible.\n\nNuméro du certificat : ${certificateId}\nDate de délivrance : ${issuedDate}\n\nVous pouvez le consulter et l’enregistrer en PDF depuis votre espace étudiant.\n\nVoir mon certificat :\n${certificateUrl}\n${verificationText}\nCordialement,\nL’équipe Agri-tech Academy`,
+    text: `Bonjour ${studentName},\n\nVotre certificat pour la formation « ${courseTitle} » est maintenant disponible.\n\nNuméro du certificat : ${certificateId}\nDate de délivrance : ${issuedDate}\n\nVous trouverez une version PDF de votre certificat en pièce jointe.
+
+Vous pouvez également consulter votre certificat depuis votre espace étudiant et utiliser le lien de vérification publique pour confirmer son authenticité.\n\nVoir mon certificat :\n${certificateUrl}\n${verificationText}\nCordialement,\nL’équipe Agri-tech Academy`,
     html,
   };
 }
@@ -220,7 +223,20 @@ export async function sendAcademyCertificateEmail(certificateId: string) {
 
   if (!userData.user || !isValidEmail(studentEmail)) return;
 
-  console.info("[academy-certificate-email] sending certificate email", { certificateId: certificate.certificate_id });
+  let pdf;
+  try {
+    pdf = await generateAcademyCertificatePdf(certificate.certificate_id);
+  } catch (pdfError) {
+    console.error("[academy-certificate-email] certificate PDF generation failed", {
+      certificateId: certificate.certificate_id,
+      message: pdfError instanceof Error ? pdfError.message : "Unknown PDF generation error",
+    });
+    console.info("[academy-certificate-email] attaching pdf true/false", { attaching: false });
+    return;
+  }
+
+  console.info("[academy-certificate-email] attaching pdf true/false", { attaching: true, filename: pdf.filename, bytes: pdf.buffer.length, contentType: pdf.contentType });
+  console.info("[academy-certificate-email] sending email with pdf", { certificateId: certificate.certificate_id });
   const email = buildAcademyCertificateEmail({ studentName, courseTitle, certificateId: certificate.certificate_id, issuedDate, certificateUrl, verificationUrl });
   const result = await sendTransactionalEmail({
     to: { email: studentEmail!, name: studentName },
@@ -228,6 +244,7 @@ export async function sendAcademyCertificateEmail(certificateId: string) {
     html: email.html,
     text: email.text,
     replyTo: { email: replyToEmail, name: "Agri-tech Academy" },
+    attachments: [{ name: pdf.filename, content: pdf.base64, contentType: pdf.contentType }],
   });
 
   if (result.ok) {

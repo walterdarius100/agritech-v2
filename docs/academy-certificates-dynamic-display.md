@@ -122,3 +122,17 @@ Déclencheurs couverts :
 L’email utilise le même layout graphique Agri-tech que les autres emails transactionnels Academy. Il contient le numéro public `certificate_id`, la date de délivrance `issued_at`, le titre de formation, un bouton vers `/academy/certificats/[certificateId]` et le lien public existant `/certificats/verifier/[certificateId]` quand disponible. Les URLs absolues sont construites avec `NEXT_PUBLIC_SITE_URL`.
 
 L’anti-doublon est `academy_certificates.certificate_email_sent_at`. Le marqueur est renseigné uniquement après succès Brevo ; en cas d’échec, le certificat reste généré, visible côté étudiant/admin, imprimable via navigateur et vérifiable publiquement. Le `Reply-To` Academy reste `formation@agritech509ht.com` via `ACADEMY_REPLY_TO_EMAIL`.
+
+## Envoi email avec PDF serveur attaché
+
+Le certificat affiché à l’écran continue d’être rendu par le template React existant et l’impression navigateur reste inchangée. Pour l’email transactionnel, une version PDF serveur indépendante et légère est produite depuis les données normalisées du certificat afin d’éviter toute dépendance à un contexte navigateur.
+
+La génération PDF reprend les informations certifiantes utilisées par l’affichage : étudiant, formation, date de délivrance, numéro de certificat, statut et URL publique de vérification. Elle ne modifie ni le template visuel écran, ni la page publique de vérification, ni la progression Academy, ni les paiements Academy.
+
+Anti-doublon et erreurs :
+
+- `certificate_email_sent_at` reste le marqueur unique de l’email certificat ;
+- un certificat déjà marqué comme envoyé n’est pas renvoyé ;
+- le marqueur est mis à jour seulement après succès Brevo ;
+- en cas d’échec PDF, aucun email annonçant une pièce jointe n’est envoyé et le certificat reste consultable/imprimable ;
+- en cas d’échec Brevo, le PDF n’est pas considéré comme envoyé et une relance ultérieure reste possible.

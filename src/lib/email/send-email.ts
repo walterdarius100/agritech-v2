@@ -54,6 +54,7 @@ export async function sendTransactionalEmail({
   html,
   text,
   replyTo,
+  attachments,
 }: SendTransactionalEmailInput): Promise<SendTransactionalEmailResult> {
   const recipients = normalizeRecipients(to);
   if (!recipients) {
@@ -103,6 +104,7 @@ export async function sendTransactionalEmail({
       htmlContent: html,
       textContent: text,
       replyTo: explicitReplyTo ?? configuration.replyTo,
+      attachment: attachments?.length ? attachments : undefined,
     });
 
     return {

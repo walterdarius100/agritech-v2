@@ -234,3 +234,17 @@ Le `Reply-To` forcé est `ACADEMY_REPLY_TO_EMAIL`, attendu à `formation@agritec
 L’anti-doublon choisi est le marqueur minimal `academy_certificates.certificate_email_sent_at`, ajouté par la migration `supabase/migrations/20260719_add_academy_certificate_email_marker.sql`. La fonction vérifie ce marqueur avant l’envoi et ne le remplit qu’après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si la configuration serveur est absente ou si l’email étudiant est indisponible, le certificat reste généré et visible, l’erreur est loggée côté serveur sans secret et le marqueur reste vide pour permettre une relance future.
 
 Ce changement ne modifie pas le template visuel du certificat, l’impression/PDF navigateur, la page publique de vérification, la progression Academy, Consultation, Contact, les paiements Academy, ni les emails Academy déjà existants d’inscription et d’achat/enrollment.
+
+## Certificats Academy — PDF en pièce jointe
+
+Quand un certificat Academy est créé, le flux d’email existant conserve le marqueur anti-doublon `academy_certificates.certificate_email_sent_at` et envoie maintenant le message étudiant avec une pièce jointe PDF. Le fichier joint est généré côté serveur par `generateAcademyCertificatePdf(certificateId)` à partir des mêmes données certificat que l’affichage étudiant : nom de l’étudiant, formation, numéro de certificat, date de délivrance, statut et lien public de vérification.
+
+La pièce jointe Brevo utilise un contenu PDF encodé en base64, avec un nom sécurisé de la forme `certificat-agritech-academy-[CERTIFICATE_ID].pdf` et le type logique `application/pdf`. La clé `BREVO_API_KEY` reste uniquement utilisée côté serveur par le service transactionnel.
+
+Comportement d’échec :
+
+- si la génération PDF échoue ou produit un fichier vide/invalide, le certificat reste disponible en base et dans l’espace étudiant, l’email n’est pas envoyé et `certificate_email_sent_at` reste vide pour permettre une relance future ;
+- si Brevo refuse l’envoi, le certificat reste disponible et le marqueur anti-doublon reste vide ;
+- le marqueur est rempli uniquement après succès réel de l’appel transactionnel Brevo.
+
+Les emails Academy d’inscription/bienvenue et d’achat/enrollment ne changent pas. Les emails Consultation et Contact ne sont pas modifiés.
