@@ -60,9 +60,9 @@ Aucune vraie clé ne doit être commitée. Le projet démarre sans clés Supabas
 
 ### Emails transactionnels Academy
 
-Les emails Academy utilisent Brevo côté serveur après confirmation du paiement mock Academy et activation de l’accès formation. Configurer `ACADEMY_NOTIFICATION_EMAIL=formation@agritech509ht.com` et `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com` en plus des variables globales `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS` et `EMAIL_REPLY_TO`.
+Les emails Academy utilisent Brevo côté serveur après création réussie du compte étudiant et après confirmation du paiement mock Academy. Configurer `ACADEMY_NOTIFICATION_EMAIL=formation@agritech509ht.com` et `ACADEMY_REPLY_TO_EMAIL=formation@agritech509ht.com` en plus des variables globales `BREVO_API_KEY`, `EMAIL_FROM_NAME`, `EMAIL_FROM_ADDRESS` et `EMAIL_REPLY_TO`.
 
-L’email d’inscription Academy n’est pas dupliqué dans Brevo lorsque Supabase Auth gère déjà l’email système de confirmation. Après achat confirmé, l’étudiant reçoit un email unique confirmation achat + accès, et Agri-tech reçoit une notification interne à l’adresse Academy officielle. Les marqueurs `student_purchase_email_sent_at` et `internal_purchase_email_sent_at` dans `academy_payments` protègent contre les doublons et ne sont remplis qu’après succès Brevo.
+Après inscription Academy simple, l’étudiant reçoit uniquement l’email de bienvenue Brevo `Bienvenue sur Agri-tech Academy` avec `Reply-To: formation@agritech509ht.com`; si Supabase Auth exige une confirmation, son email système technique reste séparé et le contenu de bienvenue rappelle de confirmer l’adresse. Le marqueur `profiles.welcome_email_sent_at` évite les doublons et reste vide si Brevo échoue afin de permettre une relance future sans bloquer la création du compte. Après achat confirmé seulement, l’étudiant reçoit un email unique confirmation achat + accès, et Agri-tech reçoit une notification interne à l’adresse Academy officielle. Les marqueurs `student_purchase_email_sent_at` et `internal_purchase_email_sent_at` dans `academy_payments` protègent contre les doublons achat et ne sont remplis qu’après succès Brevo.
 
 `projet@agritech509ht.com` est invalide ; `projets@agritech509ht.com` avec `s` reste réservé aux consultations/projets clients. La clé Brevo ne doit jamais être exposée côté client via `NEXT_PUBLIC_BREVO_API_KEY`.
 
