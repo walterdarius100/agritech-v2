@@ -146,7 +146,7 @@ Aucune route de test admin n’est créée dans ce PR, car l’infrastructure ce
 - Academy, certificats et paiements Academy n’appellent pas encore `sendTransactionalEmail()`.
 - Les templates métier Consultation payée sont créés ; les autres domaines n’ont pas encore de templates spécialisés.
 - Une migration Supabase anti-doublon Consultation ajoute `client_email_sent_at` et `internal_email_sent_at`.
-- Aucun tableau d’historique `email_events` n’est ajouté.
+- L’historique global `email_events` est ajouté pour tracer les emails sans remplacer les marqueurs anti-doublon.
 
 ## Diagnostic et configuration Consultation
 
@@ -234,3 +234,47 @@ Le `Reply-To` forcé est `ACADEMY_REPLY_TO_EMAIL`, attendu à `formation@agritec
 L’anti-doublon choisi est le marqueur minimal `academy_certificates.certificate_email_sent_at`, ajouté par la migration `supabase/migrations/20260719_add_academy_certificate_email_marker.sql`. La fonction vérifie ce marqueur avant l’envoi et ne le remplit qu’après succès réel de `sendTransactionalEmail()` / Brevo. Si Brevo échoue, si la configuration serveur est absente ou si l’email étudiant est indisponible, le certificat reste généré et visible, l’erreur est loggée côté serveur sans secret et le marqueur reste vide pour permettre une relance future.
 
 Ce changement ne modifie pas le template visuel du certificat, l’impression/PDF navigateur, la page publique de vérification, la progression Academy, Consultation, Contact, les paiements Academy, ni les emails Academy déjà existants d’inscription et d’achat/enrollment.
+
+## Historique global `email_events`
+
+Une table Supabase `public.email_events` trace désormais les communications transactionnelles Brevo sans remplacer les workflows métier ni les marqueurs anti-doublon existants. Elle sert d’audit trail opérationnel pour vérifier quels emails ont été envoyés, échoués ou volontairement ignorés.
+
+Champs principaux :
+
+- `event_type` : type fonctionnel de l’email ;
+- `related_entity_type` / `related_entity_id` : module et ligne métier liée lorsque disponible ;
+- `recipient_email` / `recipient_name` : destinataire normalisé ;
+- `subject` : objet envoyé ou objet synthétique pour un `skipped` ;
+- `provider` : `brevo` par défaut ;
+- `provider_message_id` : identifiant Brevo quand l’API le retourne ;
+- `status` : `sent`, `failed` ou `skipped` ;
+- `error_message` : message court et contrôlé en cas d’échec ou d’ignoré ;
+- `metadata` : contexte minimal non sensible ;
+- `created_at` : date d’enregistrement serveur.
+
+Types d’événements pris en charge :
+
+- `consultation_client_confirmation` ;
+- `consultation_internal_notification` ;
+- `contact_visitor_acknowledgement` ;
+- `contact_internal_notification` ;
+- `academy_welcome` ;
+- `academy_purchase_confirmation` ;
+- `academy_internal_purchase_notification` ;
+- `certificate_available`.
+
+La fonction serveur `recordEmailEvent()` insère les lignes avec le client Supabase admin/service role. Son échec est non bloquant : l’erreur est loggée côté serveur, mais l’email et le workflow métier ne sont pas annulés. La fonction centrale `sendTransactionalEmail()` accepte un contexte optionnel `emailEvent`; les appels sans contexte continuent de fonctionner comme avant. Après succès Brevo, `status = sent` est enregistré avec `provider_message_id` si disponible. En cas d’erreur Brevo, `status = failed` est enregistré. Les cas `skipped` sont limités aux situations utiles : marqueur anti-doublon déjà présent, destinataire métier absent/invalide ou configuration email absente.
+
+### Sécurité et RLS
+
+RLS est activé sur `email_events`. Les rôles `anon` et `authenticated` n’ont aucune politique de lecture publique, et aucune politique d’écriture, mise à jour ou suppression n’est créée. Les insertions passent par le serveur avec la service role après exécution des workflows existants. La page admin utilise la même protection `requireAuthorizedAdmin()` que les autres pages d’administration et lit les données via le client admin serveur.
+
+Ne jamais stocker dans `email_events` : `BREVO_API_KEY`, tokens, mots de passe, liens de session privés, données bancaires, contenu complet d’un message privé ou logs techniques détaillés. `metadata` doit rester minimal, par exemple `module`, `request_code`, `course_title` ou `certificate_id`.
+
+### Page admin
+
+La page `/admin/email-events` affiche les 100 derniers événements avec date, type, destinataire, sujet, statut, module lié, provider et messageId Brevo. Elle propose des filtres simples par statut et module. Elle n’affiche pas le contenu complet des emails ni de metadata détaillée afin de limiter l’exposition de données sensibles.
+
+### Limites
+
+Cet historique n’est pas un CRM complet, ne gère pas les webhooks de délivrabilité Brevo et ne remplace pas les marqueurs anti-doublon existants (`client_email_sent_at`, `internal_email_sent_at`, `welcome_email_sent_at`, `student_purchase_email_sent_at`, `internal_purchase_email_sent_at`, `certificate_email_sent_at`). Il ajoute une traçabilité serveur fiable sans modifier les paiements, la progression Academy, les certificats ou les templates principaux.

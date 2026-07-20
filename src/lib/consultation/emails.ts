@@ -4,6 +4,7 @@ import {
   getConsultationNotificationRecipient,
   getConsultationReplyTo,
 } from "@/lib/email/config";
+import { recordEmailEvent } from "@/lib/email/events";
 import { sendTransactionalEmail } from "@/lib/email/send-email";
 import {
   consultationPaidClientEmailTemplate,
@@ -20,10 +21,7 @@ type SupabaseAdminClient = NonNullable<
 type ConsultationEmailResult = {
   clientEmail: "sent" | "skipped_no_email" | "skipped_already_sent" | "failed";
   internalEmail:
-    | "sent"
-    | "skipped_missing_recipient"
-    | "skipped_already_sent"
-    | "failed";
+    "sent" | "skipped_missing_recipient" | "skipped_already_sent" | "failed";
 };
 
 function buildAdminUrl(requestId: string) {
@@ -85,11 +83,36 @@ export async function sendConsultationPaidEmails(
   }
 
   if (request.client_email_sent_at) {
+    await recordEmailEvent({
+      eventType: "consultation_client_confirmation",
+      relatedEntityType: "consultation_request",
+      relatedEntityId: request.id,
+      recipientEmail: request.email || "unknown@invalid.local",
+      recipientName: request.full_name,
+      subject: "Confirmation de consultation déjà envoyée",
+      status: "skipped",
+      errorMessage: "client_email_sent_at already present",
+      metadata: { module: "consultation", request_code: request.request_code },
+    });
     result.clientEmail = "skipped_already_sent";
   } else if (!request.email) {
-    console.info("[consultation-email] client email skipped: no client email provided", {
-      requestId: request.id,
-      request_code: request.request_code,
+    console.info(
+      "[consultation-email] client email skipped: no client email provided",
+      {
+        requestId: request.id,
+        request_code: request.request_code,
+      },
+    );
+    await recordEmailEvent({
+      eventType: "consultation_client_confirmation",
+      relatedEntityType: "consultation_request",
+      relatedEntityId: request.id,
+      recipientEmail: "unknown@invalid.local",
+      recipientName: request.full_name,
+      subject: "Confirmation de consultation",
+      status: "skipped",
+      errorMessage: "client email missing",
+      metadata: { module: "consultation", request_code: request.request_code },
     });
     result.clientEmail = "skipped_no_email";
   } else {
@@ -107,6 +130,16 @@ export async function sendConsultationPaidEmails(
       html: template.html,
       text: template.text,
       replyTo,
+      emailEvent: {
+        eventType: "consultation_client_confirmation",
+        relatedEntityType: "consultation_request",
+        relatedEntityId: request.id,
+        recipientName: request.full_name,
+        metadata: {
+          module: "consultation",
+          request_code: request.request_code,
+        },
+      },
     });
 
     if (sendResult.ok) {
@@ -138,12 +171,36 @@ export async function sendConsultationPaidEmails(
   }
 
   if (request.internal_email_sent_at) {
+    await recordEmailEvent({
+      eventType: "consultation_internal_notification",
+      relatedEntityType: "consultation_request",
+      relatedEntityId: request.id,
+      recipientEmail: notificationRecipient?.email || "unknown@invalid.local",
+      recipientName: notificationRecipient?.name,
+      subject: "Notification interne consultation déjà envoyée",
+      status: "skipped",
+      errorMessage: "internal_email_sent_at already present",
+      metadata: { module: "consultation", request_code: request.request_code },
+    });
     result.internalEmail = "skipped_already_sent";
   } else if (!notificationRecipient) {
-    console.error("[consultation-email] internal email skipped: notification recipient is missing", {
-      requestId: request.id,
-      request_code: request.request_code,
-      expectedVariable: "CONSULTATION_NOTIFICATION_EMAIL",
+    console.error(
+      "[consultation-email] internal email skipped: notification recipient is missing",
+      {
+        requestId: request.id,
+        request_code: request.request_code,
+        expectedVariable: "CONSULTATION_NOTIFICATION_EMAIL",
+      },
+    );
+    await recordEmailEvent({
+      eventType: "consultation_internal_notification",
+      relatedEntityType: "consultation_request",
+      relatedEntityId: request.id,
+      recipientEmail: "unknown@invalid.local",
+      subject: "Notification interne consultation",
+      status: "skipped",
+      errorMessage: "CONSULTATION_NOTIFICATION_EMAIL missing",
+      metadata: { module: "consultation", request_code: request.request_code },
     });
     result.internalEmail = "skipped_missing_recipient";
   } else {
@@ -162,6 +219,16 @@ export async function sendConsultationPaidEmails(
       html: template.html,
       text: template.text,
       replyTo,
+      emailEvent: {
+        eventType: "consultation_internal_notification",
+        relatedEntityType: "consultation_request",
+        relatedEntityId: request.id,
+        recipientName: notificationRecipient.name,
+        metadata: {
+          module: "consultation",
+          request_code: request.request_code,
+        },
+      },
     });
 
     if (sendResult.ok) {

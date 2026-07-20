@@ -22,30 +22,30 @@ La migration crée uniquement des objets liés aux consultations :
 
 Cette table stocke la demande métier créée après soumission du formulaire public.
 
-| Champ                  | Rôle                                                                                 |
-| ---------------------- | ------------------------------------------------------------------------------------ |
-| `id`                   | Identifiant UUID interne.                                                            |
-| `request_code`         | Code lisible unique, généré automatiquement si absent, par exemple `CONS-2026-0001`. |
-| `full_name`            | Nom complet du client.                                                               |
+| Champ                  | Rôle                                                                                                                                   |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | Identifiant UUID interne.                                                                                                              |
+| `request_code`         | Code lisible unique, généré automatiquement si absent, par exemple `CONS-2026-0001`.                                                   |
+| `full_name`            | Nom complet du client.                                                                                                                 |
 | `email`                | Email du client. Obligatoire pour les nouvelles demandes via formulaire et contrainte Supabase `consultation_requests_email_required`. |
-| `phone`                | Téléphone du client.                                                                 |
-| `department`           | Département.                                                                         |
-| `commune`              | Commune.                                                                             |
-| `consultation_type`    | Domaine agricole demandé.                                                            |
-| `project_stage`        | Niveau d'avancement du projet.                                                       |
-| `project_description`  | Description du besoin.                                                               |
-| `estimated_budget`     | Budget approximatif.                                                                 |
-| `consultation_mode`    | Mode souhaité : en ligne, téléphone, WhatsApp ou présentiel si possible.             |
-| `consultation_package` | Libellé fixe de la consultation, rempli côté serveur.                                |
-| `amount`               | Montant attendu, par défaut `2500`.                                                  |
-| `currency`             | Devise, par défaut `HTG`.                                                            |
-| `payment_status`       | Statut de paiement dénormalisé pour lecture rapide.                                  |
-| `request_status`       | Statut opérationnel de la demande.                                                   |
-| `paid_at`              | Date de paiement confirmé.                                                           |
-| `scheduled_at`         | Date planifiée pour la consultation.                                                 |
-| `admin_notes`          | Notes internes admin.                                                                |
-| `created_at`           | Date de création.                                                                    |
-| `updated_at`           | Date de dernière modification.                                                       |
+| `phone`                | Téléphone du client.                                                                                                                   |
+| `department`           | Département.                                                                                                                           |
+| `commune`              | Commune.                                                                                                                               |
+| `consultation_type`    | Domaine agricole demandé.                                                                                                              |
+| `project_stage`        | Niveau d'avancement du projet.                                                                                                         |
+| `project_description`  | Description du besoin.                                                                                                                 |
+| `estimated_budget`     | Budget approximatif.                                                                                                                   |
+| `consultation_mode`    | Mode souhaité : en ligne, téléphone, WhatsApp ou présentiel si possible.                                                               |
+| `consultation_package` | Libellé fixe de la consultation, rempli côté serveur.                                                                                  |
+| `amount`               | Montant attendu, par défaut `2500`.                                                                                                    |
+| `currency`             | Devise, par défaut `HTG`.                                                                                                              |
+| `payment_status`       | Statut de paiement dénormalisé pour lecture rapide.                                                                                    |
+| `request_status`       | Statut opérationnel de la demande.                                                                                                     |
+| `paid_at`              | Date de paiement confirmé.                                                                                                             |
+| `scheduled_at`         | Date planifiée pour la consultation.                                                                                                   |
+| `admin_notes`          | Notes internes admin.                                                                                                                  |
+| `created_at`           | Date de création.                                                                                                                      |
+| `updated_at`           | Date de dernière modification.                                                                                                         |
 
 ## Table `consultation_payments`
 
@@ -389,9 +389,9 @@ Pour les consultations :
 
 - l’expéditeur automatique global reste `EMAIL_FROM_ADDRESS`, typiquement `noreply@agritech509ht.com` ;
 - le nom expéditeur global reste `EMAIL_FROM_NAME`, typiquement `Agri-tech` ;
-- le `Reply-To` consultation doit utiliser `CONSULTATION_REPLY_TO_EMAIL`, typiquement `projet@agritech509ht.com` ;
+- le `Reply-To` consultation doit utiliser `CONSULTATION_REPLY_TO_EMAIL`, typiquement `projets@agritech509ht.com` ;
 - si `CONSULTATION_REPLY_TO_EMAIL` est absent, le fallback serveur est `EMAIL_REPLY_TO` ;
-- la notification interne consultation doit utiliser `CONSULTATION_NOTIFICATION_EMAIL`, typiquement `projet@agritech509ht.com` ;
+- la notification interne consultation doit utiliser `CONSULTATION_NOTIFICATION_EMAIL`, typiquement `projets@agritech509ht.com` ;
 - `CONSULTATION_NOTIFICATION_EMAIL` est obligatoire pour la notification interne Consultation ; aucun secret Brevo ne doit être exposé côté client.
 
 `admin@agritech509ht.com` ne doit pas être utilisé pour les emails clients, notifications consultation, expéditeur automatique ou reply-to consultation. Cette adresse reste réservée à l’interne technique.

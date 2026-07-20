@@ -1,4 +1,8 @@
-import { getContactNotificationRecipient, getContactReplyTo } from "@/lib/email/config";
+import {
+  getContactNotificationRecipient,
+  getContactReplyTo,
+} from "@/lib/email/config";
+import { recordEmailEvent } from "@/lib/email/events";
 import { sendTransactionalEmail } from "@/lib/email/send-email";
 import {
   contactInternalNotificationTemplate,
@@ -58,7 +62,8 @@ const recentSubmissionKeys = new Map<string, number>();
 const duplicateWindowMs = 15_000;
 
 function clean(value: unknown, maxLength: number) {
-  const text = typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
+  const text =
+    typeof value === "string" ? value.trim().replace(/\s+/g, " ") : "";
   return text.slice(0, maxLength);
 }
 
@@ -72,7 +77,13 @@ function nullable(value: string) {
 }
 
 function getSubmissionKey(payload: CreateContactRequestInput) {
-  return [payload.full_name, payload.email, payload.phone ?? "", payload.subject ?? "", payload.message]
+  return [
+    payload.full_name,
+    payload.email,
+    payload.phone ?? "",
+    payload.subject ?? "",
+    payload.message,
+  ]
     .join("|")
     .toLowerCase();
 }
@@ -88,7 +99,9 @@ function isDuplicateSubmission(payload: CreateContactRequestInput) {
   pruneRecentSubmissionKeys();
 
   const previousTimestamp = recentSubmissionKeys.get(getSubmissionKey(payload));
-  return Boolean(previousTimestamp && Date.now() - previousTimestamp <= duplicateWindowMs);
+  return Boolean(
+    previousTimestamp && Date.now() - previousTimestamp <= duplicateWindowMs,
+  );
 }
 
 function markSubmissionReceived(payload: CreateContactRequestInput) {
@@ -96,9 +109,14 @@ function markSubmissionReceived(payload: CreateContactRequestInput) {
   recentSubmissionKeys.set(getSubmissionKey(payload), Date.now());
 }
 
-function logEmailResult(prefix: string, result: Awaited<ReturnType<typeof sendTransactionalEmail>>) {
+function logEmailResult(
+  prefix: string,
+  result: Awaited<ReturnType<typeof sendTransactionalEmail>>,
+) {
   if (result.ok) {
-    console.info(`[contact-email] ${prefix} success/messageId`, { messageId: result.messageId ?? null });
+    console.info(`[contact-email] ${prefix} success/messageId`, {
+      messageId: result.messageId ?? null,
+    });
     return;
   }
 
@@ -110,17 +128,30 @@ function logEmailResult(prefix: string, result: Awaited<ReturnType<typeof sendTr
   });
 }
 
-async function sendContactEmails(payload: CreateContactRequestInput) {
+async function sendContactEmails(
+  payload: CreateContactRequestInput,
+  contactRequestId: string,
+) {
   console.info("[contact-email] contact submission received");
 
   const contactReplyTo = getContactReplyTo();
   const internalRecipient = getContactNotificationRecipient();
-  const visitorEmailPresent = Boolean(payload.email && emailPattern.test(payload.email));
+  const visitorEmailPresent = Boolean(
+    payload.email && emailPattern.test(payload.email),
+  );
 
-  console.info("[contact-email] visitor email present", { present: visitorEmailPresent });
-  console.info("[contact-email] internal notification email used", { configured: Boolean(internalRecipient) });
-  console.info("[contact-email] reply-to used", { configured: Boolean(contactReplyTo) });
-  console.info("[contact-email] sending visitor acknowledgement", { send: visitorEmailPresent });
+  console.info("[contact-email] visitor email present", {
+    present: visitorEmailPresent,
+  });
+  console.info("[contact-email] internal notification email used", {
+    configured: Boolean(internalRecipient),
+  });
+  console.info("[contact-email] reply-to used", {
+    configured: Boolean(contactReplyTo),
+  });
+  console.info("[contact-email] sending visitor acknowledgement", {
+    send: visitorEmailPresent,
+  });
 
   let visitorEmailOk = false;
   let internalEmailOk = false;
@@ -137,9 +168,28 @@ async function sendContactEmails(payload: CreateContactRequestInput) {
       html: visitorTemplate.html,
       text: visitorTemplate.text,
       replyTo: contactReplyTo,
+      emailEvent: {
+        eventType: "contact_visitor_acknowledgement",
+        relatedEntityType: "contact_request",
+        relatedEntityId: contactRequestId,
+        recipientName: payload.full_name,
+        metadata: { module: "contact", request_type: payload.request_type },
+      },
     });
     visitorEmailOk = visitorResult.ok;
     logEmailResult("visitor email", visitorResult);
+  } else {
+    await recordEmailEvent({
+      eventType: "contact_visitor_acknowledgement",
+      relatedEntityType: "contact_request",
+      relatedEntityId: contactRequestId,
+      recipientEmail: "unknown@invalid.local",
+      recipientName: payload.full_name,
+      subject: "Accusé de réception contact",
+      status: "skipped",
+      errorMessage: "visitor email missing or invalid",
+      metadata: { module: "contact", request_type: payload.request_type },
+    });
   }
 
   console.info("[contact-email] sending internal notification");
@@ -155,19 +205,48 @@ async function sendContactEmails(payload: CreateContactRequestInput) {
       html: internalTemplate.html,
       text: internalTemplate.text,
       replyTo: contactReplyTo,
+      emailEvent: {
+        eventType: "contact_internal_notification",
+        relatedEntityType: "contact_request",
+        relatedEntityId: contactRequestId,
+        recipientName: internalRecipient.name,
+        metadata: { module: "contact", request_type: payload.request_type },
+      },
     });
     internalEmailOk = internalResult.ok;
     logEmailResult("internal email", internalResult);
   } else {
-    console.error("[contact-email] internal email error", { reason: "missing_contact_notification_email" });
+    console.error("[contact-email] internal email error", {
+      reason: "missing_contact_notification_email",
+    });
+    await recordEmailEvent({
+      eventType: "contact_internal_notification",
+      relatedEntityType: "contact_request",
+      relatedEntityId: contactRequestId,
+      recipientEmail: "unknown@invalid.local",
+      subject: "Notification interne contact",
+      status: "skipped",
+      errorMessage: "CONTACT_NOTIFICATION_EMAIL missing",
+      metadata: { module: "contact", request_type: payload.request_type },
+    });
   }
 
-  return { visitorEmailOk, internalEmailOk, visitorEmailAttempted: visitorEmailPresent };
+  return {
+    visitorEmailOk,
+    internalEmailOk,
+    visitorEmailAttempted: visitorEmailPresent,
+  };
 }
 
-export function validateContactRequestInput(input: Record<string, unknown>): ContactValidationResult {
+export function validateContactRequestInput(
+  input: Record<string, unknown>,
+): ContactValidationResult {
   if (clean(input.company_website, 300)) {
-    return { ok: false, message: "Votre demande a bien été envoyée.", spam: true };
+    return {
+      ok: false,
+      message: "Votre demande a bien été envoyée.",
+      spam: true,
+    };
   }
 
   const requestType = clean(input.request_type, 40) as ContactRequestType;
@@ -200,7 +279,8 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
         ? "formation"
         : requestType;
 
-  const academyCourseTitle = courseTitle || subject || "Formation sélectionnée non précisée";
+  const academyCourseTitle =
+    courseTitle || subject || "Formation sélectionnée non précisée";
   if (!message && (courseSlug || requestType === "academy_access")) {
     message = `Demande d’accès à la formation Academy : ${academyCourseTitle}. L’étudiant souhaite être contacté pour les modalités de paiement et l’activation manuelle de son accès.`;
   }
@@ -214,11 +294,22 @@ export function validateContactRequestInput(input: Record<string, unknown>): Con
       phone: nullable(phone),
       organization: nullable(organization),
       request_type: finalRequestType,
-      service_slug: finalRequestType === "service" ? nullable(serviceSlug) : null,
-      formation_slug: finalRequestType === "formation" ? nullable(formationSlug) : null,
-      course_slug: finalRequestType === "academy_access" ? nullable(courseSlug || formationSlug) : null,
-      course_title: finalRequestType === "academy_access" ? nullable(academyCourseTitle) : null,
-      subject: finalRequestType === "academy_access" ? nullable(subject || academyCourseTitle || "Accès formation Academy") : nullable(subject),
+      service_slug:
+        finalRequestType === "service" ? nullable(serviceSlug) : null,
+      formation_slug:
+        finalRequestType === "formation" ? nullable(formationSlug) : null,
+      course_slug:
+        finalRequestType === "academy_access"
+          ? nullable(courseSlug || formationSlug)
+          : null,
+      course_title:
+        finalRequestType === "academy_access"
+          ? nullable(academyCourseTitle)
+          : null,
+      subject:
+        finalRequestType === "academy_access"
+          ? nullable(subject || academyCourseTitle || "Accès formation Academy")
+          : nullable(subject),
       message,
       source_page: nullable(sourcePage),
     },
@@ -274,15 +365,25 @@ export async function createContactRequest(input: Record<string, unknown>) {
     metadata,
   };
 
-  const { error } = await supabase.from("contact_requests").insert(payload);
+  const { data: contactRequest, error } = await supabase
+    .from("contact_requests")
+    .insert(payload)
+    .select("id")
+    .single();
   if (error) {
     console.error("Unable to create contact request", error.message);
-    return { ok: false as const, message: "Impossible d’envoyer votre demande pour le moment." };
+    return {
+      ok: false as const,
+      message: "Impossible d’envoyer votre demande pour le moment.",
+    };
   }
 
   markSubmissionReceived(validated.payload);
 
-  const emailStatus = await sendContactEmails(validated.payload);
+  const emailStatus = await sendContactEmails(
+    validated.payload,
+    contactRequest.id as string,
+  );
 
   const emailWarning =
     !emailStatus.internalEmailOk ||
