@@ -5,6 +5,7 @@ import {
   hasBrevoApiKey,
   sendBrevoTransactionalEmail,
 } from "@/lib/email/brevo";
+import { recordEmailEvent } from "@/lib/email/events";
 import type {
   EmailRecipient,
   SendTransactionalEmailInput,
@@ -54,9 +55,25 @@ export async function sendTransactionalEmail({
   html,
   text,
   replyTo,
+  emailEvent,
 }: SendTransactionalEmailInput): Promise<SendTransactionalEmailResult> {
   const recipients = normalizeRecipients(to);
   if (!recipients) {
+    if (emailEvent) {
+      await recordEmailEvent({
+        ...emailEvent,
+        recipientEmail: Array.isArray(to)
+          ? (to[0]?.email ?? "invalid-recipient")
+          : to.email,
+        recipientName:
+          emailEvent.recipientName ??
+          (Array.isArray(to) ? to[0]?.name : to.name),
+        subject,
+        status: "failed",
+        errorMessage: "At least one email recipient is invalid.",
+      });
+    }
+
     return {
       ok: false,
       reason: "invalid_recipient",
@@ -66,10 +83,24 @@ export async function sendTransactionalEmail({
 
   const configuration = getEmailConfiguration();
   if (!configuration) {
-    console.info("[Email] Transactional email skipped: sender configuration is missing.", {
-      recipientCount: recipients.length,
-      subject,
-    });
+    console.info(
+      "[Email] Transactional email skipped: sender configuration is missing.",
+      {
+        recipientCount: recipients.length,
+        subject,
+      },
+    );
+
+    if (emailEvent && recipients[0]) {
+      await recordEmailEvent({
+        ...emailEvent,
+        recipientEmail: recipients[0].email,
+        recipientName: emailEvent.recipientName ?? recipients[0].name,
+        subject,
+        status: "skipped",
+        errorMessage: "EMAIL_FROM_ADDRESS is missing or invalid.",
+      });
+    }
 
     return {
       ok: false,
@@ -81,10 +112,24 @@ export async function sendTransactionalEmail({
   }
 
   if (!hasBrevoApiKey()) {
-    console.info("[Email] Transactional email skipped: BREVO_API_KEY is not configured.", {
-      recipientCount: recipients.length,
-      subject,
-    });
+    console.info(
+      "[Email] Transactional email skipped: BREVO_API_KEY is not configured.",
+      {
+        recipientCount: recipients.length,
+        subject,
+      },
+    );
+
+    if (emailEvent && recipients[0]) {
+      await recordEmailEvent({
+        ...emailEvent,
+        recipientEmail: recipients[0].email,
+        recipientName: emailEvent.recipientName ?? recipients[0].name,
+        subject,
+        status: "skipped",
+        errorMessage: "BREVO_API_KEY is missing from the server environment.",
+      });
+    }
 
     return {
       ok: false,
@@ -105,6 +150,17 @@ export async function sendTransactionalEmail({
       replyTo: explicitReplyTo ?? configuration.replyTo,
     });
 
+    if (emailEvent && recipients[0]) {
+      await recordEmailEvent({
+        ...emailEvent,
+        recipientEmail: recipients[0].email,
+        recipientName: emailEvent.recipientName ?? recipients[0].name,
+        subject,
+        providerMessageId: result.messageId,
+        status: "sent",
+      });
+    }
+
     return {
       ok: true,
       messageId: result.messageId,
@@ -114,7 +170,8 @@ export async function sendTransactionalEmail({
       error instanceof BrevoTransactionalEmailError ? error.status : undefined;
     const code =
       error instanceof BrevoTransactionalEmailError ? error.code : undefined;
-    const message = error instanceof Error ? error.message : "Unknown email error";
+    const message =
+      error instanceof Error ? error.message : "Unknown email error";
 
     console.error("[Email] Brevo transactional email failed", {
       recipientCount: recipients.length,
@@ -123,6 +180,17 @@ export async function sendTransactionalEmail({
       code,
       message,
     });
+
+    if (emailEvent && recipients[0]) {
+      await recordEmailEvent({
+        ...emailEvent,
+        recipientEmail: recipients[0].email,
+        recipientName: emailEvent.recipientName ?? recipients[0].name,
+        subject,
+        status: "failed",
+        errorMessage: message,
+      });
+    }
 
     return {
       ok: false,

@@ -5,12 +5,21 @@ export type EmailRecipient = {
   name?: string | null;
 };
 
+export type EmailEventContext = {
+  eventType: import("@/lib/email/events").EmailEventType;
+  relatedEntityType?: string | null;
+  relatedEntityId?: string | null;
+  recipientName?: string | null;
+  metadata?: import("@/lib/email/events").EmailEventMetadata;
+};
+
 export type SendTransactionalEmailInput = {
   to: EmailRecipient | EmailRecipient[];
   subject: string;
   html: string;
   text?: string;
   replyTo?: EmailRecipient | null;
+  emailEvent?: EmailEventContext;
 };
 
 export type SendTransactionalEmailResult =
