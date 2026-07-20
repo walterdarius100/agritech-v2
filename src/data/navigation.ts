@@ -2,7 +2,7 @@ export const mainNavigation = [
   { label: "Accueil", href: "/" },
   { label: "Services", href: "/services" },
   { label: "Academy", href: "/academy" },
-  { label: "Consultation", href: "/consultation" },
+  { label: "Consultation", href: "/consultation/reserver" },
   { label: "Actualités", href: "/actualites" },
   { label: "Contact", href: "/contact" },
 ] as const;
