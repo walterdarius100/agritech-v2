@@ -440,3 +440,7 @@ Corrections appliquées :
 - le checkout mock appelle le workflow email après passage à `payment_status = paid` / `request_status = paid`, et le retente aussi si la demande était déjà payée mais que les marqueurs anti-doublon sont encore vides ;
 - les logs serveur `[consultation-email]` affichent l’ID, le code demande, la présence email, les statuts, les marqueurs, les tentatives et les erreurs Brevo sans exposer de secret ;
 - Brevo reste non bloquant : en cas d’échec, la confirmation paiement n’est pas annulée et les marqueurs non envoyés restent vides.
+
+## Parcours public Consultation
+
+La page d’accueil affiche désormais le hero Consultation juste après la section Partenariat afin de diriger plus rapidement les visiteurs vers la réservation. Le lien `Consultation` de la navigation publique pointe directement vers le formulaire `/consultation/reserver`. L’ancienne route publique `/consultation` reste disponible comme redirection propre vers `/consultation/reserver` pour éviter les liens cassés.

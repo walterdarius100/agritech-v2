@@ -17,10 +17,10 @@ Le module Consultation est prêt pour revue finale avec les éléments suivants 
 
 ## Routes Consultation vérifiées par structure et build
 
-Routes publiques ajoutées :
+Routes publiques vérifiées :
 
 ```txt
-/consultation
+/consultation -> redirection vers /consultation/reserver
 /consultation/reserver
 /consultation/checkout/[requestId]
 /consultation/confirmation/[requestId]
@@ -40,10 +40,12 @@ Le build Next.js liste ces routes, ce qui confirme qu'elles sont reconnues par l
 La navigation publique contient l'entrée :
 
 ```txt
-Consultation -> /consultation
+Consultation -> /consultation/reserver
 ```
 
 Le composant Header réutilise la même source `mainNavigation` pour le menu desktop et le menu mobile. L'ajout est donc visible dans les deux variantes sans logique séparée.
+
+La page d’accueil intègre maintenant le hero Consultation juste après la section Partenariat. La route `/consultation` est conservée comme redirection propre vers `/consultation/reserver`.
 
 La navigation admin contient également :
 
