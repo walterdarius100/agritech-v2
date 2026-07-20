@@ -57,7 +57,7 @@ export default async function AdminConsultationsPage({
         </div>
         <Link
           className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"
-          href="/consultation"
+          href="/consultation/reserver"
         >
           Voir la page publique
         </Link>
