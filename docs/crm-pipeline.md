@@ -172,3 +172,68 @@ Non implémenté à ce stade :
 - édition CRM ;
 - calcul automatique applicatif de `alert_follow_up` ;
 - historique des changements CRM.
+
+## Interface admin de suivi client
+
+La route admin du suivi CRM est `/admin/suivi`. Elle est ajoutée dans la navigation d’administration sous le libellé **Suivi client** et doit être rendue uniquement dans l’espace admin protégé.
+
+La page charge les dossiers depuis `client_pipeline_cases` côté serveur avec le client Supabase admin, après vérification `requireAuthorizedAdmin()`. Elle n’ajoute pas de branchement automatique depuis Contact ou Consultation et ne modifie pas les emails, paiements, Academy ou Certificats.
+
+### Colonnes visibles
+
+Le tableau principal reste volontairement synthétique pour éviter une interface illisible. Les colonnes visibles sont :
+
+- ID dossier (`case_code`) ;
+- Date 1er contact (`first_contact_at`) ;
+- Nom client / Organisation (`client_name`, `organization_name`) ;
+- Téléphone (`phone`) ;
+- Email (`email`) ;
+- Type de projet (`project_type`) ;
+- Localisation (`location`) ;
+- Source (`source_type`) ;
+- Niveau intérêt (`interest_level`) ;
+- Priorité (`priority`) ;
+- Statut (`status`) ;
+- Prochaine action (`next_action`) ;
+- Responsable (`responsible`) ;
+- Date prochaine action (`next_action_at`) ;
+- Jours sans interaction ;
+- Alerte suivi ;
+- Issue (`outcome`).
+
+Les autres champs restent réservés à une future fiche détail CRM.
+
+### Filtres disponibles
+
+Les filtres disponibles dans `/admin/suivi` sont :
+
+- recherche libre par ID dossier, nom client, organisation, téléphone ou email ;
+- statut ;
+- source ;
+- priorité ;
+- niveau d’intérêt ;
+- issue.
+
+### Calcul des jours sans interaction
+
+Le calcul est fait côté affichage uniquement, sans stockage supplémentaire dans `client_pipeline_cases` :
+
+```txt
+jours sans interaction = aujourd’hui - date de référence
+```
+
+La date de référence est choisie dans cet ordre :
+
+1. `last_interaction_at` si renseigné ;
+2. `first_contact_at` ;
+3. `created_at`.
+
+### Logique d’alerte suivi
+
+La page affiche une alerte visuelle sans envoyer de notification automatique :
+
+- **Action en retard** si `next_action_at` est dépassée ;
+- **À relancer** si les jours sans interaction sont supérieurs ou égaux à 7, ou si `alert_follow_up` est déjà vrai ;
+- **RAS** sinon.
+
+Cette logique est uniquement informative dans cette PR.
