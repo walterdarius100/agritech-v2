@@ -3,6 +3,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   ClientPipelineCase,
   CrmInterestLevel,
+  CrmManualSource,
   CrmOutcome,
   CrmPriority,
   CrmSourceType,
@@ -25,6 +26,7 @@ export const crmStatuses: CrmStatus[] = [
 ];
 
 export const crmSources: CrmSourceType[] = ["contact", "consultation", "manual"];
+export const crmManualSources: CrmManualSource[] = ["manual", "whatsapp", "facebook", "instagram", "appel", "email_direct", "reference", "terrain", "autre"];
 export const crmPriorities: CrmPriority[] = ["basse", "normale", "haute", "urgente"];
 export const crmInterestLevels: CrmInterestLevel[] = ["faible", "moyen", "eleve", "tres_eleve"];
 export const crmOutcomes: CrmOutcome[] = ["en_cours", "gagne", "perdu", "abandonne", "non_qualifie"];
@@ -107,6 +109,7 @@ export const crmStatusLabels: Record<CrmStatus, string> = {
 };
 
 export const crmSourceLabels: Record<CrmSourceType, string> = { contact: "Contact", consultation: "Consultation", manual: "Manuel" };
+export const crmManualSourceLabels: Record<CrmManualSource, string> = { manual: "Saisie manuelle", whatsapp: "WhatsApp", facebook: "Facebook", instagram: "Instagram", appel: "Appel téléphonique", email_direct: "Email direct", reference: "Référence", terrain: "Rencontre terrain", autre: "Autre" };
 export const crmPriorityLabels: Record<CrmPriority, string> = { basse: "Basse", normale: "Normale", haute: "Haute", urgente: "Urgente" };
 export const crmInterestLabels: Record<CrmInterestLevel, string> = { faible: "Faible", moyen: "Moyen", eleve: "Élevé", tres_eleve: "Très élevé" };
 export const crmOutcomeLabels: Record<CrmOutcome, string> = { en_cours: "En cours", gagne: "Gagné", perdu: "Perdu", abandonne: "Abandonné", non_qualifie: "Non qualifié" };

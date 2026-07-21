@@ -87,10 +87,13 @@ export default async function AdminSuiviPage({ searchParams }: { searchParams: P
 
   return (
     <div>
-      <div>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
         <p className="text-sm font-bold uppercase tracking-[0.22em] text-emerald-700">CRM</p>
         <h1 className="mt-2 text-3xl font-bold text-slate-950">Suivi client</h1>
         <p className="mt-2 max-w-3xl text-slate-600">Vue centralisée des dossiers CRM issus de Contact, Consultation ou d’une création manuelle, sans exposer les données clients publiquement.</p>
+        </div>
+        <Link className="rounded-xl bg-emerald-700 px-5 py-3 text-sm font-bold text-white shadow-sm" href="/admin/suivi/nouveau">Nouveau dossier</Link>
       </div>
 
       <form className="mt-6 rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-200" action="/admin/suivi">

@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
-import { crmInterestLevels, crmOutcomes, crmPriorities, crmStatuses, type ClientPipelineCaseFormState } from "@/lib/crm/adminPipeline";
+import { crmInterestLevels, crmManualSources, crmOutcomes, crmPriorities, crmStatuses, type ClientPipelineCaseFormState } from "@/lib/crm/adminPipeline";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { CrmInterestLevel, CrmOutcome, CrmPriority, CrmStatus } from "@/types/crm";
+import type { CrmInterestLevel, CrmManualSource, CrmOutcome, CrmPriority, CrmStatus } from "@/types/crm";
 
 function optionalText(formData: FormData, key: string, max = 1000) { return String(formData.get(key) ?? "").trim().slice(0, max) || null; }
 function optionalDate(formData: FormData, key: string) { const value = String(formData.get(key) ?? "").trim(); return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null; }
@@ -60,4 +61,55 @@ export async function updateAdminClientPipelineCase(id: string, _state: ClientPi
   revalidatePath("/admin/suivi");
   revalidatePath(`/admin/suivi/${id}`);
   return { success: "Dossier CRM enregistré. Les modifications sont visibles ci-dessous." };
+}
+
+export async function createManualClientPipelineCase(formData: FormData) {
+  await requireAuthorizedAdmin();
+
+  const client_name = optionalText(formData, "client_name", 240);
+  const source = String(formData.get("source") ?? "") as CrmManualSource;
+  const status = String(formData.get("status") ?? "nouveau") as CrmStatus;
+  const priority = String(formData.get("priority") ?? "normale") as CrmPriority;
+  const interest_level = String(formData.get("interest_level") ?? "moyen") as CrmInterestLevel;
+
+  if (!client_name) throw new Error("Le nom client / organisation est obligatoire.");
+  if (!crmManualSources.includes(source)) throw new Error("Source manuelle invalide.");
+  if (!crmStatuses.includes(status)) throw new Error("Statut invalide.");
+  if (!crmPriorities.includes(priority)) throw new Error("Priorité invalide.");
+  if (!crmInterestLevels.includes(interest_level)) throw new Error("Niveau d’intérêt invalide.");
+
+  const now = new Date().toISOString();
+  const { data, error } = await getAdminClientOrThrow()
+    .from("client_pipeline_cases")
+    .insert({
+      source_type: "manual",
+      source_id: null,
+      source,
+      client_name,
+      organization_name: optionalText(formData, "organization_name", 240),
+      primary_contact: optionalText(formData, "primary_contact", 240),
+      phone: optionalText(formData, "phone", 80),
+      email: optionalText(formData, "email", 240),
+      project_type: optionalText(formData, "project_type", 240),
+      location: optionalText(formData, "location", 240),
+      main_channel: optionalText(formData, "main_channel", 120),
+      interest_level,
+      priority,
+      status,
+      next_action: optionalText(formData, "next_action", 1000),
+      responsible: optionalText(formData, "responsible", 160),
+      next_action_at: optionalDate(formData, "next_action_at"),
+      admin_notes: optionalText(formData, "admin_notes", 5000),
+      outcome: "en_cours",
+      first_contact_at: now,
+      last_interaction_at: now,
+      metadata: { created_by: "admin_manual_form" },
+    })
+    .select("id")
+    .single();
+
+  if (error || !data) throw new Error("Impossible de créer le dossier CRM pour le moment.");
+
+  revalidatePath("/admin/suivi");
+  redirect(`/admin/suivi/${data.id}`);
 }

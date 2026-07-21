@@ -378,3 +378,79 @@ Le bloc **Source d'origine** affiche :
 - `ID source : ...` lorsque `source_id` existe.
 
 Si `source_type = contact`, la fiche propose un lien admin vers `/admin/contact-requests/[source_id]`. Si `source_type = consultation`, elle propose un lien admin vers `/admin/consultations/[source_id]`. Les dossiers manuels n'ont pas de lien source automatique.
+
+## Création manuelle admin des dossiers CRM
+
+La route protégée `/admin/suivi/nouveau` permet à un administrateur de créer un dossier CRM sans passer par les formulaires publics Contact ou Consultation. Elle répond aux prospects issus de canaux externes : WhatsApp, Facebook, Instagram, appel téléphonique, référence, rencontre terrain, email direct ou autre canal à qualifier.
+
+### Accès et sécurité
+
+- Le bouton **Nouveau dossier** est affiché dans `/admin/suivi`.
+- La page de création appelle `requireAuthorizedAdmin()` côté serveur avant d'afficher le formulaire.
+- L'action de création appelle aussi `requireAuthorizedAdmin()` avant toute insertion Supabase.
+- Aucun formulaire public Contact, Consultation, Academy, Certificats, emails ou paiements n'est modifié par cette création manuelle.
+
+### Champs de création
+
+Champs disponibles dans le formulaire admin :
+
+- Nom client / Organisation ;
+- Contact principal ;
+- Téléphone ;
+- Email ;
+- Type de projet ;
+- Localisation ;
+- Source ;
+- Canal principal ;
+- Niveau intérêt ;
+- Priorité ;
+- Statut ;
+- Prochaine action ;
+- Responsable ;
+- Date prochaine action ;
+- Notes internes.
+
+Champs obligatoires :
+
+- Nom client / Organisation ;
+- Source ;
+- Statut ;
+- Priorité.
+
+### Sources manuelles possibles
+
+Le champ `source` accepte les valeurs suivantes pour un dossier créé manuellement :
+
+- `manual` ;
+- `whatsapp` ;
+- `facebook` ;
+- `instagram` ;
+- `appel` ;
+- `email_direct` ;
+- `reference` ;
+- `terrain` ;
+- `autre`.
+
+### Valeurs par défaut appliquées
+
+À l'insertion, un dossier manuel est créé avec :
+
+- `source_type = 'manual'` ;
+- `source_id = null` ;
+- `source = valeur choisie dans le formulaire` ;
+- `status = 'nouveau'` par défaut dans le formulaire ;
+- `priority = 'normale'` par défaut dans le formulaire ;
+- `interest_level = 'moyen'` par défaut dans le formulaire ;
+- `outcome = 'en_cours'` ;
+- `first_contact_at = now()` côté application ;
+- `last_interaction_at = now()` côté application.
+
+### ID dossier et redirection
+
+Le formulaire ne fournit pas `case_code`. Le trigger SQL existant `set_client_pipeline_case_code` continue donc à générer l'identifiant au format `AGT-CRM-YYYY-0001`, via la même logique que les dossiers automatiques Contact et Consultation.
+
+Après création réussie, l'administrateur est redirigé vers la fiche détail protégée du dossier : `/admin/suivi/[caseId]`. Le dossier apparaît ensuite dans le pipeline `/admin/suivi` avec `source_type = manual` et la source choisie.
+
+### Cas d'usage
+
+La création manuelle sert à intégrer dans le pipeline CRM les prospects qui n'ont pas soumis les formulaires publics, par exemple une discussion WhatsApp, un message Facebook ou Instagram, un appel entrant, une recommandation client, une rencontre terrain ou un email direct reçu par l'équipe.

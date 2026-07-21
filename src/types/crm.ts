@@ -1,5 +1,7 @@
 export type CrmSourceType = "contact" | "consultation" | "manual";
 
+export type CrmManualSource = "manual" | "whatsapp" | "facebook" | "instagram" | "appel" | "email_direct" | "reference" | "terrain" | "autre";
+
 export type CrmInterestLevel = "faible" | "moyen" | "eleve" | "tres_eleve";
 
 export type CrmPriority = "basse" | "normale" | "haute" | "urgente";
