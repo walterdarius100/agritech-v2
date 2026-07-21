@@ -81,8 +81,8 @@ export default async function AdminEmailEventsPage({
       ) : null}
 
       <div className="mt-6 overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600">
+        <table className="min-w-[1100px] text-left text-sm">
+          <thead className="whitespace-nowrap bg-slate-50 text-slate-600">
             <tr>
               <th className="p-3">Date</th>
               <th className="p-3">Type</th>
@@ -102,22 +102,22 @@ export default async function AdminEmailEventsPage({
                   <td className="p-3 whitespace-nowrap">
                     {formatDate(event.created_at)}
                   </td>
-                  <td className="p-3 font-mono text-xs">{event.event_type}</td>
-                  <td className="p-3">
+                  <td className="whitespace-nowrap p-3 font-mono text-xs">{event.event_type}</td>
+                  <td className="max-w-[260px] truncate whitespace-nowrap p-3" title={`${event.recipient_name ? `${event.recipient_name} — ` : ""}${event.recipient_email}`}>
                     {event.recipient_name ? `${event.recipient_name} — ` : ""}
                     {event.recipient_email}
                   </td>
-                  <td className="p-3">{event.subject}</td>
-                  <td className="p-3">
-                    <span className="rounded-full bg-emerald-50 px-2 py-1 font-bold text-emerald-800">
+                  <td className="max-w-[300px] truncate whitespace-nowrap p-3" title={event.subject}>{event.subject}</td>
+                  <td className="whitespace-nowrap p-3">
+                    <span className="inline-flex whitespace-nowrap rounded-full bg-emerald-50 px-2 py-1 font-bold text-emerald-800">
                       {event.status}
                     </span>
                   </td>
-                  <td className="p-3">
+                  <td className="whitespace-nowrap p-3">
                     {metadata?.module ?? event.related_entity_type ?? "—"}
                   </td>
-                  <td className="p-3">{event.provider}</td>
-                  <td className="p-3 font-mono text-xs">
+                  <td className="whitespace-nowrap p-3">{event.provider}</td>
+                  <td className="max-w-[220px] truncate whitespace-nowrap p-3 font-mono text-xs" title={event.provider_message_id ?? undefined}>
                     {event.provider_message_id ?? "—"}
                   </td>
                 </tr>

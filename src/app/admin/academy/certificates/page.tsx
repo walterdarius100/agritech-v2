@@ -61,7 +61,7 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
         {eligibleEnrollments.length > 0 ? (
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+              <thead className="whitespace-nowrap bg-slate-50 text-slate-600">
                 <tr>
                   <th className="p-3">Étudiant</th>
                   <th className="p-3">Formation</th>
@@ -73,13 +73,13 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
               <tbody>
                 {eligibleEnrollments.map((eligibility) => (
                   <tr key={eligibility.enrollmentId} className="border-t">
-                    <td className="p-3 font-semibold">{eligibility.studentName ?? "Étudiant Academy"}</td>
-                    <td className="p-3">{eligibility.courseTitle}</td>
-                    <td className="p-3 font-bold text-emerald-800">{eligibility.progressPercentage} %</td>
-                    <td className="p-3">
+                    <td className="whitespace-nowrap p-3 font-semibold">{eligibility.studentName ?? "Étudiant Academy"}</td>
+                    <td className="max-w-[320px] truncate whitespace-nowrap p-3" title={eligibility.courseTitle}>{eligibility.courseTitle}</td>
+                    <td className="whitespace-nowrap p-3 font-bold text-emerald-800">{eligibility.progressPercentage} %</td>
+                    <td className="whitespace-nowrap p-3">
                       {eligibility.completedPublishedLessons}/{eligibility.totalPublishedLessons} leçons
                     </td>
-                    <td className="p-3">
+                    <td className="whitespace-nowrap p-3">
                       <form action={generateManualCertificateForEnrollment}>
                         <input type="hidden" name="enrollmentId" value={eligibility.enrollmentId} />
                         <button className="rounded-xl bg-emerald-700 px-4 py-2 font-semibold text-white hover:bg-emerald-800">
@@ -104,7 +104,7 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
         {certificates.length > 0 ? (
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="bg-slate-50 text-slate-600">
+              <thead className="whitespace-nowrap bg-slate-50 text-slate-600">
                 <tr>
                   <th className="p-3">Identifiant</th>
                   <th className="p-3">Étudiant</th>
@@ -119,16 +119,16 @@ export default async function CertificatesAdmin({ searchParams }: CertificatesAd
               <tbody>
                 {certificates.map((certificate) => (
                   <tr key={certificate.id} className="border-t align-top">
-                    <td className="p-3 font-mono text-xs font-bold">{certificate.certificate_id}</td>
-                    <td className="p-3">{certificate.student_full_name}</td>
-                    <td className="p-3">{certificate.course_title}</td>
-                    <td className="p-3">
-                      <span className="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800">{getCertificateStatusLabel(certificate.status)}</span>
+                    <td className="whitespace-nowrap p-3 font-mono text-xs font-bold">{certificate.certificate_id}</td>
+                    <td className="whitespace-nowrap p-3">{certificate.student_full_name}</td>
+                    <td className="max-w-[320px] truncate whitespace-nowrap p-3" title={certificate.course_title}>{certificate.course_title}</td>
+                    <td className="whitespace-nowrap p-3">
+                      <span className="inline-flex whitespace-nowrap rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-800">{getCertificateStatusLabel(certificate.status)}</span>
                     </td>
-                    <td className="p-3">{formatFrenchDate(certificate.issued_at, "—")}</td>
-                    <td className="p-3 font-mono text-xs">{certificate.enrollment_id ?? "—"}</td>
-                    <td className="p-3">{getGenerationSource(certificate)}</td>
-                    <td className="p-3">
+                    <td className="whitespace-nowrap p-3">{formatFrenchDate(certificate.issued_at, "—")}</td>
+                    <td className="whitespace-nowrap p-3 font-mono text-xs">{certificate.enrollment_id ?? "—"}</td>
+                    <td className="whitespace-nowrap p-3">{getGenerationSource(certificate)}</td>
+                    <td className="whitespace-nowrap p-3">
                       <a className="font-semibold text-emerald-700" href={`/academy/certificats/${certificate.certificate_id}`}>
                         Voir le certificat
                       </a>
