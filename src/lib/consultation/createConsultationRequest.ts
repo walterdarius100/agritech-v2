@@ -11,6 +11,7 @@ import {
   estimatedBudgets,
   projectStages,
 } from "@/lib/consultation/options";
+import { safeCreatePipelineCaseFromConsultation } from "@/lib/crm/sourceSync";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 export type ConsultationRequestFormState = {
@@ -163,7 +164,7 @@ export async function createConsultationRequest(
   const { data, error } = await supabase
     .from("consultation_requests")
     .insert(validated.payload)
-    .select("id")
+    .select("id, created_at, amount, currency, consultation_package")
     .single();
 
   if (error || !data?.id) {
@@ -173,6 +174,15 @@ export async function createConsultationRequest(
         "Une erreur est survenue lors de l’envoi de votre demande. Veuillez réessayer.",
     };
   }
+
+  await safeCreatePipelineCaseFromConsultation({
+    ...validated.payload,
+    id: data.id as string,
+    created_at: data.created_at as string,
+    amount: data.amount as number,
+    currency: data.currency as string,
+    consultation_package: data.consultation_package as string,
+  });
 
   redirect(`/consultation/checkout/${data.id}`);
 }

@@ -10,6 +10,7 @@ const adminLinks = [
   { href: "/admin/articles", label: "Articles" },
   { href: "/admin/contact-requests", label: "Demandes" },
   { href: "/admin/consultations", label: "Consultations" },
+  { href: "/admin/suivi", label: "Suivi client" },
   { href: "/admin/academy", label: "Academy" },
   { href: "/admin/email-events", label: "Emails" },
   { href: "/admin/articles/new", label: "Nouvel article" },
