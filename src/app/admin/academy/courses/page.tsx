@@ -53,7 +53,7 @@ export default async function CoursesAdmin() {
 
       <div className="mt-8 overflow-x-auto rounded-2xl bg-white ring-1 ring-slate-200">
         <table className="w-full min-w-[760px] text-left text-sm">
-          <thead className="bg-slate-100 text-slate-600">
+          <thead className="whitespace-nowrap bg-slate-100 text-slate-600">
             <tr>
               <th className="p-4">Titre</th>
               <th>Slug</th>
@@ -65,11 +65,11 @@ export default async function CoursesAdmin() {
           <tbody>
             {courses.map((course) => (
               <tr key={course.id} className="border-t border-slate-100">
-                <td className="p-4 font-semibold">{course.title}</td>
-                <td>{course.slug}</td>
-                <td>{course.status}</td>
-                <td>{course.is_free ? "Gratuit" : `${course.price_amount ?? "—"} ${course.price_currency ?? "HTG"}`}</td>
-                <td className="space-x-3">
+                <td className="max-w-[320px] truncate whitespace-nowrap p-4 font-semibold" title={course.title}>{course.title}</td>
+                <td className="whitespace-nowrap">{course.slug}</td>
+                <td className="whitespace-nowrap">{course.status}</td>
+                <td className="whitespace-nowrap">{course.is_free ? "Gratuit" : `${course.price_amount ?? "—"} ${course.price_currency ?? "HTG"}`}</td>
+                <td className="space-x-3 whitespace-nowrap">
                   <Link className="font-semibold text-emerald-800" href={`/admin/academy/courses/${course.id}/edit`}>
                     Modifier
                   </Link>

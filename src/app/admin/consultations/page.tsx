@@ -22,7 +22,7 @@ function StatusBadge({
 }) {
   return (
     <span
-      className={`rounded-full px-3 py-1 text-xs font-bold ${getConsultationStatusBadgeClass(status)}`}
+      className={`inline-flex whitespace-nowrap rounded-full px-3 py-1 text-xs font-bold ${getConsultationStatusBadgeClass(status)}`}
     >
       {getConsultationRequestStatusLabel(status)}
     </span>
@@ -92,7 +92,7 @@ export default async function AdminConsultationsPage({
 
       <div className="mt-6 overflow-x-auto rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
         <table className="w-full min-w-[1200px] text-left text-sm">
-          <thead className="bg-slate-100 text-slate-600">
+          <thead className="whitespace-nowrap bg-slate-100 text-slate-600">
             <tr>
               <th className="p-4">Code demande</th>
               <th>Nom</th>
@@ -114,30 +114,30 @@ export default async function AdminConsultationsPage({
                 className="border-t border-slate-100 align-top"
                 key={request.id}
               >
-                <td className="p-4 font-bold text-emerald-900">
+                <td className="whitespace-nowrap p-4 font-bold text-emerald-900">
                   {request.request_code}
                 </td>
-                <td className="font-semibold text-slate-950">
+                <td className="whitespace-nowrap font-semibold text-slate-950">
                   {request.full_name}
                 </td>
-                <td>{request.phone}</td>
-                <td>{request.email ?? "—"}</td>
-                <td>{request.consultation_type}</td>
-                <td>{request.commune ?? "—"}</td>
-                <td className="max-w-56 text-slate-600">
+                <td className="whitespace-nowrap">{request.phone}</td>
+                <td className="whitespace-nowrap">{request.email ?? "—"}</td>
+                <td className="whitespace-nowrap">{request.consultation_type}</td>
+                <td className="whitespace-nowrap">{request.commune ?? "—"}</td>
+                <td className="max-w-56 truncate whitespace-nowrap text-slate-600" title={request.consultation_package}>
                   {request.consultation_package}
                 </td>
-                <td className="font-semibold">
+                <td className="whitespace-nowrap font-semibold">
                   {formatAmount(request.amount, request.currency)}
                 </td>
-                <td>{request.payment_status}</td>
-                <td>
+                <td className="whitespace-nowrap">{request.payment_status}</td>
+                <td className="whitespace-nowrap">
                   <StatusBadge status={request.request_status} />
                 </td>
-                <td>
+                <td className="whitespace-nowrap">
                   {new Date(request.created_at).toLocaleDateString("fr-FR")}
                 </td>
-                <td>
+                <td className="whitespace-nowrap">
                   <Link
                     className="font-semibold text-emerald-800"
                     href={`/admin/consultations/${request.id}`}
