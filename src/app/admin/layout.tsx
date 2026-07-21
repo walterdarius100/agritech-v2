@@ -1,9 +1,21 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { logoutAdmin } from "@/lib/auth/actions";
 import { getCurrentAdminUser } from "@/lib/auth/adminAuth";
+
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 const adminLinks = [
   { href: "/admin", label: "Tableau de bord" },

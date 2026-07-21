@@ -579,3 +579,80 @@ Le haut de `/admin/suivi` affiche des compteurs rapides : nouveaux dossiers, dos
 ### Limites actuelles
 
 Les alertes sont calculées à l'affichage et sur les 100 derniers dossiers retournés par la requête admin actuelle. Elles ne déclenchent pas d'email, de notification externe, de tâche planifiée ni d'écriture automatique supplémentaire en base.
+
+## Stabilisation avant lancement V2
+
+### Rôle du CRM
+
+Le CRM Agri-tech centralise le suivi commercial et opérationnel des prospects après leur arrivée par Contact, Consultation ou saisie manuelle admin. Il ne remplace pas les formulaires publics : il ajoute une couche interne de pilotage avec statut, priorité, prochaine action, notes et historique.
+
+### Différence entre Contact, Consultation et CRM
+
+- **Contact** : point d'entrée public pour les demandes générales et informations initiales.
+- **Consultation** : tunnel public de réservation et de paiement d'une consultation.
+- **CRM** : espace admin privé qui consolide les dossiers, suit les relances et garde les interactions internes.
+
+### Référentiel stable
+
+Les valeurs utilisées dans le CRM doivent rester cohérentes avec les contraintes SQL et les types TypeScript :
+
+- statuts : `nouveau`, `a_qualifier`, `reunion_a_planifier`, `reunion_prevue`, `proposition_a_preparer`, `proposition_envoyee`, `relance_1`, `relance_2`, `gagne`, `perdu`, `en_attente`, `archive` ;
+- priorités : `basse`, `normale`, `haute`, `urgente` ;
+- niveaux d'intérêt : `faible`, `moyen`, `eleve`, `tres_eleve` ;
+- issues : `en_cours`, `gagne`, `perdu`, `abandonne`, `non_qualifie`.
+
+### Workflow recommandé
+
+```txt
+Nouveau
+→ À qualifier
+→ Réunion à planifier
+→ Réunion prévue
+→ Proposition à préparer
+→ Proposition envoyée
+→ Relance 1
+→ Relance 2
+→ Gagné / Perdu
+```
+
+Utilisation recommandée des statuts :
+
+- `nouveau` : dossier créé mais pas encore traité ;
+- `a_qualifier` : besoin, budget, localisation ou urgence à clarifier ;
+- `reunion_a_planifier` : prospect qualifié, réunion à caler ;
+- `reunion_prevue` : réunion programmée ;
+- `proposition_a_preparer` : offre ou accompagnement à formaliser ;
+- `proposition_envoyee` : proposition transmise, attente de décision ;
+- `relance_1` et `relance_2` : relances commerciales après proposition ;
+- `gagne` : dossier conclu positivement ;
+- `perdu` : dossier non conclu ;
+- `en_attente` : pause temporaire justifiée ;
+- `archive` : dossier conservé sans action attendue.
+
+### Sécurité et données sensibles
+
+Les routes `/admin/suivi` et `/admin/suivi/*` sont dans le layout admin protégé. Le layout admin définit aussi des métadonnées `robots` en `noindex`/`nofollow` afin d'éviter l'indexation des pages CRM. Les données CRM sont chargées côté serveur avec le client Supabase admin après vérification admin.
+
+Le CRM ne transmet pas volontairement aux scripts Analytics les noms, emails, téléphones, messages privés, notes internes ou détails de projet. Les logs CRM existants restent techniques et ne journalisent pas le contenu sensible des dossiers.
+
+### RLS et exposition publique
+
+`client_pipeline_cases` et `client_pipeline_interactions` sont des tables internes. Les interactions ont RLS activé et les droits `anon`/`authenticated` révoqués. Les écrans CRM sont disponibles uniquement dans `/admin` et ne sont pas exposés dans l'espace public.
+
+### Limites actuelles et améliorations futures
+
+Limites actuelles :
+
+- la vue `/admin/suivi` limite l'affichage aux 100 derniers dossiers retournés ;
+- les alertes sont calculées à l'affichage et ne créent pas de notification externe ;
+- l'historique d'interactions n'est pas encore un journal d'audit exhaustif de chaque champ modifié ;
+- le guide admin reste volontairement simple pour le lancement V2.
+
+Améliorations futures possibles :
+
+- pagination et recherche plus avancée ;
+- export CSV admin ;
+- journal d'audit complet des changements de statut/priorité ;
+- rappels internes planifiés, sans email automatique public ;
+- assignation stricte par responsable ;
+- indicateurs de conversion Contact → Consultation → Client.
