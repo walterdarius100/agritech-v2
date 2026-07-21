@@ -60,6 +60,7 @@ const limits = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const recentSubmissionKeys = new Map<string, number>();
 const duplicateWindowMs = 15_000;
+const defaultContactSubject = "Demande d’information générale";
 
 function clean(value: unknown, maxLength: number) {
   const text =
@@ -309,7 +310,7 @@ export function validateContactRequestInput(
       subject:
         finalRequestType === "academy_access"
           ? nullable(subject || academyCourseTitle || "Accès formation Academy")
-          : nullable(subject),
+          : subject || defaultContactSubject,
       message,
       source_page: nullable(sourcePage),
     },

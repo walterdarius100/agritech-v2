@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/Button";
-import { getFormationLabel, getServiceLabel } from "@/lib/contact/requestLabels";
+import { getServiceLabel } from "@/lib/contact/requestLabels";
 import type { ContactRequestType } from "@/types/contact";
 
 export type ContactFormInitialValues = { fullName?: string; email?: string; phone?: string };
@@ -25,7 +25,6 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
   const selectedServiceSlug = serviceSlug || "";
   const selectedFormationSlug = selectedServiceSlug ? "" : formationSlug || "";
   const selectedServiceLabel = getServiceLabel(selectedServiceSlug) ?? selectedServiceSlug;
-  const selectedFormationLabel = getFormationLabel(selectedFormationSlug) ?? selectedFormationSlug;
   const initialRequestType: ContactRequestType = selectedServiceSlug
     ? "service"
     : isAcademyAccess
@@ -118,27 +117,7 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
         <Field defaultValue={initialValues?.fullName} label="Nom complet" maxLength={120} name="full_name" placeholder="Votre nom" required />
         <Field defaultValue={initialValues?.email} label="Email" maxLength={180} name="email" placeholder="vous@example.com" required type="email" />
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <Field defaultValue={initialValues?.phone} label="Téléphone" maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
-        <Field label="Organisation / entreprise" maxLength={180} name="organization" placeholder="Nom de votre structure" />
-      </div>
-      <Field
-        defaultValue={
-          isAcademyAccess
-            ? academyCourseLabel
-            : isPartnership
-              ? "Collaboration / Partenariat"
-              : selectedServiceSlug
-                ? selectedServiceLabel
-                : selectedFormationSlug
-                  ? selectedFormationLabel
-                  : undefined
-        }
-        label="Sujet"
-        maxLength={180}
-        name="subject"
-        placeholder="Votre demande d’information"
-      />
+      <Field defaultValue={initialValues?.phone} label="Téléphone" maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
       {isAcademyAccess ? (
         <input name="message" type="hidden" value={academyMessage} />
       ) : (
