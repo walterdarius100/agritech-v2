@@ -11,7 +11,7 @@ import { createMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = createMetadata({
   title: "Contacter Agri-tech",
   description:
-    "Contactez Agri-tech pour présenter un besoin de service agricole, une demande de formation ou une idée de partenariat.",
+    "Contactez Agri-tech pour une demande générale d’information ou une orientation vers le bon interlocuteur.",
   path: "/contact",
 });
 
@@ -48,9 +48,9 @@ export default async function ContactPage({
         <Container>
           <div className="max-w-3xl">
             <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">Contact</p>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">Parlons de votre projet agricole.</h1>
+            <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">Contactez Agri-tech.</h1>
             <p className="mt-6 text-lg leading-8 text-emerald-50">
-              Expliquez-nous votre besoin, votre idée ou votre situation actuelle. L’équipe Agri-tech vous répondra avec une orientation claire pour avancer de manière structurée.
+              Envoyez-nous votre demande d’information. L’équipe Agri-tech vous répondra avec une orientation claire vers le bon service si nécessaire.
             </p>
           </div>
         </Container>

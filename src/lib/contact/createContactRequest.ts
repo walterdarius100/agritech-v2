@@ -249,7 +249,7 @@ export function validateContactRequestInput(
     };
   }
 
-  const requestType = clean(input.request_type, 40) as ContactRequestType;
+  const requestType = (clean(input.request_type, 40) || "general") as ContactRequestType;
   const fullName = clean(input.full_name, limits.full_name);
   const email = clean(input.email, limits.email).toLowerCase();
   const phone = clean(input.phone, limits.phone);
