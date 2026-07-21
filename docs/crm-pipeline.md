@@ -323,3 +323,58 @@ Cette mise à jour est également appelée si le checkout détecte qu'une demand
 - La synchronisation CRM ne crée pas encore de fiche détail, d'historique d'activité ou de notification automatique.
 - Si la création CRM échoue après la création de la source, la source reste valide et l'erreur doit être corrigée depuis les logs serveur.
 - Le backfill des anciennes demandes Contact/Consultation n'est pas inclus.
+
+## Fiche détail CRM admin
+
+La fiche détail d'un dossier CRM est disponible sur la route protégée `/admin/suivi/[caseId]`. Elle est chargée côté serveur après `requireAuthorizedAdmin()` et utilise le client Supabase admin ; aucune donnée de `client_pipeline_cases` n'est exposée dans l'espace public.
+
+### Sections de la fiche
+
+L'interface détail est organisée pour éviter un bloc unique difficile à lire :
+
+1. Résumé du dossier ;
+2. Informations client ;
+3. Projet / besoin ;
+4. Suivi commercial ;
+5. Réunion ;
+6. Proposition et relances ;
+7. Décision / issue ;
+8. Notes internes ;
+9. Source d'origine.
+
+### Champs modifiables
+
+L'admin peut modifier les champs de suivi suivants depuis la fiche :
+
+- `client_name` et `organization_name` ;
+- `primary_contact`, `phone`, `email` ;
+- `project_type`, `location`, `main_channel` ;
+- `interest_level`, `priority`, `status` ;
+- `next_action`, `responsible`, `next_action_at` ;
+- `meeting_date`, `meeting_time`, `meeting_confirmed`, `post_meeting_decision` ;
+- `proposal_sent_at`, `proposed_amount_usd`, `follow_up_1_at`, `follow_up_2_at` ;
+- `expected_close_at`, `expected_decision`, `outcome` ;
+- `admin_notes`.
+
+### Champs non modifiables dans la fiche
+
+Les champs techniques restent affichés en lecture seule ou réservés à la base de données :
+
+- `id` ;
+- `case_code` ;
+- `source_type` ;
+- `source_id` ;
+- `created_at`.
+
+### Comportement de `last_interaction_at`
+
+Lorsqu'un admin enregistre la fiche détail, l'application met à jour `last_interaction_at` avec l'horodatage serveur courant. La règle est volontairement simple et prudente : l'enregistrement de la fiche représente une interaction CRM dès lors que cette fiche contient les champs de suivi sensibles (`status`, `next_action`, `next_action_at`, `meeting_date`, `meeting_confirmed`, `post_meeting_decision`, `proposal_sent_at`, `follow_up_1_at`, `follow_up_2_at`, `outcome`, `admin_notes`). Cette approche évite de manquer une interaction lorsqu'un champ important est modifié avec une valeur déjà existante.
+
+### Lien avec Contact / Consultation
+
+Le bloc **Source d'origine** affiche :
+
+- `Source : Contact / Consultation / Manuel` ;
+- `ID source : ...` lorsque `source_id` existe.
+
+Si `source_type = contact`, la fiche propose un lien admin vers `/admin/contact-requests/[source_id]`. Si `source_type = consultation`, elle propose un lien admin vers `/admin/consultations/[source_id]`. Les dossiers manuels n'ont pas de lien source automatique.
