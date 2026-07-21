@@ -4,9 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
 import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
-import { crmInterestLevels, crmManualSources, crmOutcomes, crmPriorities, crmStatuses, type ClientPipelineCaseFormState } from "@/lib/crm/adminPipeline";
+import { crmInteractionChannels, crmInteractionTypes, crmInterestLevels, crmManualSources, crmOutcomes, crmPriorities, crmStatuses, type ClientPipelineCaseFormState } from "@/lib/crm/adminPipeline";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
-import type { CrmInterestLevel, CrmManualSource, CrmOutcome, CrmPriority, CrmStatus } from "@/types/crm";
+import type { CrmInteractionChannel, CrmInteractionType, CrmInterestLevel, CrmManualSource, CrmOutcome, CrmPriority, CrmStatus } from "@/types/crm";
 
 function optionalText(formData: FormData, key: string, max = 1000) { return String(formData.get(key) ?? "").trim().slice(0, max) || null; }
 function optionalDate(formData: FormData, key: string) { const value = String(formData.get(key) ?? "").trim(); return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : null; }
@@ -110,6 +110,63 @@ export async function createManualClientPipelineCase(formData: FormData) {
 
   if (error || !data) throw new Error("Impossible de créer le dossier CRM pour le moment.");
 
+  await getAdminClientOrThrow().from("client_pipeline_interactions").insert({
+    case_id: data.id,
+    interaction_type: "note",
+    interaction_date: now,
+    channel: source === "whatsapp" ? "whatsapp" : source === "facebook" ? "facebook" : source === "instagram" ? "instagram" : source === "appel" ? "telephone" : source === "email_direct" ? "email" : source === "terrain" ? "reunion_physique" : null,
+    summary: "Dossier créé manuellement",
+    created_by: "admin",
+    metadata: { source_type: "manual", source },
+  });
+
   revalidatePath("/admin/suivi");
   redirect(`/admin/suivi/${data.id}`);
+}
+
+export async function addAdminClientPipelineInteraction(caseId: string, _state: ClientPipelineCaseFormState, formData: FormData): Promise<ClientPipelineCaseFormState> {
+  await requireAuthorizedAdmin();
+
+  const interaction_type = String(formData.get("interaction_type") ?? "note") as CrmInteractionType;
+  const rawChannel = optionalText(formData, "channel", 80) as CrmInteractionChannel | null;
+  const summary = optionalText(formData, "summary", 500);
+  const details = optionalText(formData, "details", 5000);
+  const interaction_date = String(formData.get("interaction_date") ?? "").trim();
+  const next_action = optionalText(formData, "next_action", 1000);
+  const next_action_at = optionalDate(formData, "next_action_at");
+  const status = optionalText(formData, "status", 80) as CrmStatus | null;
+
+  if (!crmInteractionTypes.includes(interaction_type)) return { error: "Type d’interaction invalide." };
+  if (rawChannel && !crmInteractionChannels.includes(rawChannel)) return { error: "Canal invalide." };
+  if (!summary) return { error: "Le résumé de l’interaction est obligatoire." };
+  if (status && !crmStatuses.includes(status)) return { error: "Statut invalide." };
+
+  const parsedInteractionDate = interaction_date ? new Date(interaction_date) : new Date();
+  if (Number.isNaN(parsedInteractionDate.getTime())) return { error: "Date d’interaction invalide." };
+
+  const supabase = getAdminClientOrThrow();
+  const timestamp = parsedInteractionDate.toISOString();
+  const { error: insertError } = await supabase.from("client_pipeline_interactions").insert({
+    case_id: caseId,
+    interaction_type,
+    interaction_date: timestamp,
+    channel: rawChannel,
+    summary,
+    details,
+    created_by: optionalText(formData, "created_by", 160),
+  });
+
+  if (insertError) return { error: "Impossible d’ajouter l’interaction pour le moment." };
+
+  const caseUpdate: Record<string, unknown> = { last_interaction_at: timestamp };
+  if (next_action) caseUpdate.next_action = next_action;
+  if (next_action_at) caseUpdate.next_action_at = next_action_at;
+  if (status) caseUpdate.status = status;
+
+  const { error: updateError } = await supabase.from("client_pipeline_cases").update(caseUpdate).eq("id", caseId);
+  if (updateError) return { error: "L’interaction a été ajoutée, mais le dossier principal n’a pas pu être mis à jour." };
+
+  revalidatePath("/admin/suivi");
+  revalidatePath(`/admin/suivi/${caseId}`);
+  return { success: "Interaction ajoutée à l’historique du dossier." };
 }

@@ -2,6 +2,9 @@ import { requireAuthorizedAdmin } from "@/lib/auth/adminAuth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   ClientPipelineCase,
+  ClientPipelineInteraction,
+  CrmInteractionChannel,
+  CrmInteractionType,
   CrmInterestLevel,
   CrmManualSource,
   CrmOutcome,
@@ -30,6 +33,8 @@ export const crmManualSources: CrmManualSource[] = ["manual", "whatsapp", "faceb
 export const crmPriorities: CrmPriority[] = ["basse", "normale", "haute", "urgente"];
 export const crmInterestLevels: CrmInterestLevel[] = ["faible", "moyen", "eleve", "tres_eleve"];
 export const crmOutcomes: CrmOutcome[] = ["en_cours", "gagne", "perdu", "abandonne", "non_qualifie"];
+export const crmInteractionTypes: CrmInteractionType[] = ["note", "appel", "whatsapp", "email", "reunion", "relance", "proposition", "paiement", "decision", "autre"];
+export const crmInteractionChannels: CrmInteractionChannel[] = ["telephone", "whatsapp", "email", "site_web", "reunion_en_ligne", "reunion_physique", "facebook", "instagram", "autre"];
 
 export type CrmPipelineFilters = {
   search?: string;
@@ -113,6 +118,8 @@ export const crmManualSourceLabels: Record<CrmManualSource, string> = { manual: 
 export const crmPriorityLabels: Record<CrmPriority, string> = { basse: "Basse", normale: "Normale", haute: "Haute", urgente: "Urgente" };
 export const crmInterestLabels: Record<CrmInterestLevel, string> = { faible: "Faible", moyen: "Moyen", eleve: "Élevé", tres_eleve: "Très élevé" };
 export const crmOutcomeLabels: Record<CrmOutcome, string> = { en_cours: "En cours", gagne: "Gagné", perdu: "Perdu", abandonne: "Abandonné", non_qualifie: "Non qualifié" };
+export const crmInteractionTypeLabels: Record<CrmInteractionType, string> = { note: "Note", appel: "Appel", whatsapp: "WhatsApp", email: "Email", reunion: "Réunion", relance: "Relance", proposition: "Proposition", paiement: "Paiement", decision: "Décision", autre: "Autre" };
+export const crmInteractionChannelLabels: Record<CrmInteractionChannel, string> = { telephone: "Téléphone", whatsapp: "WhatsApp", email: "Email", site_web: "Site web", reunion_en_ligne: "Réunion en ligne", reunion_physique: "Réunion physique", facebook: "Facebook", instagram: "Instagram", autre: "Autre" };
 
 export type ClientPipelineCaseFormState = { error?: string; success?: string };
 
@@ -137,4 +144,18 @@ export async function getAdminClientPipelineCaseById(id: string) {
 
   if (error) throw new Error(error.message);
   return data as ClientPipelineCase | null;
+}
+
+export async function getAdminClientPipelineInteractions(caseId: string) {
+  await requireAuthorizedAdmin();
+  const supabase = getAdminClientOrThrow();
+  const { data, error } = await supabase
+    .from("client_pipeline_interactions")
+    .select("id,case_id,interaction_type,interaction_date,channel,summary,details,created_by,created_at,metadata")
+    .eq("case_id", caseId)
+    .order("interaction_date", { ascending: false })
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as ClientPipelineInteraction[];
 }

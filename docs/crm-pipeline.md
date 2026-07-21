@@ -454,3 +454,70 @@ Après création réussie, l'administrateur est redirigé vers la fiche détail 
 ### Cas d'usage
 
 La création manuelle sert à intégrer dans le pipeline CRM les prospects qui n'ont pas soumis les formulaires publics, par exemple une discussion WhatsApp, un message Facebook ou Instagram, un appel entrant, une recommandation client, une rencontre terrain ou un email direct reçu par l'équipe.
+
+## Historique des interactions CRM
+
+La table interne `client_pipeline_interactions` conserve les échanges importants rattachés à chaque dossier CRM. Elle ne remplace pas `client_pipeline_cases` : elle ajoute une chronologie exploitable dans la fiche détail admin `/admin/suivi/[caseId]`.
+
+### Table `client_pipeline_interactions`
+
+La migration crée les colonnes suivantes :
+
+- `id` : identifiant UUID de l'interaction ;
+- `case_id` : référence obligatoire vers `client_pipeline_cases(id)` avec suppression en cascade ;
+- `interaction_type` : type de l'échange, `note` par défaut ;
+- `interaction_date` : date métier de l'interaction, `now()` par défaut ;
+- `channel` : canal utilisé, optionnel ;
+- `summary` : résumé obligatoire ;
+- `details` : détails internes optionnels ;
+- `created_by` : auteur ou source système optionnel ;
+- `created_at` : date technique de création ;
+- `metadata` : données techniques JSON internes.
+
+La table active RLS, révoque les droits `anon` et `authenticated`, et reste utilisée uniquement via le client Supabase admin côté serveur.
+
+### Types d'interactions
+
+Valeurs autorisées :
+
+- `note` ;
+- `appel` ;
+- `whatsapp` ;
+- `email` ;
+- `reunion` ;
+- `relance` ;
+- `proposition` ;
+- `paiement` ;
+- `decision` ;
+- `autre`.
+
+### Canaux autorisés
+
+Valeurs autorisées :
+
+- `telephone` ;
+- `whatsapp` ;
+- `email` ;
+- `site_web` ;
+- `reunion_en_ligne` ;
+- `reunion_physique` ;
+- `facebook` ;
+- `instagram` ;
+- `autre`.
+
+### Fonctionnement dans la fiche détail
+
+La fiche `/admin/suivi/[caseId]` affiche la section **Historique des interactions** avec la date, le type, le canal, le résumé, les détails et l'auteur. Un formulaire admin permet d'ajouter une interaction avec : type d'interaction, canal, date, résumé et détails. Le type et le résumé sont obligatoires.
+
+À chaque ajout manuel, l'action serveur insère l'interaction puis met à jour `client_pipeline_cases.last_interaction_at` avec la date de l'interaction. Le formulaire permet aussi, si nécessaire, de mettre à jour simplement `next_action`, `next_action_at` et `status` dans le dossier principal.
+
+### Interactions automatiques
+
+Des interactions système simples sont créées lors des événements CRM internes suivants :
+
+- dossier créé depuis Contact ;
+- dossier créé depuis Consultation ;
+- dossier manuel créé depuis l'admin ;
+- consultation payée.
+
+Les interactions automatiques pour `proposition envoyée` et `relance ajoutée` restent une amélioration future si l'historique doit devenir un journal d'audit exhaustif de chaque modification de fiche.
