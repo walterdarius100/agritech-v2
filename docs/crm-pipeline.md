@@ -237,3 +237,89 @@ La page affiche une alerte visuelle sans envoyer de notification automatique :
 - **RAS** sinon.
 
 Cette logique est uniquement informative dans cette PR.
+
+## Synchronisation automatique des sources
+
+Les dossiers CRM sont désormais créés automatiquement après insertion réussie des demandes sources. La synchronisation est appelée côté serveur et reste non bloquante pour l'expérience utilisateur : en cas d'échec CRM, une erreur serveur `[crm-pipeline]` est journalisée, mais la soumission Contact, la redirection Consultation et les emails existants continuent leur flux normal.
+
+### Création depuis Contact
+
+Après insertion d'une ligne `contact_requests`, l'application appelle `safeCreatePipelineCaseFromContact()`.
+
+Mapping appliqué :
+
+- `source_type = 'contact'` ;
+- `source_id = contact_requests.id` ;
+- `source = 'contact'` ;
+- `first_contact_at = contact_requests.created_at` ;
+- `client_name = contact_requests.full_name` ;
+- `organization_name = contact_requests.organization` ;
+- `primary_contact = contact_requests.full_name` ;
+- `email = contact_requests.email` ;
+- `phone = contact_requests.phone` ;
+- `project_type = 'Demande d’information générale'` ;
+- `location = null` ;
+- `main_channel = 'site_web'` ;
+- `interest_level = 'moyen'` ;
+- `priority = 'normale'` ;
+- `status = 'nouveau'` ;
+- `next_action = 'Répondre à la demande d’information'` ;
+- `next_action_at = created_at + 1 jour` ;
+- `outcome = 'en_cours'` ;
+- `last_interaction_at = contact_requests.created_at`.
+
+Le champ `metadata` conserve uniquement des informations utiles au routage interne (`request_type`, `subject`, `source_page`, slugs et titre de cours/service). Le message privé complet du formulaire Contact n'est pas copié dans le CRM.
+
+### Création depuis Consultation
+
+Après insertion d'une ligne `consultation_requests`, l'application appelle `safeCreatePipelineCaseFromConsultation()` avant la redirection vers le checkout.
+
+Mapping appliqué :
+
+- `source_type = 'consultation'` ;
+- `source_id = consultation_requests.id` ;
+- `source = 'consultation'` ;
+- `first_contact_at = consultation_requests.created_at` ;
+- `client_name = consultation_requests.full_name` ;
+- `email = consultation_requests.email` ;
+- `phone = consultation_requests.phone` ;
+- `project_type = consultation_requests.consultation_type` ;
+- `location = commune / département` selon les valeurs disponibles ;
+- `main_channel = 'site_web'` ;
+- `interest_level = 'eleve'` ;
+- `priority = 'haute'` ;
+- `status = 'a_qualifier'` ;
+- `next_action = 'Vérifier le paiement et planifier la consultation'` ;
+- `next_action_at = created_at + 1 jour` ;
+- `outcome = 'en_cours'` ;
+- `last_interaction_at = consultation_requests.created_at`.
+
+Le champ `metadata` ne copie pas la description détaillée du projet. Il conserve uniquement les champs utiles au suivi : étape projet, budget estimé, mode, package, montant et devise.
+
+### Anti-doublon
+
+La synchronisation CRM vérifie l'existence d'un dossier avec le couple :
+
+```txt
+source_type + source_id
+```
+
+Si un dossier existe déjà, aucun nouveau dossier n'est créé. Si deux appels concurrents tentent une création simultanée, l'erreur d'unicité PostgreSQL `23505` est traitée comme un doublon attendu et ignorée côté CRM.
+
+### Mise à jour après paiement Consultation
+
+Lorsqu'un paiement Consultation est confirmé, l'application appelle `safeMarkPipelineCaseConsultationPaid()` pour mettre à jour le dossier CRM existant :
+
+- `status = 'reunion_a_planifier'` ;
+- `next_action = 'Planifier la réunion de consultation'` ;
+- `priority = 'haute'` ;
+- `last_interaction_at = paid_at` ;
+- `next_action_at = paid_at + 1 jour`.
+
+Cette mise à jour est également appelée si le checkout détecte qu'une demande est déjà payée, afin de rendre le traitement idempotent.
+
+### Limites connues
+
+- La synchronisation CRM ne crée pas encore de fiche détail, d'historique d'activité ou de notification automatique.
+- Si la création CRM échoue après la création de la source, la source reste valide et l'erreur doit être corrigée depuis les logs serveur.
+- Le backfill des anciennes demandes Contact/Consultation n'est pas inclus.

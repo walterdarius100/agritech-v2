@@ -8,6 +8,10 @@ import {
 } from "@/lib/consultation-payments";
 import type { ConsultationPaymentMethod } from "@/lib/consultation-payments/types";
 import { sendConsultationPaidEmails } from "@/lib/consultation/emails";
+import {
+  safeCreatePipelineCaseFromConsultation,
+  safeMarkPipelineCaseConsultationPaid,
+} from "@/lib/crm/sourceSync";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import type {
   ConsultationPayment,
@@ -117,6 +121,12 @@ export async function confirmConsultationMockPayment(
   }
 
   if (consultationRequest.payment_status === "paid" || existingPaidPayment) {
+    await safeCreatePipelineCaseFromConsultation(consultationRequest);
+    await safeMarkPipelineCaseConsultationPaid({
+      consultationRequestId: requestId,
+      paidAt: consultationRequest.paid_at ?? new Date().toISOString(),
+    });
+
     try {
       await sendConsultationPaidEmails(supabase, consultationRequest);
     } catch (error) {
@@ -191,6 +201,12 @@ export async function confirmConsultationMockPayment(
         "Le paiement a été enregistré, mais la demande n’a pas pu être mise à jour. Veuillez contacter Agri-tech.",
     };
   }
+
+  await safeCreatePipelineCaseFromConsultation(paidRequest as ConsultationRequest);
+  await safeMarkPipelineCaseConsultationPaid({
+    consultationRequestId: requestId,
+    paidAt,
+  });
 
   try {
     await sendConsultationPaidEmails(

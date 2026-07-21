@@ -8,6 +8,7 @@ import {
   contactInternalNotificationTemplate,
   contactVisitorAcknowledgementTemplate,
 } from "@/lib/email/templates/contact-request";
+import { safeCreatePipelineCaseFromContact } from "@/lib/crm/sourceSync";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { getContactRequestTypeLabel } from "@/lib/contact/requestLabels";
 import type {
@@ -369,7 +370,7 @@ export async function createContactRequest(input: Record<string, unknown>) {
   const { data: contactRequest, error } = await supabase
     .from("contact_requests")
     .insert(payload)
-    .select("id")
+    .select("id, created_at")
     .single();
   if (error) {
     console.error("Unable to create contact request", error.message);
@@ -380,6 +381,12 @@ export async function createContactRequest(input: Record<string, unknown>) {
   }
 
   markSubmissionReceived(validated.payload);
+
+  await safeCreatePipelineCaseFromContact({
+    ...validated.payload,
+    id: contactRequest.id as string,
+    created_at: contactRequest.created_at as string,
+  });
 
   const emailStatus = await sendContactEmails(
     validated.payload,
