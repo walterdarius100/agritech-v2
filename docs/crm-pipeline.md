@@ -521,3 +521,61 @@ Des interactions système simples sont créées lors des événements CRM intern
 - consultation payée.
 
 Les interactions automatiques pour `proposition envoyée` et `relance ajoutée` restent une amélioration future si l'historique doit devenir un journal d'audit exhaustif de chaque modification de fiche.
+
+## Alertes de relance et vue prioritaire
+
+La page admin `/admin/suivi` calcule désormais des alertes applicatives côté serveur à partir des champs du dossier CRM. Ces alertes n'envoient aucun email automatique et ne créent aucun rappel externe : elles servent uniquement à prioriser l'affichage dans le dashboard admin.
+
+### Statuts actifs et non actifs
+
+Les règles d'alerte ne s'appliquent qu'aux statuts actifs :
+
+- `nouveau` ;
+- `a_qualifier` ;
+- `reunion_a_planifier` ;
+- `reunion_prevue` ;
+- `proposition_a_preparer` ;
+- `proposition_envoyee` ;
+- `relance_1` ;
+- `relance_2` ;
+- `en_attente`.
+
+Les statuts `gagne`, `perdu` et `archive` sont considérés comme non actifs et ne génèrent pas d'alerte de relance inutile.
+
+### Règles d'alerte
+
+Un dossier actif peut afficher un ou plusieurs badges :
+
+- **Action aujourd’hui** : `next_action_at` correspond à la date du jour ;
+- **En retard** : `next_action_at` est dépassée ;
+- **À relancer** : aucune interaction depuis au moins 7 jours, ou `alert_follow_up` est déjà positionné ;
+- **Aucune prochaine action** : le dossier actif n'a pas de `next_action_at` ;
+- **Priorité urgente** : le dossier actif est marqué `priority = urgente`.
+
+### Vue “À traiter”
+
+L'onglet **À traiter** de `/admin/suivi` filtre les dossiers actifs à prioriser. Il inclut :
+
+- les dossiers avec action en retard ;
+- les dossiers avec action aujourd'hui ;
+- les dossiers sans interaction depuis au moins 7 jours ;
+- les dossiers actifs sans prochaine action ;
+- les dossiers de priorité `haute` ou `urgente`.
+
+### Logique de tri de la vue “À traiter”
+
+La vue prioritaire trie les dossiers dans l'ordre suivant :
+
+1. action en retard ;
+2. priorité urgente ;
+3. date de prochaine action la plus proche ;
+4. nombre de jours sans interaction le plus élevé ;
+5. date de création la plus récente.
+
+### Résumé CRM
+
+Le haut de `/admin/suivi` affiche des compteurs rapides : nouveaux dossiers, dossiers à traiter, actions en retard, propositions envoyées, dossiers gagnés et dossiers perdus.
+
+### Limites actuelles
+
+Les alertes sont calculées à l'affichage et sur les 100 derniers dossiers retournés par la requête admin actuelle. Elles ne déclenchent pas d'email, de notification externe, de tâche planifiée ni d'écriture automatique supplémentaire en base.

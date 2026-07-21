@@ -43,6 +43,7 @@ export type CrmPipelineFilters = {
   priority?: CrmPriority | "all";
   interest?: CrmInterestLevel | "all";
   outcome?: CrmOutcome | "all";
+  view?: "all" | "a_traiter";
 };
 
 export function normalizeCrmFilters(params: Record<string, string | undefined>): CrmPipelineFilters {
@@ -51,6 +52,7 @@ export function normalizeCrmFilters(params: Record<string, string | undefined>):
   const priority = crmPriorities.includes(params.priority as CrmPriority) ? (params.priority as CrmPriority) : "all";
   const interest = crmInterestLevels.includes(params.interest as CrmInterestLevel) ? (params.interest as CrmInterestLevel) : "all";
   const outcome = crmOutcomes.includes(params.outcome as CrmOutcome) ? (params.outcome as CrmOutcome) : "all";
+  const view = params.view === "a_traiter" ? "a_traiter" : "all";
 
   return {
     search: params.q?.trim() || undefined,
@@ -59,6 +61,7 @@ export function normalizeCrmFilters(params: Record<string, string | undefined>):
     priority,
     interest,
     outcome,
+    view,
   };
 }
 
