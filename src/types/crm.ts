@@ -1,5 +1,7 @@
 export type CrmSourceType = "contact" | "consultation" | "manual";
 
+export type CrmManualSource = "manual" | "whatsapp" | "facebook" | "instagram" | "appel" | "email_direct" | "reference" | "terrain" | "autre";
+
 export type CrmInterestLevel = "faible" | "moyen" | "eleve" | "tres_eleve";
 
 export type CrmPriority = "basse" | "normale" | "haute" | "urgente";
@@ -63,4 +65,21 @@ export type ClientPipelineCase = {
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;
+};
+
+export type CrmInteractionType = "note" | "appel" | "whatsapp" | "email" | "reunion" | "relance" | "proposition" | "paiement" | "decision" | "autre";
+
+export type CrmInteractionChannel = "telephone" | "whatsapp" | "email" | "site_web" | "reunion_en_ligne" | "reunion_physique" | "facebook" | "instagram" | "autre";
+
+export type ClientPipelineInteraction = {
+  id: string;
+  case_id: string;
+  interaction_type: CrmInteractionType;
+  interaction_date: string;
+  channel: CrmInteractionChannel | null;
+  summary: string;
+  details: string | null;
+  created_by: string | null;
+  created_at: string;
+  metadata: Record<string, unknown>;
 };

@@ -378,3 +378,281 @@ Le bloc **Source d'origine** affiche :
 - `ID source : ...` lorsque `source_id` existe.
 
 Si `source_type = contact`, la fiche propose un lien admin vers `/admin/contact-requests/[source_id]`. Si `source_type = consultation`, elle propose un lien admin vers `/admin/consultations/[source_id]`. Les dossiers manuels n'ont pas de lien source automatique.
+
+## Création manuelle admin des dossiers CRM
+
+La route protégée `/admin/suivi/nouveau` permet à un administrateur de créer un dossier CRM sans passer par les formulaires publics Contact ou Consultation. Elle répond aux prospects issus de canaux externes : WhatsApp, Facebook, Instagram, appel téléphonique, référence, rencontre terrain, email direct ou autre canal à qualifier.
+
+### Accès et sécurité
+
+- Le bouton **Nouveau dossier** est affiché dans `/admin/suivi`.
+- La page de création appelle `requireAuthorizedAdmin()` côté serveur avant d'afficher le formulaire.
+- L'action de création appelle aussi `requireAuthorizedAdmin()` avant toute insertion Supabase.
+- Aucun formulaire public Contact, Consultation, Academy, Certificats, emails ou paiements n'est modifié par cette création manuelle.
+
+### Champs de création
+
+Champs disponibles dans le formulaire admin :
+
+- Nom client / Organisation ;
+- Contact principal ;
+- Téléphone ;
+- Email ;
+- Type de projet ;
+- Localisation ;
+- Source ;
+- Canal principal ;
+- Niveau intérêt ;
+- Priorité ;
+- Statut ;
+- Prochaine action ;
+- Responsable ;
+- Date prochaine action ;
+- Notes internes.
+
+Champs obligatoires :
+
+- Nom client / Organisation ;
+- Source ;
+- Statut ;
+- Priorité.
+
+### Sources manuelles possibles
+
+Le champ `source` accepte les valeurs suivantes pour un dossier créé manuellement :
+
+- `manual` ;
+- `whatsapp` ;
+- `facebook` ;
+- `instagram` ;
+- `appel` ;
+- `email_direct` ;
+- `reference` ;
+- `terrain` ;
+- `autre`.
+
+### Valeurs par défaut appliquées
+
+À l'insertion, un dossier manuel est créé avec :
+
+- `source_type = 'manual'` ;
+- `source_id = null` ;
+- `source = valeur choisie dans le formulaire` ;
+- `status = 'nouveau'` par défaut dans le formulaire ;
+- `priority = 'normale'` par défaut dans le formulaire ;
+- `interest_level = 'moyen'` par défaut dans le formulaire ;
+- `outcome = 'en_cours'` ;
+- `first_contact_at = now()` côté application ;
+- `last_interaction_at = now()` côté application.
+
+### ID dossier et redirection
+
+Le formulaire ne fournit pas `case_code`. Le trigger SQL existant `set_client_pipeline_case_code` continue donc à générer l'identifiant au format `AGT-CRM-YYYY-0001`, via la même logique que les dossiers automatiques Contact et Consultation.
+
+Après création réussie, l'administrateur est redirigé vers la fiche détail protégée du dossier : `/admin/suivi/[caseId]`. Le dossier apparaît ensuite dans le pipeline `/admin/suivi` avec `source_type = manual` et la source choisie.
+
+### Cas d'usage
+
+La création manuelle sert à intégrer dans le pipeline CRM les prospects qui n'ont pas soumis les formulaires publics, par exemple une discussion WhatsApp, un message Facebook ou Instagram, un appel entrant, une recommandation client, une rencontre terrain ou un email direct reçu par l'équipe.
+
+## Historique des interactions CRM
+
+La table interne `client_pipeline_interactions` conserve les échanges importants rattachés à chaque dossier CRM. Elle ne remplace pas `client_pipeline_cases` : elle ajoute une chronologie exploitable dans la fiche détail admin `/admin/suivi/[caseId]`.
+
+### Table `client_pipeline_interactions`
+
+La migration crée les colonnes suivantes :
+
+- `id` : identifiant UUID de l'interaction ;
+- `case_id` : référence obligatoire vers `client_pipeline_cases(id)` avec suppression en cascade ;
+- `interaction_type` : type de l'échange, `note` par défaut ;
+- `interaction_date` : date métier de l'interaction, `now()` par défaut ;
+- `channel` : canal utilisé, optionnel ;
+- `summary` : résumé obligatoire ;
+- `details` : détails internes optionnels ;
+- `created_by` : auteur ou source système optionnel ;
+- `created_at` : date technique de création ;
+- `metadata` : données techniques JSON internes.
+
+La table active RLS, révoque les droits `anon` et `authenticated`, et reste utilisée uniquement via le client Supabase admin côté serveur.
+
+### Types d'interactions
+
+Valeurs autorisées :
+
+- `note` ;
+- `appel` ;
+- `whatsapp` ;
+- `email` ;
+- `reunion` ;
+- `relance` ;
+- `proposition` ;
+- `paiement` ;
+- `decision` ;
+- `autre`.
+
+### Canaux autorisés
+
+Valeurs autorisées :
+
+- `telephone` ;
+- `whatsapp` ;
+- `email` ;
+- `site_web` ;
+- `reunion_en_ligne` ;
+- `reunion_physique` ;
+- `facebook` ;
+- `instagram` ;
+- `autre`.
+
+### Fonctionnement dans la fiche détail
+
+La fiche `/admin/suivi/[caseId]` affiche la section **Historique des interactions** avec la date, le type, le canal, le résumé, les détails et l'auteur. Un formulaire admin permet d'ajouter une interaction avec : type d'interaction, canal, date, résumé et détails. Le type et le résumé sont obligatoires.
+
+À chaque ajout manuel, l'action serveur insère l'interaction puis met à jour `client_pipeline_cases.last_interaction_at` avec la date de l'interaction. Le formulaire permet aussi, si nécessaire, de mettre à jour simplement `next_action`, `next_action_at` et `status` dans le dossier principal.
+
+### Interactions automatiques
+
+Des interactions système simples sont créées lors des événements CRM internes suivants :
+
+- dossier créé depuis Contact ;
+- dossier créé depuis Consultation ;
+- dossier manuel créé depuis l'admin ;
+- consultation payée.
+
+Les interactions automatiques pour `proposition envoyée` et `relance ajoutée` restent une amélioration future si l'historique doit devenir un journal d'audit exhaustif de chaque modification de fiche.
+
+## Alertes de relance et vue prioritaire
+
+La page admin `/admin/suivi` calcule désormais des alertes applicatives côté serveur à partir des champs du dossier CRM. Ces alertes n'envoient aucun email automatique et ne créent aucun rappel externe : elles servent uniquement à prioriser l'affichage dans le dashboard admin.
+
+### Statuts actifs et non actifs
+
+Les règles d'alerte ne s'appliquent qu'aux statuts actifs :
+
+- `nouveau` ;
+- `a_qualifier` ;
+- `reunion_a_planifier` ;
+- `reunion_prevue` ;
+- `proposition_a_preparer` ;
+- `proposition_envoyee` ;
+- `relance_1` ;
+- `relance_2` ;
+- `en_attente`.
+
+Les statuts `gagne`, `perdu` et `archive` sont considérés comme non actifs et ne génèrent pas d'alerte de relance inutile.
+
+### Règles d'alerte
+
+Un dossier actif peut afficher un ou plusieurs badges :
+
+- **Action aujourd’hui** : `next_action_at` correspond à la date du jour ;
+- **En retard** : `next_action_at` est dépassée ;
+- **À relancer** : aucune interaction depuis au moins 7 jours, ou `alert_follow_up` est déjà positionné ;
+- **Aucune prochaine action** : le dossier actif n'a pas de `next_action_at` ;
+- **Priorité urgente** : le dossier actif est marqué `priority = urgente`.
+
+### Vue “À traiter”
+
+L'onglet **À traiter** de `/admin/suivi` filtre les dossiers actifs à prioriser. Il inclut :
+
+- les dossiers avec action en retard ;
+- les dossiers avec action aujourd'hui ;
+- les dossiers sans interaction depuis au moins 7 jours ;
+- les dossiers actifs sans prochaine action ;
+- les dossiers de priorité `haute` ou `urgente`.
+
+### Logique de tri de la vue “À traiter”
+
+La vue prioritaire trie les dossiers dans l'ordre suivant :
+
+1. action en retard ;
+2. priorité urgente ;
+3. date de prochaine action la plus proche ;
+4. nombre de jours sans interaction le plus élevé ;
+5. date de création la plus récente.
+
+### Résumé CRM
+
+Le haut de `/admin/suivi` affiche des compteurs rapides : nouveaux dossiers, dossiers à traiter, actions en retard, propositions envoyées, dossiers gagnés et dossiers perdus.
+
+### Limites actuelles
+
+Les alertes sont calculées à l'affichage et sur les 100 derniers dossiers retournés par la requête admin actuelle. Elles ne déclenchent pas d'email, de notification externe, de tâche planifiée ni d'écriture automatique supplémentaire en base.
+
+## Stabilisation avant lancement V2
+
+### Rôle du CRM
+
+Le CRM Agri-tech centralise le suivi commercial et opérationnel des prospects après leur arrivée par Contact, Consultation ou saisie manuelle admin. Il ne remplace pas les formulaires publics : il ajoute une couche interne de pilotage avec statut, priorité, prochaine action, notes et historique.
+
+### Différence entre Contact, Consultation et CRM
+
+- **Contact** : point d'entrée public pour les demandes générales et informations initiales.
+- **Consultation** : tunnel public de réservation et de paiement d'une consultation.
+- **CRM** : espace admin privé qui consolide les dossiers, suit les relances et garde les interactions internes.
+
+### Référentiel stable
+
+Les valeurs utilisées dans le CRM doivent rester cohérentes avec les contraintes SQL et les types TypeScript :
+
+- statuts : `nouveau`, `a_qualifier`, `reunion_a_planifier`, `reunion_prevue`, `proposition_a_preparer`, `proposition_envoyee`, `relance_1`, `relance_2`, `gagne`, `perdu`, `en_attente`, `archive` ;
+- priorités : `basse`, `normale`, `haute`, `urgente` ;
+- niveaux d'intérêt : `faible`, `moyen`, `eleve`, `tres_eleve` ;
+- issues : `en_cours`, `gagne`, `perdu`, `abandonne`, `non_qualifie`.
+
+### Workflow recommandé
+
+```txt
+Nouveau
+→ À qualifier
+→ Réunion à planifier
+→ Réunion prévue
+→ Proposition à préparer
+→ Proposition envoyée
+→ Relance 1
+→ Relance 2
+→ Gagné / Perdu
+```
+
+Utilisation recommandée des statuts :
+
+- `nouveau` : dossier créé mais pas encore traité ;
+- `a_qualifier` : besoin, budget, localisation ou urgence à clarifier ;
+- `reunion_a_planifier` : prospect qualifié, réunion à caler ;
+- `reunion_prevue` : réunion programmée ;
+- `proposition_a_preparer` : offre ou accompagnement à formaliser ;
+- `proposition_envoyee` : proposition transmise, attente de décision ;
+- `relance_1` et `relance_2` : relances commerciales après proposition ;
+- `gagne` : dossier conclu positivement ;
+- `perdu` : dossier non conclu ;
+- `en_attente` : pause temporaire justifiée ;
+- `archive` : dossier conservé sans action attendue.
+
+### Sécurité et données sensibles
+
+Les routes `/admin/suivi` et `/admin/suivi/*` sont dans le layout admin protégé. Le layout admin définit aussi des métadonnées `robots` en `noindex`/`nofollow` afin d'éviter l'indexation des pages CRM. Les données CRM sont chargées côté serveur avec le client Supabase admin après vérification admin.
+
+Le CRM ne transmet pas volontairement aux scripts Analytics les noms, emails, téléphones, messages privés, notes internes ou détails de projet. Les logs CRM existants restent techniques et ne journalisent pas le contenu sensible des dossiers.
+
+### RLS et exposition publique
+
+`client_pipeline_cases` et `client_pipeline_interactions` sont des tables internes. Les interactions ont RLS activé et les droits `anon`/`authenticated` révoqués. Les écrans CRM sont disponibles uniquement dans `/admin` et ne sont pas exposés dans l'espace public.
+
+### Limites actuelles et améliorations futures
+
+Limites actuelles :
+
+- la vue `/admin/suivi` limite l'affichage aux 100 derniers dossiers retournés ;
+- les alertes sont calculées à l'affichage et ne créent pas de notification externe ;
+- l'historique d'interactions n'est pas encore un journal d'audit exhaustif de chaque champ modifié ;
+- le guide admin reste volontairement simple pour le lancement V2.
+
+Améliorations futures possibles :
+
+- pagination et recherche plus avancée ;
+- export CSV admin ;
+- journal d'audit complet des changements de statut/priorité ;
+- rappels internes planifiés, sans email automatique public ;
+- assignation stricte par responsable ;
+- indicateurs de conversion Contact → Consultation → Client.
