@@ -172,3 +172,154 @@ Non implémenté à ce stade :
 - édition CRM ;
 - calcul automatique applicatif de `alert_follow_up` ;
 - historique des changements CRM.
+
+## Interface admin de suivi client
+
+La route admin du suivi CRM est `/admin/suivi`. Elle est ajoutée dans la navigation d’administration sous le libellé **Suivi client** et doit être rendue uniquement dans l’espace admin protégé.
+
+La page charge les dossiers depuis `client_pipeline_cases` côté serveur avec le client Supabase admin, après vérification `requireAuthorizedAdmin()`. Elle n’ajoute pas de branchement automatique depuis Contact ou Consultation et ne modifie pas les emails, paiements, Academy ou Certificats.
+
+### Colonnes visibles
+
+Le tableau principal reste volontairement synthétique pour éviter une interface illisible. Les colonnes visibles sont :
+
+- ID dossier (`case_code`) ;
+- Date 1er contact (`first_contact_at`) ;
+- Nom client / Organisation (`client_name`, `organization_name`) ;
+- Téléphone (`phone`) ;
+- Email (`email`) ;
+- Type de projet (`project_type`) ;
+- Localisation (`location`) ;
+- Source (`source_type`) ;
+- Niveau intérêt (`interest_level`) ;
+- Priorité (`priority`) ;
+- Statut (`status`) ;
+- Prochaine action (`next_action`) ;
+- Responsable (`responsible`) ;
+- Date prochaine action (`next_action_at`) ;
+- Jours sans interaction ;
+- Alerte suivi ;
+- Issue (`outcome`).
+
+Les autres champs restent réservés à une future fiche détail CRM.
+
+### Filtres disponibles
+
+Les filtres disponibles dans `/admin/suivi` sont :
+
+- recherche libre par ID dossier, nom client, organisation, téléphone ou email ;
+- statut ;
+- source ;
+- priorité ;
+- niveau d’intérêt ;
+- issue.
+
+### Calcul des jours sans interaction
+
+Le calcul est fait côté affichage uniquement, sans stockage supplémentaire dans `client_pipeline_cases` :
+
+```txt
+jours sans interaction = aujourd’hui - date de référence
+```
+
+La date de référence est choisie dans cet ordre :
+
+1. `last_interaction_at` si renseigné ;
+2. `first_contact_at` ;
+3. `created_at`.
+
+### Logique d’alerte suivi
+
+La page affiche une alerte visuelle sans envoyer de notification automatique :
+
+- **Action en retard** si `next_action_at` est dépassée ;
+- **À relancer** si les jours sans interaction sont supérieurs ou égaux à 7, ou si `alert_follow_up` est déjà vrai ;
+- **RAS** sinon.
+
+Cette logique est uniquement informative dans cette PR.
+
+## Synchronisation automatique des sources
+
+Les dossiers CRM sont désormais créés automatiquement après insertion réussie des demandes sources. La synchronisation est appelée côté serveur et reste non bloquante pour l'expérience utilisateur : en cas d'échec CRM, une erreur serveur `[crm-pipeline]` est journalisée, mais la soumission Contact, la redirection Consultation et les emails existants continuent leur flux normal.
+
+### Création depuis Contact
+
+Après insertion d'une ligne `contact_requests`, l'application appelle `safeCreatePipelineCaseFromContact()`.
+
+Mapping appliqué :
+
+- `source_type = 'contact'` ;
+- `source_id = contact_requests.id` ;
+- `source = 'contact'` ;
+- `first_contact_at = contact_requests.created_at` ;
+- `client_name = contact_requests.full_name` ;
+- `organization_name = contact_requests.organization` ;
+- `primary_contact = contact_requests.full_name` ;
+- `email = contact_requests.email` ;
+- `phone = contact_requests.phone` ;
+- `project_type = 'Demande d’information générale'` ;
+- `location = null` ;
+- `main_channel = 'site_web'` ;
+- `interest_level = 'moyen'` ;
+- `priority = 'normale'` ;
+- `status = 'nouveau'` ;
+- `next_action = 'Répondre à la demande d’information'` ;
+- `next_action_at = created_at + 1 jour` ;
+- `outcome = 'en_cours'` ;
+- `last_interaction_at = contact_requests.created_at`.
+
+Le champ `metadata` conserve uniquement des informations utiles au routage interne (`request_type`, `subject`, `source_page`, slugs et titre de cours/service). Le message privé complet du formulaire Contact n'est pas copié dans le CRM.
+
+### Création depuis Consultation
+
+Après insertion d'une ligne `consultation_requests`, l'application appelle `safeCreatePipelineCaseFromConsultation()` avant la redirection vers le checkout.
+
+Mapping appliqué :
+
+- `source_type = 'consultation'` ;
+- `source_id = consultation_requests.id` ;
+- `source = 'consultation'` ;
+- `first_contact_at = consultation_requests.created_at` ;
+- `client_name = consultation_requests.full_name` ;
+- `email = consultation_requests.email` ;
+- `phone = consultation_requests.phone` ;
+- `project_type = consultation_requests.consultation_type` ;
+- `location = commune / département` selon les valeurs disponibles ;
+- `main_channel = 'site_web'` ;
+- `interest_level = 'eleve'` ;
+- `priority = 'haute'` ;
+- `status = 'a_qualifier'` ;
+- `next_action = 'Vérifier le paiement et planifier la consultation'` ;
+- `next_action_at = created_at + 1 jour` ;
+- `outcome = 'en_cours'` ;
+- `last_interaction_at = consultation_requests.created_at`.
+
+Le champ `metadata` ne copie pas la description détaillée du projet. Il conserve uniquement les champs utiles au suivi : étape projet, budget estimé, mode, package, montant et devise.
+
+### Anti-doublon
+
+La synchronisation CRM vérifie l'existence d'un dossier avec le couple :
+
+```txt
+source_type + source_id
+```
+
+Si un dossier existe déjà, aucun nouveau dossier n'est créé. Si deux appels concurrents tentent une création simultanée, l'erreur d'unicité PostgreSQL `23505` est traitée comme un doublon attendu et ignorée côté CRM.
+
+### Mise à jour après paiement Consultation
+
+Lorsqu'un paiement Consultation est confirmé, l'application appelle `safeMarkPipelineCaseConsultationPaid()` pour mettre à jour le dossier CRM existant :
+
+- `status = 'reunion_a_planifier'` ;
+- `next_action = 'Planifier la réunion de consultation'` ;
+- `priority = 'haute'` ;
+- `last_interaction_at = paid_at` ;
+- `next_action_at = paid_at + 1 jour`.
+
+Cette mise à jour est également appelée si le checkout détecte qu'une demande est déjà payée, afin de rendre le traitement idempotent.
+
+### Limites connues
+
+- La synchronisation CRM ne crée pas encore de fiche détail, d'historique d'activité ou de notification automatique.
+- Si la création CRM échoue après la création de la source, la source reste valide et l'erreur doit être corrigée depuis les logs serveur.
+- Le backfill des anciennes demandes Contact/Consultation n'est pas inclus.
