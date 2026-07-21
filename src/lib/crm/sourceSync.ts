@@ -50,6 +50,19 @@ async function getExistingPipelineCaseId(
   return typeof data?.id === "string" ? data.id : null;
 }
 
+
+async function createPipelineInteraction(caseId: string, payload: Record<string, unknown>) {
+  const supabase = createSupabaseAdminClient();
+  if (!supabase) return;
+
+  const { error } = await supabase.from("client_pipeline_interactions").insert({
+    case_id: caseId,
+    ...payload,
+  });
+
+  if (error) throw error;
+}
+
 async function insertPipelineCaseIfMissing(
   sourceType: PipelineSourceType,
   sourceId: string,
@@ -69,9 +82,9 @@ async function insertPipelineCaseIfMissing(
     sourceType,
     sourceId,
   );
-  if (existingId) return;
+  if (existingId) return null;
 
-  const { error } = await supabase.from("client_pipeline_cases").insert(payload);
+  const { data, error } = await supabase.from("client_pipeline_cases").insert(payload).select("id").single();
 
   if (error) {
     if (error.code === "23505") {
@@ -79,17 +92,19 @@ async function insertPipelineCaseIfMissing(
         sourceType,
         sourceId,
       });
-      return;
+      return null;
     }
 
     throw error;
   }
+
+  return typeof data?.id === "string" ? data.id : null;
 }
 
 export async function createPipelineCaseFromContact(
   contactRequest: ContactPipelineSource,
 ) {
-  await insertPipelineCaseIfMissing("contact", contactRequest.id, {
+  const caseId = await insertPipelineCaseIfMissing("contact", contactRequest.id, {
     source_type: "contact",
     source_id: contactRequest.id,
     source: "contact",
@@ -119,12 +134,24 @@ export async function createPipelineCaseFromContact(
       course_title: contactRequest.course_title,
     },
   });
+
+  if (caseId) {
+    await createPipelineInteraction(caseId, {
+      interaction_type: "note",
+      interaction_date: contactRequest.created_at,
+      channel: "site_web",
+      summary: "Dossier créé depuis Contact",
+      details: contactRequest.subject ?? null,
+      created_by: "system",
+      metadata: { source_type: "contact", source_id: contactRequest.id },
+    });
+  }
 }
 
 export async function createPipelineCaseFromConsultation(
   consultationRequest: ConsultationPipelineSource,
 ) {
-  await insertPipelineCaseIfMissing("consultation", consultationRequest.id, {
+  const caseId = await insertPipelineCaseIfMissing("consultation", consultationRequest.id, {
     source_type: "consultation",
     source_id: consultationRequest.id,
     source: "consultation",
@@ -154,6 +181,18 @@ export async function createPipelineCaseFromConsultation(
       currency: consultationRequest.currency,
     },
   });
+
+  if (caseId) {
+    await createPipelineInteraction(caseId, {
+      interaction_type: "note",
+      interaction_date: consultationRequest.created_at,
+      channel: "site_web",
+      summary: "Dossier créé depuis Consultation",
+      details: consultationRequest.consultation_type ?? null,
+      created_by: "system",
+      metadata: { source_type: "consultation", source_id: consultationRequest.id },
+    });
+  }
 }
 
 export async function markPipelineCaseConsultationPaid({
@@ -173,6 +212,13 @@ export async function markPipelineCaseConsultationPaid({
     return;
   }
 
+  const { data: caseData } = await supabase
+    .from("client_pipeline_cases")
+    .select("id")
+    .eq("source_type", "consultation")
+    .eq("source_id", consultationRequestId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from("client_pipeline_cases")
     .update({
@@ -186,6 +232,17 @@ export async function markPipelineCaseConsultationPaid({
     .eq("source_id", consultationRequestId);
 
   if (error) throw error;
+
+  if (typeof caseData?.id === "string") {
+    await createPipelineInteraction(caseData.id, {
+      interaction_type: "paiement",
+      interaction_date: paidAt,
+      channel: "site_web",
+      summary: "Consultation payée",
+      created_by: "system",
+      metadata: { source_type: "consultation", source_id: consultationRequestId },
+    });
+  }
 }
 
 export async function safeCreatePipelineCaseFromContact(

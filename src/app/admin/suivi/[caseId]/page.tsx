@@ -2,7 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CrmCaseForm } from "./CrmCaseForm";
+import { CrmInteractionForm } from "./CrmInteractionForm";
 import {
+  crmInteractionChannelLabels,
+  crmInteractionChannels,
+  crmInteractionTypeLabels,
+  crmInteractionTypes,
   crmInterestLabels,
   crmInterestLevels,
   crmOutcomeLabels,
@@ -13,8 +18,9 @@ import {
   crmStatusLabels,
   crmStatuses,
   getAdminClientPipelineCaseById,
+  getAdminClientPipelineInteractions,
 } from "@/lib/crm/adminPipeline";
-import type { ClientPipelineCase } from "@/types/crm";
+import type { ClientPipelineCase, ClientPipelineInteraction } from "@/types/crm";
 
 export const dynamic = "force-dynamic";
 
@@ -24,16 +30,41 @@ function daysWithoutInteraction(item: ClientPipelineCase) { const t = new Date(i
 function sourceHref(item: ClientPipelineCase) { if (!item.source_id) return null; if (item.source_type === "contact") return `/admin/contact-requests/${item.source_id}`; if (item.source_type === "consultation") return `/admin/consultations/${item.source_id}`; return null; }
 function ReadOnly({ label, value }: { label: string; value: string | number | null | undefined }) { return <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200"><dt className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</dt><dd className="mt-1 break-words font-semibold text-slate-900">{value ?? "—"}</dd></div>; }
 
+function InteractionHistory({ interactions }: { interactions: ClientPipelineInteraction[] }) {
+  return <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
+    <h2 className="text-lg font-bold text-slate-950">Historique des interactions</h2>
+    {interactions.length === 0 ? <p className="mt-3 rounded-xl bg-slate-50 p-4 text-sm font-semibold text-slate-600">Aucune interaction enregistrée pour ce dossier.</p> : null}
+    <div className="mt-4 space-y-3">
+      {interactions.map((interaction) => <article className="rounded-xl border border-slate-200 p-4" key={interaction.id}>
+        <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <span>{formatDateTime(interaction.interaction_date)}</span>
+          <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-800 ring-1 ring-emerald-200">{crmInteractionTypeLabels[interaction.interaction_type]}</span>
+          {interaction.channel ? <span className="rounded-full bg-slate-100 px-2.5 py-1 text-slate-700 ring-1 ring-slate-200">{crmInteractionChannelLabels[interaction.channel]}</span> : null}
+        </div>
+        <h3 className="mt-2 font-bold text-slate-950">{interaction.summary}</h3>
+        {interaction.details ? <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-slate-700">{interaction.details}</p> : null}
+        <p className="mt-3 text-xs font-semibold text-slate-500">Créé par : {interaction.created_by ?? "—"}</p>
+      </article>)}
+    </div>
+  </section>;
+}
+
 export default async function AdminCrmCaseDetailPage({ params }: { params: Promise<{ caseId: string }> }) {
   const { caseId } = await params;
   const item = await getAdminClientPipelineCaseById(caseId);
   if (!item) notFound();
+  const interactions = await getAdminClientPipelineInteractions(caseId);
   const href = sourceHref(item);
   const options = {
     statuses: crmStatuses.map((value) => ({ value, label: crmStatusLabels[value] })),
     priorities: crmPriorities.map((value) => ({ value, label: crmPriorityLabels[value] })),
     interests: crmInterestLevels.map((value) => ({ value, label: crmInterestLabels[value] })),
     outcomes: crmOutcomes.map((value) => ({ value, label: crmOutcomeLabels[value] })),
+  };
+  const interactionOptions = {
+    interactionTypes: crmInteractionTypes.map((value) => ({ value, label: crmInteractionTypeLabels[value] })),
+    channels: crmInteractionChannels.map((value) => ({ value, label: crmInteractionChannelLabels[value] })),
+    statuses: crmStatuses.map((value) => ({ value, label: crmStatusLabels[value] })),
   };
 
   return <div className="space-y-6">
@@ -45,6 +76,10 @@ export default async function AdminCrmCaseDetailPage({ params }: { params: Promi
     <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><h2 className="text-lg font-bold text-slate-950">Résumé du dossier</h2><dl className="mt-4 grid gap-3 md:grid-cols-3"><ReadOnly label="ID dossier" value={item.case_code} /><ReadOnly label="ID technique" value={item.id} /><ReadOnly label="Date 1er contact" value={formatDateTime(item.first_contact_at)} /><ReadOnly label="Statut" value={crmStatusLabels[item.status]} /><ReadOnly label="Priorité" value={crmPriorityLabels[item.priority]} /><ReadOnly label="Niveau intérêt" value={crmInterestLabels[item.interest_level]} /><ReadOnly label="Dernière interaction" value={formatDateTime(item.last_interaction_at)} /><ReadOnly label="Jours sans interaction" value={daysWithoutInteraction(item)} /><ReadOnly label="Alerte suivi" value={item.alert_follow_up ? "Oui" : "Non"} /></dl></section>
 
     <CrmCaseForm item={item} options={options} />
+
+    <CrmInteractionForm caseId={item.id} options={interactionOptions} />
+
+    <InteractionHistory interactions={interactions} />
 
     <section className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200"><h2 className="text-lg font-bold text-slate-950">Source d’origine</h2><dl className="mt-4 grid gap-3 md:grid-cols-2"><ReadOnly label="Source" value={crmSourceLabels[item.source_type]} /><ReadOnly label="ID source" value={item.source_id} /><ReadOnly label="Source CRM" value={item.source} /><ReadOnly label="Créé le" value={formatDateTime(item.created_at)} /><ReadOnly label="Mis à jour le" value={formatDateTime(item.updated_at)} /><ReadOnly label="Date réunion prévue" value={formatDate(item.meeting_date)} /></dl>{href ? <Link className="mt-4 inline-flex rounded-xl bg-slate-100 px-4 py-2 text-sm font-bold text-slate-800" href={href}>Voir la demande {crmSourceLabels[item.source_type]} d’origine</Link> : null}</section>
   </div>;
