@@ -24,7 +24,7 @@ export default async function AdminContactRequestsPage() {
                 <td className="font-semibold">{request.full_name}</td>
                 <td>{request.email}</td>
                 <td className="font-medium text-slate-800">{request.request_type === "academy_access" ? <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-black text-emerald-900">Academy</span> : null}<span className={request.request_type === "academy_access" ? "ml-2" : ""}>{context.summary}</span>{request.course_slug ? <span className="mt-1 block text-xs text-slate-500">Slug : {request.course_slug}</span> : null}</td>
-                <td>{request.subject ?? "—"}</td>
+                <td>{request.subject || "Demande d’information générale"}</td>
                 <td>{request.status}</td>
                 <td>{request.priority}</td>
                 <td><Link className="font-semibold text-emerald-800" href={`/admin/contact-requests/${request.id}`}>Voir</Link></td>

@@ -60,6 +60,7 @@ const limits = {
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const recentSubmissionKeys = new Map<string, number>();
 const duplicateWindowMs = 15_000;
+const defaultContactSubject = "Demande d’information générale";
 
 function clean(value: unknown, maxLength: number) {
   const text =
@@ -249,7 +250,7 @@ export function validateContactRequestInput(
     };
   }
 
-  const requestType = clean(input.request_type, 40) as ContactRequestType;
+  const requestType = (clean(input.request_type, 40) || "general") as ContactRequestType;
   const fullName = clean(input.full_name, limits.full_name);
   const email = clean(input.email, limits.email).toLowerCase();
   const phone = clean(input.phone, limits.phone);
@@ -309,7 +310,7 @@ export function validateContactRequestInput(
       subject:
         finalRequestType === "academy_access"
           ? nullable(subject || academyCourseTitle || "Accès formation Academy")
-          : nullable(subject),
+          : subject || defaultContactSubject,
       message,
       source_page: nullable(sourcePage),
     },

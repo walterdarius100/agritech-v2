@@ -158,7 +158,7 @@ Checklist Vercel/Brevo : vérifier que `noreply@agritech509ht.com` est un sender
 
 Le formulaire public Contact se trouve sur la route `src/app/contact/page.tsx` et rend `src/components/contact/ContactForm.tsx` via `ContactFormShell`. La soumission côté client appelle `POST /api/contact`, puis la route `src/app/api/contact/route.ts` délègue au workflow serveur `src/lib/contact/createContactRequest.ts`.
 
-Champs réellement utilisés par le formulaire Contact : `full_name`, `email`, `phone`, `organization`, `request_type`, `subject`, `message`, ainsi que les champs de contexte `service_slug`, `service_title`, `formation_slug`, `course_slug`, `course_title` et `source_page` quand la page d’origine les fournit. Les messages sont enregistrés dans Supabase dans la table `contact_requests` avant tout envoi Brevo.
+Le formulaire Contact visible est simplifié pour les demandes générales d’information : il n’affiche plus les champs `Type de demande`, `Domaine concerné` ni `Sujet`. Les champs visibles principaux sont `full_name`, `email`, `phone` et `message`. Le workflow conserve les champs techniques `request_type`, `service_slug`, `service_title`, `formation_slug`, `course_slug`, `course_title` et `source_page` quand la page d’origine les fournit, afin de préserver l’enregistrement Supabase et les anciens messages. En absence de `request_type`, le serveur traite la demande comme `general`; en absence de `subject`, il enregistre `Demande d’information générale`. Les messages sont enregistrés dans Supabase dans la table `contact_requests` avant tout envoi Brevo.
 
 Après une soumission validée et enregistrée, le workflow Contact déclenche deux emails transactionnels Brevo côté serveur :
 
@@ -174,7 +174,7 @@ CONTACT_NOTIFICATION_EMAIL=contact@agritech509ht.com
 CONTACT_REPLY_TO_EMAIL=contact@agritech509ht.com
 ```
 
-Le workflow Contact n’utilise pas `AGRI_TECH_NOTIFICATION_EMAIL`, `CONSULTATION_NOTIFICATION_EMAIL` ni `CONSULTATION_REPLY_TO_EMAIL`. L’adresse `projet@agritech509ht.com` est invalide et ne doit jamais être utilisée. L’adresse `projets@agritech509ht.com` avec `s` est réservée aux consultations/projets clients, pas au formulaire Contact.
+La notification interne Contact présente les coordonnées et le message sans lignes visibles pour un type, un domaine ou un sujet retirés du formulaire public. Le workflow Contact n’utilise pas `AGRI_TECH_NOTIFICATION_EMAIL`, `CONSULTATION_NOTIFICATION_EMAIL` ni `CONSULTATION_REPLY_TO_EMAIL`. L’adresse `projet@agritech509ht.com` est invalide et ne doit jamais être utilisée. L’adresse `projets@agritech509ht.com` avec `s` est réservée aux consultations/projets clients, pas au formulaire Contact.
 
 Si Brevo échoue ou si la configuration email serveur est absente, la demande Contact reste enregistrée dans Supabase. L’erreur est loggée côté serveur sans secret et l’API retourne un message utilisateur contrôlé indiquant que le message est reçu mais que l’accusé de réception n’a pas pu être confirmé. L’échec de l’accusé visiteur n’empêche pas la tentative de notification interne.
 

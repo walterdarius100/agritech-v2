@@ -65,7 +65,6 @@ export function contactVisitorAcknowledgementTemplate({
 
 export function contactInternalNotificationTemplate({
   request,
-  requestTypeLabel,
   replyToEmail,
 }: ContactRequestEmailTemplateInput) {
   const html = baseEmailTemplate({
@@ -78,9 +77,6 @@ export function contactInternalNotificationTemplate({
         ${detailRow("Nom", request.full_name)}
         ${detailRow("Email", formatOptional(request.email))}
         ${detailRow("Téléphone", formatOptional(request.phone))}
-        ${detailRow("Organisation", formatOptional(request.organization))}
-        ${detailRow("Sujet", formatOptional(request.subject))}
-        ${detailRow("Type de demande", requestTypeLabel)}
         ${detailRow("Page source", formatOptional(request.source_page))}
       </table>
       <p style="margin:0 0 8px;font-weight:700;color:#1f4d2b;">Message</p>
@@ -94,9 +90,6 @@ export function contactInternalNotificationTemplate({
     `Nom : ${request.full_name}`,
     `Email : ${formatOptional(request.email)}`,
     `Téléphone : ${formatOptional(request.phone)}`,
-    `Organisation : ${formatOptional(request.organization)}`,
-    `Sujet : ${formatOptional(request.subject)}`,
-    `Type de demande : ${requestTypeLabel}`,
     `Page source : ${formatOptional(request.source_page)}`,
     "",
     "Message :",
