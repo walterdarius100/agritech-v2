@@ -27,7 +27,17 @@ RLS est activé sans aucune policy publique. Les rôles navigateur `anon` et `au
 
 ## Limites actuelles
 
-Cette première version collecte uniquement les abonnements du footer. Elle n’envoie aucun email et ne propose ni interface admin ni désinscription publique. Une limitation distribuée par IP n’est pas ajoutée ; elle pourra être appliquée au niveau de l’hébergement si le trafic l’exige.
+Cette première version collecte uniquement les abonnements du footer. Elle n’envoie aucun email et ne propose pas de désinscription publique. Une limitation distribuée par IP n’est pas ajoutée ; elle pourra être appliquée au niveau de l’hébergement si le trafic l’exige.
+
+## Admin Newsletter
+
+La route protégée `/admin/newsletter` est accessible uniquement aux comptes autorisés par le mécanisme d’authentification admin existant. Elle affiche l’email, le statut, la source, la page d’inscription, les dates d’inscription et de désinscription, ainsi que la dernière mise à jour. Les données sont lues côté serveur avec le client service-role et ne sont envoyées à aucun outil Analytics.
+
+L’administrateur peut rechercher une adresse email et filtrer la liste sur les statuts `active`, `unsubscribed`, `bounced` et `complained`. Un résumé indique le total et le nombre d’adresses de chaque statut. La liste est limitée aux 500 résultats les plus récents pour conserver une page légère.
+
+Les seules actions proposées sont **Marquer comme désinscrit** pour une adresse active et **Réactiver** pour une adresse désinscrite. Elles sont exécutées par une Server Action qui vérifie de nouveau l’autorisation admin et l’état courant de la ligne. La désinscription renseigne `unsubscribed_at`; la réactivation l’efface et conserve la date initiale `subscribed_at`. Aucun abonné n’est supprimé.
+
+L’admin ne permet actuellement aucun envoi de campagne, aucune synchronisation Brevo Marketing, aucun export CSV, aucun double opt-in et aucune désinscription publique.
 
 ## Améliorations futures
 
@@ -35,6 +45,5 @@ Cette première version collecte uniquement les abonnements du footer. Elle n’
 - double opt-in ;
 - email de bienvenue Newsletter ;
 - page de désinscription ;
-- admin Newsletter ;
 - export CSV ;
 - segmentation.
