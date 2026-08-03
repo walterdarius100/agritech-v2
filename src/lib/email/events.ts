@@ -11,6 +11,7 @@ export const emailEventTypes = [
   "academy_purchase_confirmation",
   "academy_internal_purchase_notification",
   "certificate_available",
+  "newsletter_welcome",
 ] as const;
 
 export const emailEventStatuses = ["sent", "failed", "skipped"] as const;
