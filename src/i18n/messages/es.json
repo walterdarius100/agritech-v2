@@ -1,0 +1,44 @@
+{
+  "common": {
+    "learnMore": "Más información",
+    "close": "Cerrar",
+    "language": "Idioma"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "services": "Servicios",
+    "academy": "Academy",
+    "consultation": "Consulta",
+    "news": "Noticias",
+    "contact": "Contacto"
+  },
+  "footer": {
+    "explore": "Explorar",
+    "newsletter": "Suscríbete a nuestro boletín",
+    "rights": "Todos los derechos reservados"
+  },
+  "home": {
+    "eyebrow": "Soluciones agrícolas",
+    "primaryAction": "Descubrir nuestros servicios"
+  },
+  "services": {
+    "title": "Servicios",
+    "viewService": "Ver el servicio"
+  },
+  "contact": {
+    "title": "Contacto",
+    "primaryAction": "Contactar con Agri-tech"
+  },
+  "consultation": {
+    "title": "Consulta",
+    "primaryAction": "Reservar una consulta"
+  },
+  "academy": {
+    "title": "Agri-tech Academy",
+    "viewCourse": "Ver el curso"
+  },
+  "seo": {
+    "siteTitle": "Agri-tech",
+    "siteDescription": "Servicios, formación y soluciones agrícolas adaptadas a Haití."
+  }
+}
