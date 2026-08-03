@@ -24,15 +24,15 @@ export default function HomePage({ locale = "fr" }: { locale?: Locale }) {
   return (
     <main className="overflow-x-hidden bg-[#f8faf7]">
       <HomeHero locale={locale} />
-      <DomainesSection />
-      <HomeFormationsSection />
+      <DomainesSection locale={locale} />
+      <HomeFormationsSection locale={locale} />
       <div className="bg-[#f2f6ed]">
-        <CredibilitySection />
-        <HomePartnershipsSection />
-        <ConsultationHeroSection />
-        <HomeTestimonialsSection />
+        <CredibilitySection locale={locale} />
+        <HomePartnershipsSection locale={locale} />
+        <ConsultationHeroSection locale={locale} />
+        <HomeTestimonialsSection locale={locale} />
       </div>
-      <HomeNewsSection />
+      <HomeNewsSection locale={locale} />
     </main>
   );
 }

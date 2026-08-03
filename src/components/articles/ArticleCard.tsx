@@ -8,8 +8,21 @@ import {
 } from "@/lib/articles/getArticles";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { getLocalizedPath, type Locale } from "@/i18n";
 
-export function ArticleCard({ article }: { article: Article }) {
+export function ArticleCard({
+  article,
+  locale = "fr",
+}: {
+  article: Article;
+  locale?: Locale;
+}) {
+  const read =
+    locale === "en"
+      ? "Read article"
+      : locale === "es"
+        ? "Leer el artículo"
+        : "Lire l’article";
   return (
     <Card className="flex h-full flex-col overflow-hidden rounded-2xl p-0">
       <div className="relative h-44 bg-emerald-900" aria-hidden={false}>
@@ -38,11 +51,15 @@ export function ArticleCard({ article }: { article: Article }) {
         </p>
         {article.slug ? (
           <Button
-            href={`/articles/${article.slug}`}
+            href={
+              locale === "fr"
+                ? `/articles/${article.slug}`
+                : getLocalizedPath(`/articles/${article.slug}`, locale)
+            }
             variant="ghost"
             className="mt-5 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950"
           >
-            Lire l’article →
+            {read} →
           </Button>
         ) : null}
       </div>
