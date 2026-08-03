@@ -5,5 +5,5 @@ export {
   locales,
   type Locale,
 } from "@/i18n/locales";
-export { getMessages, type Messages } from "@/i18n/messages";
-export { getLocale, getLocalizedPath } from "@/i18n/routing";
+export { getMessages, getMessagesSync, type Messages } from "@/i18n/messages";
+export { getLocale, getLocalizedPath, hasLocalizedPath } from "@/i18n/routing";

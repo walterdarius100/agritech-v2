@@ -3,13 +3,16 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
+import { getLocalizedPath, getMessagesSync, type Locale } from "@/i18n";
 
-export function HomeHero() {
+export function HomeHero({ locale = "fr" }: { locale?: Locale }) {
+  const messages = getMessagesSync(locale);
+  const localized = locale !== "fr";
   return (
     <Section className="relative isolate min-h-[620px] overflow-hidden bg-emerald-950 text-white sm:min-h-[680px] lg:min-h-[720px]">
       <Image
         src="/images/hero/pepiniere.jpg"
-        alt="Jeune producteur travaillant dans une pépinière agricole en Haïti"
+        alt={messages.home.imageAlt}
         fill
         priority
         sizes="100vw"
@@ -22,22 +25,22 @@ export function HomeHero() {
 
       <div className="flex min-h-[560px] items-center py-8 sm:min-h-[600px] sm:py-10 lg:min-h-[620px]">
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-orange-200 sm:text-sm">Solutions agricoles modernes en Haïti</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.28em] text-orange-200 sm:text-sm">{messages.home.eyebrow}</p>
           <h1 className="mt-5 max-w-4xl text-4xl font-bold tracking-tight text-white drop-shadow-sm sm:text-6xl lg:text-7xl">
-            Votre projet agricole, bien accompagné
+            {messages.home.title}
           </h1>
           <p className="mt-6 max-w-2xl text-base leading-8 text-emerald-50/95 sm:text-lg">
-            Agri-tech accompagne les entrepreneurs, institutions et producteurs en Haïti dans la conception, l’installation et le suivi de projets agricoles modernes, adaptés au terrain et prêts à avancer.
+            {messages.home.description}
           </p>
           <div className="mt-9 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-            <Button href="/contact" variant="secondary" size="lg" className="bg-orange-500 px-7 shadow-lg shadow-orange-950/25 hover:bg-orange-400">
-              Demander une consultation <span aria-hidden="true" className="ml-2">→</span>
+            <Button href={localized ? getLocalizedPath("/contact", locale) : "/contact"} variant="secondary" size="lg" className="bg-orange-500 px-7 shadow-lg shadow-orange-950/25 hover:bg-orange-400">
+              {messages.home.primaryAction} <span aria-hidden="true" className="ml-2">→</span>
             </Button>
             <Link
-              href="/services"
+              href={localized ? getLocalizedPath("/services", locale) : "/services"}
               className="group inline-flex min-h-12 items-center justify-center gap-2 rounded-full text-base font-semibold text-white/90 transition hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-950 sm:justify-start"
             >
-              Voir nos domaines
+              {messages.home.secondaryAction}
               <span aria-hidden="true" className="transition-transform group-hover:translate-x-1">→</span>
             </Link>
           </div>

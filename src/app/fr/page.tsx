@@ -5,4 +5,6 @@ export function generateMetadata() {
   return createLocalizedHomeMetadata("fr");
 }
 
-export default HomePage;
+export default function FrenchHomePage() {
+  return <HomePage locale="fr" />;
+}

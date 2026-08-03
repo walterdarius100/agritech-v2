@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 
 import { createConsultationRequest } from "@/lib/consultation/createConsultationRequest";
 import type { ConsultationRequestFormState } from "@/lib/consultation/createConsultationRequest";
+import { getMessagesSync, type Locale, type Messages } from "@/i18n";
 import {
   consultationModes,
   consultationTypes,
@@ -14,7 +15,7 @@ import {
 
 const initialState: ConsultationRequestFormState = {};
 
-function SubmitButton() {
+function SubmitButton({ messages }: { messages: Messages }) {
   const { pending } = useFormStatus();
 
   return (
@@ -24,8 +25,8 @@ function SubmitButton() {
       className="inline-flex w-full items-center justify-center rounded-full bg-emerald-700 px-6 py-3.5 text-base font-bold text-white shadow-sm transition hover:bg-emerald-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 sm:w-auto"
     >
       {pending
-        ? "Création de la demande..."
-        : "Envoyer ma demande et continuer vers le paiement"}
+        ? messages.forms.creating
+        : messages.forms.consultationSubmit}
     </button>
   );
 }
@@ -82,7 +83,8 @@ function SelectField({
   );
 }
 
-export function ConsultationReservationForm() {
+export function ConsultationReservationForm({ locale = "fr" }: { locale?: Locale }) {
+  const messages = getMessagesSync(locale);
   const [state, formAction] = useActionState(
     createConsultationRequest,
     initialState,
@@ -109,11 +111,10 @@ export function ConsultationReservationForm() {
             id="personal-info-title"
             className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700"
           >
-            Informations personnelles
+            {messages.forms.personal}
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Ces informations permettront à Agri-tech de vous recontacter après
-            la confirmation de votre demande.
+            {messages.forms.personalHelp}
           </p>
         </div>
 
@@ -123,7 +124,7 @@ export function ConsultationReservationForm() {
               htmlFor="full_name"
               className="text-sm font-bold text-emerald-950"
             >
-              Nom complet *
+              {messages.forms.fullName} *
             </label>
             <input
               id="full_name"
@@ -142,7 +143,7 @@ export function ConsultationReservationForm() {
               htmlFor="phone"
               className="text-sm font-bold text-emerald-950"
             >
-              Téléphone WhatsApp *
+              {messages.forms.whatsapp} *
             </label>
             <input
               id="phone"
@@ -180,7 +181,7 @@ export function ConsultationReservationForm() {
               htmlFor="department"
               className="text-sm font-bold text-emerald-950"
             >
-              Département
+              {messages.forms.department}
             </label>
             <input
               id="department"
@@ -196,7 +197,7 @@ export function ConsultationReservationForm() {
               htmlFor="commune"
               className="text-sm font-bold text-emerald-950"
             >
-              Commune
+              {messages.forms.commune}
             </label>
             <input
               id="commune"
@@ -215,11 +216,10 @@ export function ConsultationReservationForm() {
             id="project-info-title"
             className="text-sm font-bold uppercase tracking-[0.18em] text-emerald-700"
           >
-            Projet et besoin
+            {messages.forms.project}
           </p>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Décrivez le contexte avec simplicité. L’équipe Agri-tech affinera
-            les informations avec vous si nécessaire.
+            {messages.forms.projectHelp}
           </p>
         </div>
 
@@ -227,8 +227,8 @@ export function ConsultationReservationForm() {
           <SelectField
             id="consultation_type"
             name="consultation_type"
-            label="Domaine concerné *"
-            placeholder="Choisir un domaine"
+            label={messages.forms.domain}
+            placeholder={messages.forms.chooseDomain}
             options={consultationTypes}
             required
             error={fieldErrors.consultation_type}
@@ -236,22 +236,22 @@ export function ConsultationReservationForm() {
           <SelectField
             id="project_stage"
             name="project_stage"
-            label="Niveau d’avancement du projet"
-            placeholder="Choisir une option"
+            label={messages.forms.stage}
+            placeholder={messages.forms.chooseOption}
             options={projectStages}
           />
           <SelectField
             id="consultation_mode"
             name="consultation_mode"
-            label="Mode de consultation souhaité"
-            placeholder="Choisir un mode"
+            label={messages.forms.mode}
+            placeholder={messages.forms.chooseMode}
             options={consultationModes}
           />
           <SelectField
             id="estimated_budget"
             name="estimated_budget"
-            label="Budget approximatif"
-            placeholder="Choisir une tranche"
+            label={messages.forms.budget}
+            placeholder={messages.forms.chooseRange}
             options={estimatedBudgets}
           />
         </div>
@@ -261,14 +261,14 @@ export function ConsultationReservationForm() {
             htmlFor="project_description"
             className="text-sm font-bold text-emerald-950"
           >
-            Décrivez votre projet ou votre besoin *
+            {messages.forms.projectDescription}
           </label>
           <textarea
             id="project_description"
             name="project_description"
             required
             rows={7}
-            placeholder="Expliquez brièvement votre projet, votre problème ou le type d’accompagnement recherché."
+            placeholder={messages.forms.projectPlaceholder}
             aria-invalid={Boolean(fieldErrors.project_description)}
             className="mt-2 w-full rounded-2xl border border-emerald-100 bg-white px-4 py-3 text-sm text-slate-900 shadow-sm outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100"
           />
@@ -277,11 +277,9 @@ export function ConsultationReservationForm() {
       </section>
 
       <div className="flex flex-col items-center gap-3 border-t border-emerald-100 pt-6 text-center">
-        <SubmitButton />
+        <SubmitButton messages={messages} />
         <p className="max-w-md text-sm leading-6 text-slate-500">
-          Après validation du formulaire, votre demande sera créée avec le
-          statut « paiement en attente », puis vous serez redirigé vers le
-          checkout.
+          {messages.forms.paymentNotice}
         </p>
       </div>
     </form>

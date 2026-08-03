@@ -34,3 +34,10 @@ export function getLocalizedPath(path: string, locale: Locale): string {
 
   return `${localizedPathname}${trailingSlash}${suffix}`;
 }
+
+const localizedPublicPaths = new Set(["/", "/services", "/contact", "/consultation/reserver", "/academy"]);
+
+export function hasLocalizedPath(pathname: string): boolean {
+  const withoutLocale = pathname.replace(/^\/(fr|en|es)(?=\/|$)/, "") || "/";
+  return localizedPublicPaths.has(withoutLocale.replace(/\/$/, "") || "/");
+}

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { getServiceLabel } from "@/lib/contact/requestLabels";
 import type { ContactRequestType } from "@/types/contact";
+import { getMessagesSync, type Locale } from "@/i18n";
 
 export type ContactFormInitialValues = { fullName?: string; email?: string; phone?: string };
 
@@ -16,11 +17,13 @@ type ContactFormProps = {
   isAcademyAccess?: boolean;
   isPartnership?: boolean;
   initialValues?: ContactFormInitialValues;
+  locale?: Locale;
 };
 
 type SubmitState = { type: "idle" | "success" | "error"; message?: string };
 
-export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug = "", courseTitle, isAcademyAccess = false, isPartnership = false, initialValues }: ContactFormProps) {
+export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug = "", courseTitle, isAcademyAccess = false, isPartnership = false, initialValues, locale = "fr" }: ContactFormProps) {
+  const messages = getMessagesSync(locale);
   // Quand les deux paramètres sont présents, le service est prioritaire afin de garder une seule origine claire.
   const selectedServiceSlug = serviceSlug || "";
   const selectedFormationSlug = selectedServiceSlug ? "" : formationSlug || "";
@@ -66,7 +69,7 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
     const email = String(formData.get("email") ?? "").trim();
 
     if (!fullName || !email || !message) {
-      setSubmitState({ type: "error", message: "Veuillez renseigner votre nom, votre email et votre message." });
+      setSubmitState({ type: "error", message: messages.forms.requiredError });
       return;
     }
 
@@ -84,18 +87,18 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
       const data = (await response.json()) as { ok?: boolean; message?: string };
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.message || "Une erreur est survenue.");
+        throw new Error(locale === "fr" && data.message ? data.message : messages.forms.genericError);
       }
 
       form.reset();
       setSubmitState({
         type: "success",
-        message: data.message || "Votre demande a bien été envoyée. L’équipe Agri-tech vous répondra dès que possible.",
+        message: locale === "fr" && data.message ? data.message : messages.forms.success,
       });
     } catch {
       setSubmitState({
         type: "error",
-        message: "Une erreur est survenue. Veuillez réessayer ou nous contacter par un autre moyen.",
+        message: messages.forms.genericError,
       });
     } finally {
       setIsSubmitting(false);
@@ -114,29 +117,29 @@ export function ContactForm({ serviceSlug = "", formationSlug = "", courseSlug =
       <input name="source_page" type="hidden" value={sourcePage} />
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field defaultValue={initialValues?.fullName} label="Nom complet" maxLength={120} name="full_name" placeholder="Votre nom" required />
+        <Field defaultValue={initialValues?.fullName} label={messages.forms.fullName} maxLength={120} name="full_name" placeholder={messages.forms.yourName} required />
         <Field defaultValue={initialValues?.email} label="Email" maxLength={180} name="email" placeholder="vous@example.com" required type="email" />
       </div>
-      <Field defaultValue={initialValues?.phone} label="Téléphone" maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
+      <Field defaultValue={initialValues?.phone} label={messages.forms.phone} maxLength={40} name="phone" placeholder="+509 ..." type="tel" />
       {isAcademyAccess ? (
         <input name="message" type="hidden" value={academyMessage} />
       ) : (
         <label className="grid gap-2 text-sm font-semibold text-emerald-950">
-          Message
+          {messages.forms.message}
           <textarea
             className="rounded-2xl border border-slate-200 px-4 py-3 font-normal text-slate-700 outline-none focus:border-emerald-600"
             maxLength={3000}
             name="message"
-            placeholder="Présentez votre projet, votre localisation, votre objectif et les informations dont vous avez besoin."
+            placeholder={messages.forms.messagePlaceholder}
             required
             rows={6}
             defaultValue={defaultMessage}
           />
         </label>
       )}
-      <label className="flex gap-3 text-sm text-slate-600"><input required type="checkbox" className="mt-1 size-4 accent-emerald-700" />J’accepte d’être recontacté par Agri-tech au sujet de ma demande.</label>
+      <label className="flex gap-3 text-sm text-slate-600"><input required type="checkbox" className="mt-1 size-4 accent-emerald-700" />{messages.forms.consent}</label>
       <Button disabled={isSubmitting} type="submit" variant="secondary" className="w-fit">
-        {isSubmitting ? "Envoi en cours..." : isAcademyAccess ? "Envoyer ma demande d’accès" : "Envoyer le message"}
+        {isSubmitting ? messages.forms.sending : isAcademyAccess ? messages.forms.sendAccess : messages.forms.send}
       </Button>
       {submitState.message ? <p className={`rounded-2xl p-4 text-sm ${submitState.type === "success" ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{submitState.message}</p> : null}
     </form>

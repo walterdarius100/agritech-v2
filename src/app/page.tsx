@@ -9,6 +9,7 @@ import { ConsultationHeroSection } from "@/components/consultation/ConsultationH
 import { HomePartnershipsSection } from "@/components/home/HomePartnershipsSection";
 import { HomeTestimonialsSection } from "@/components/home/HomeTestimonialsSection";
 import { createMetadata } from "@/lib/seo/metadata";
+import type { Locale } from "@/i18n";
 
 export const revalidate = 60;
 
@@ -19,10 +20,10 @@ export const metadata: Metadata = createMetadata({
   path: "/",
 });
 
-export default function HomePage() {
+export default function HomePage({ locale = "fr" }: { locale?: Locale }) {
   return (
     <main className="overflow-x-hidden bg-[#f8faf7]">
-      <HomeHero />
+      <HomeHero locale={locale} />
       <DomainesSection />
       <HomeFormationsSection />
       <div className="bg-[#f2f6ed]">

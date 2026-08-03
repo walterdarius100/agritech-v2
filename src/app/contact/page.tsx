@@ -7,6 +7,7 @@ import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { Container } from "@/components/ui/Container";
 import { Section } from "@/components/ui/Section";
 import { createMetadata } from "@/lib/seo/metadata";
+import { getMessagesSync, type Locale } from "@/i18n";
 
 export const metadata: Metadata = createMetadata({
   title: "Contacter Agri-tech",
@@ -17,9 +18,12 @@ export const metadata: Metadata = createMetadata({
 
 export default async function ContactPage({
   searchParams,
+  locale = "fr",
 }: {
   searchParams: Promise<{ service?: string; formation?: string; type?: string; course?: string }>;
+  locale?: Locale;
 }) {
+  const messages = getMessagesSync(locale);
   const params = await searchParams;
   const isAcademyAccess = params.type === "academy-access";
   const isPartnership = params.type === "partnership";
@@ -47,17 +51,17 @@ export default async function ContactPage({
       <section className="bg-emerald-950 py-14 text-white sm:py-18">
         <Container>
           <div className="max-w-3xl">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">Contact</p>
-            <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">Contactez Agri-tech.</h1>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">{messages.contact.eyebrow}</p>
+            <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl">{messages.contact.title}</h1>
             <p className="mt-6 text-lg leading-8 text-emerald-50">
-              Envoyez-nous votre demande d’information. L’équipe Agri-tech vous répondra avec une orientation claire vers le bon service si nécessaire.
+              {messages.contact.description}
             </p>
           </div>
         </Container>
       </section>
       <Section>
         <div className="mx-auto max-w-4xl">
-          <ContactFormShell courseSlug={courseSlug} courseTitle={course?.title} formationSlug={params.formation} initialValues={initialValues} isAcademyAccess={isAcademyAccess} isPartnership={isPartnership} serviceSlug={params.service} />
+          <ContactFormShell courseSlug={courseSlug} courseTitle={course?.title} formationSlug={params.formation} initialValues={initialValues} isAcademyAccess={isAcademyAccess} isPartnership={isPartnership} serviceSlug={params.service} locale={locale} />
         </div>
       </Section>
     </>

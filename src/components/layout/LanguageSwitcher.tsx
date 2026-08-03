@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
-import { getLocale, getLocalizedPath, localeConfig, locales, type Locale } from "@/i18n";
+import { getLocale, getLocalizedPath, getMessagesSync, hasLocalizedPath, localeConfig, locales, type Locale } from "@/i18n";
 
 type LanguageSwitcherProps = {
   mobile?: boolean;
@@ -15,7 +15,7 @@ function getTargetPath(pathname: string, locale: Locale) {
 
   // Only localized home pages are published in this incremental PR. Until a
   // page family is migrated, changing language intentionally falls back home.
-  return getLocalizedPath(pathWithoutLocale === "/" ? pathname : "/", locale);
+  return getLocalizedPath(hasLocalizedPath(pathWithoutLocale) ? pathname : "/", locale);
 }
 
 export function LanguageSwitcher({ mobile = false }: LanguageSwitcherProps) {
@@ -26,6 +26,7 @@ export function LanguageSwitcher({ mobile = false }: LanguageSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
   const activeLocale = getLocale(pathname);
   const activeLanguage = localeConfig[activeLocale];
+  const messages = getMessagesSync(activeLocale);
 
   useEffect(() => setIsOpen(false), [pathname]);
 
@@ -60,7 +61,7 @@ export function LanguageSwitcher({ mobile = false }: LanguageSwitcherProps) {
       <button
         type="button"
         className={`inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-900/15 bg-white/55 px-3 py-2 text-sm font-bold text-emerald-950 shadow-sm transition hover:border-emerald-800/30 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 focus-visible:ring-offset-emerald-50 ${mobile ? "w-full justify-between" : ""}`}
-        aria-label="Changer de langue"
+        aria-label={messages.navigation.changeLanguage}
         aria-expanded={isOpen}
         aria-haspopup="menu"
         aria-controls={menuId}
@@ -80,7 +81,7 @@ export function LanguageSwitcher({ mobile = false }: LanguageSwitcherProps) {
         <div
           id={menuId}
           role="menu"
-          aria-label="Langues disponibles"
+          aria-label={messages.navigation.availableLanguages}
           className={`${mobile ? "mt-2 w-full" : "absolute right-0 top-full z-50 mt-2 w-48"} overflow-hidden rounded-xl border border-emerald-900/10 bg-white p-1.5 shadow-xl ring-1 ring-black/5`}
         >
           {locales.map((locale) => {
@@ -98,7 +99,7 @@ export function LanguageSwitcher({ mobile = false }: LanguageSwitcherProps) {
               >
                 <span className="text-base leading-none" aria-hidden="true">{language.flag}</span>
                 <span>{language.label}</span>
-                {isActive ? <span className="sr-only">(langue active)</span> : null}
+                {isActive ? <span className="sr-only">({messages.navigation.activeLanguage})</span> : null}
               </button>
             );
           })}
