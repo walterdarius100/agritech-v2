@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Mail, MapPin, Phone } from "lucide-react";
 
 import {
@@ -54,11 +55,54 @@ function SocialIcon({ name }: { name: SocialIconName }) {
 }
 
 export function Footer() {
+  const pathname = usePathname();
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState<"success" | "error">("success");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleNewsletterSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("Merci ! La connexion newsletter sera activée prochainement.");
+    if (isSubmitting) return;
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const email = String(formData.get("email") ?? "").trim();
+
+    if (!email || !form.reportValidity()) {
+      setMessageType("error");
+      setMessage("Veuillez entrer une adresse email valide.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setMessage("");
+
+    try {
+      const response = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          website: formData.get("website"),
+          pagePath: pathname,
+          locale: navigator.language,
+        }),
+      });
+      const data = (await response.json()) as { ok?: boolean; message?: string };
+
+      if (!response.ok || !data.ok) {
+        throw new Error(data.message || "Une erreur est survenue. Veuillez réessayer plus tard.");
+      }
+
+      form.reset();
+      setMessageType("success");
+      setMessage(data.message || "Merci pour votre inscription à la newsletter Agri-tech.");
+    } catch (error) {
+      setMessageType("error");
+      setMessage(error instanceof Error ? error.message : "Une erreur est survenue. Veuillez réessayer plus tard.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -100,11 +144,12 @@ export function Footer() {
           <h3 className="text-lg font-bold text-white">{footerNewsletter.title}</h3>
           <p className="mt-6 max-w-xl text-base leading-7 text-white/75">{footerNewsletter.description}</p>
           <form className="mt-7 flex w-full flex-col gap-3 sm:flex-row lg:max-w-lg" onSubmit={handleNewsletterSubmit}>
+            <input aria-hidden="true" autoComplete="off" className="hidden" name="website" tabIndex={-1} type="text" />
             <label className="sr-only" htmlFor="footer-newsletter-email">{footerNewsletter.placeholder}</label>
-            <input id="footer-newsletter-email" name="email" type="email" required placeholder={footerNewsletter.placeholder} className="min-h-14 w-full min-w-0 rounded-xl border border-white/10 bg-white px-5 text-base text-emerald-950 outline-none transition placeholder:text-slate-500 focus:border-lime-300 focus:ring-2 focus:ring-lime-300/60 sm:flex-1" />
-            <button type="submit" className="min-h-14 rounded-xl border border-white/15 px-7 text-base font-bold text-white transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300 sm:w-auto">{footerNewsletter.buttonLabel}</button>
+            <input id="footer-newsletter-email" maxLength={254} name="email" type="email" required placeholder={footerNewsletter.placeholder} className="min-h-14 w-full min-w-0 rounded-xl border border-white/10 bg-white px-5 text-base text-emerald-950 outline-none transition placeholder:text-slate-500 focus:border-lime-300 focus:ring-2 focus:ring-lime-300/60 sm:flex-1" />
+            <button disabled={isSubmitting} type="submit" className="min-h-14 rounded-xl border border-white/15 px-7 text-base font-bold text-white transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">{isSubmitting ? "Inscription..." : footerNewsletter.buttonLabel}</button>
           </form>
-          {message ? <p className="mt-3 text-sm text-lime-100" role="status">{message}</p> : null}
+          {message ? <p className={`mt-3 text-sm ${messageType === "success" ? "text-lime-100" : "text-red-200"}`} role="status">{message}</p> : null}
         </div>
       </div>
 
