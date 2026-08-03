@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 
 import { ServiceCard } from "@/components/services/ServiceCard";
 import type { Service, ServiceFilterCategory } from "@/types/service";
+import { getMessagesSync, type Locale } from "@/i18n";
 
 type ServiceFilter = { label: "Tous" | ServiceFilterCategory; filterCategory?: ServiceFilterCategory };
 
@@ -15,7 +16,8 @@ const FILTERS: ServiceFilter[] = [
   { label: "Accompagnement & formation", filterCategory: "Accompagnement & formation" },
 ];
 
-export function ServicesGridFilter({ services }: { services: Service[] }) {
+export function ServicesGridFilter({ services, locale = "fr" }: { services: Service[]; locale?: Locale }) {
+  const messages = getMessagesSync(locale);
   const [activeFilter, setActiveFilter] = useState<ServiceFilter["label"]>("Tous");
 
   const filteredServices = useMemo(() => {
@@ -45,7 +47,7 @@ export function ServicesGridFilter({ services }: { services: Service[] }) {
                   isActive ? "bg-emerald-950 text-white shadow-sm" : "text-emerald-950/70 hover:bg-emerald-50 hover:text-emerald-950"
                 }`}
               >
-                {filter.label}
+                {{ "Tous": messages.services.all, "Élevage": messages.services.breeding, "Production végétale": messages.services.crops, "Technologie agricole": messages.services.technology, "Accompagnement & formation": messages.services.support }[filter.label]}
               </button>
             );
           })}

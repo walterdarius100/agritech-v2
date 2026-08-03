@@ -11,9 +11,9 @@ import {
   footerContact,
   footerExplorerLinks,
   footerLegalLinks,
-  footerNewsletter,
   footerSocialLinks,
 } from "@/data/footer";
+import { getLocale, getLocalizedPath, getMessagesSync, hasLocalizedPath } from "@/i18n";
 
 type SocialIconName = (typeof footerSocialLinks)[number]["icon"];
 
@@ -56,6 +56,10 @@ function SocialIcon({ name }: { name: SocialIconName }) {
 
 export function Footer() {
   const pathname = usePathname();
+  const locale = getLocale(pathname);
+  const messages = getMessagesSync(locale);
+  const isLocalized = /^\/(fr|en|es)(?=\/|$)/.test(pathname);
+  const localizedHref = (href: string) => isLocalized && hasLocalizedPath(href) ? getLocalizedPath(href, locale) : href;
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState<"success" | "error">("success");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -77,7 +81,7 @@ export function Footer() {
 
     if (!email || !form.reportValidity()) {
       setMessageType("error");
-      setMessage("Veuillez entrer une adresse email valide.");
+      setMessage(messages.footer.invalidEmail);
       return;
     }
 
@@ -98,15 +102,15 @@ export function Footer() {
       const data = (await response.json()) as { ok?: boolean; message?: string };
 
       if (!response.ok || !data.ok) {
-        throw new Error(data.message || "Une erreur est survenue. Veuillez réessayer plus tard.");
+        throw new Error(locale === "fr" && data.message ? data.message : messages.footer.error);
       }
 
       form.reset();
       setMessageType("success");
-      setMessage(data.message || "Merci pour votre inscription à la newsletter Agri-tech.");
+      setMessage(locale === "fr" && data.message ? data.message : messages.footer.success);
     } catch (error) {
       setMessageType("error");
-      setMessage(error instanceof Error ? error.message : "Une erreur est survenue. Veuillez réessayer plus tard.");
+      setMessage(error instanceof Error ? error.message : messages.footer.error);
     } finally {
       setIsSubmitting(false);
     }
@@ -126,7 +130,7 @@ export function Footer() {
             />
             {footerBrand.name}
           </div>
-          <p className="mt-6 max-w-sm text-base leading-7 text-white/75">{footerBrand.description}</p>
+          <p className="mt-6 max-w-sm text-base leading-7 text-white/75">{messages.footer.brandDescription}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             {footerSocialLinks.map((social) => (
               <a key={social.label} href={social.href} aria-label={social.label} className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 text-white/85 ring-1 ring-white/10 transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300">
@@ -136,10 +140,13 @@ export function Footer() {
           </div>
         </div>
 
-        <FooterList title="Explorer" items={footerExplorerLinks} />
+        <FooterList
+          title={messages.footer.explore}
+          items={footerExplorerLinks.map((item, index) => ({ ...item, href: localizedHref(item.href), label: [messages.navigation.home, messages.navigation.services, messages.navigation.academy, messages.navigation.news, messages.navigation.contact][index] }))}
+        />
 
         <div>
-          <h3 className="text-lg font-bold text-white">Contact</h3>
+          <h3 className="text-lg font-bold text-white">{messages.footer.contact}</h3>
           <ul className="mt-6 space-y-4 text-base text-white/75">
             <li className="flex items-center gap-3"><MapPin className="h-4 w-4 shrink-0 text-lime-200" aria-hidden="true" />{footerContact.location}</li>
             <li><a href={footerContact.phoneHref} className="flex items-center gap-3 transition hover:text-lime-200"><Phone className="h-4 w-4 shrink-0 text-lime-200" aria-hidden="true" />{footerContact.phone}</a></li>
@@ -148,13 +155,13 @@ export function Footer() {
         </div>
 
         <div>
-          <h3 className="text-lg font-bold text-white">{footerNewsletter.title}</h3>
-          <p className="mt-6 max-w-xl text-base leading-7 text-white/75">{footerNewsletter.description}</p>
+          <h3 className="text-lg font-bold text-white">{messages.footer.newsletter}</h3>
+          <p className="mt-6 max-w-xl text-base leading-7 text-white/75">{messages.footer.newsletterDescription}</p>
           <form className="mt-7 flex w-full flex-col gap-3 sm:flex-row lg:max-w-lg" onSubmit={handleNewsletterSubmit}>
             <input aria-hidden="true" autoComplete="off" className="hidden" name="website" tabIndex={-1} type="text" />
-            <label className="sr-only" htmlFor="footer-newsletter-email">{footerNewsletter.placeholder}</label>
-            <input id="footer-newsletter-email" maxLength={254} name="email" type="email" required placeholder={footerNewsletter.placeholder} className="min-h-14 w-full min-w-0 rounded-xl border border-white/10 bg-white px-5 text-base text-emerald-950 outline-none transition placeholder:text-slate-500 focus:border-lime-300 focus:ring-2 focus:ring-lime-300/60 sm:flex-1" />
-            <button disabled={isSubmitting} type="submit" className="min-h-14 rounded-xl border border-white/15 px-7 text-base font-bold text-white transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">{isSubmitting ? "Inscription..." : footerNewsletter.buttonLabel}</button>
+            <label className="sr-only" htmlFor="footer-newsletter-email">{messages.footer.emailPlaceholder}</label>
+            <input id="footer-newsletter-email" maxLength={254} name="email" type="email" required placeholder={messages.footer.emailPlaceholder} className="min-h-14 w-full min-w-0 rounded-xl border border-white/10 bg-white px-5 text-base text-emerald-950 outline-none transition placeholder:text-slate-500 focus:border-lime-300 focus:ring-2 focus:ring-lime-300/60 sm:flex-1" />
+            <button disabled={isSubmitting} type="submit" className="min-h-14 rounded-xl border border-white/15 px-7 text-base font-bold text-white transition hover:bg-lime-400 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-lime-300 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto">{isSubmitting ? messages.footer.subscribing : messages.footer.subscribe}</button>
           </form>
           {message ? <p className={`mt-3 text-sm ${messageType === "success" ? "text-lime-100" : "text-red-200"}`} role="status">{message}</p> : null}
         </div>
@@ -162,14 +169,14 @@ export function Footer() {
 
       <div className="border-t border-white/10 px-4 py-6">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 text-sm text-white/60 md:flex-row md:items-center md:justify-between">
-          <nav aria-label="Liens légaux" className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
-            {footerLegalLinks.map((item) => (
+          <nav aria-label={messages.footer.legalLabel} className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
+            {footerLegalLinks.map((item, index) => (
               <Link key={item.href} href={item.href} className="transition hover:text-lime-200">
-                {item.label}
+                {[messages.footer.privacy, messages.footer.legal][index]}
               </Link>
             ))}
           </nav>
-          <p className="text-center md:text-right">© 2026 Agri-tech — Tous droits réservés</p>
+          <p className="text-center md:text-right">© 2026 Agri-tech — {messages.footer.rights}</p>
         </div>
       </div>
     </footer>
