@@ -37,3 +37,9 @@ export function getContactNotificationRecipient(): EmailRecipient | null {
 
   return email ? { email, name: "Agri-tech contact" } : null;
 }
+
+export function getNewsletterReplyTo(): EmailRecipient | null {
+  const email = normalizeEmail(process.env.EMAIL_REPLY_TO);
+
+  return email ? { email, name: "Agri-tech" } : null;
+}

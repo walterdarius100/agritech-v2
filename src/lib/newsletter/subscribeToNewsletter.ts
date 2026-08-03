@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { sendNewsletterWelcomeEmail } from "@/lib/newsletter/emails";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const successMessage = "Merci pour votre inscription à la newsletter Agri-tech.";
@@ -30,6 +31,22 @@ function clean(value: unknown, maxLength: number) {
 
 function nullable(value: string) {
   return value || null;
+}
+
+async function safelySendWelcomeEmail(
+  subscriberId: string,
+  email: string,
+  pagePath: string | null,
+) {
+  try {
+    await sendNewsletterWelcomeEmail({ subscriberId, email, pagePath });
+  } catch (error) {
+    // Persistence has already succeeded; an email outage must never undo signup.
+    console.error("[newsletter-email] Unexpected welcome workflow error", {
+      subscriberId,
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 }
 
 export async function subscribeToNewsletter(
@@ -79,9 +96,13 @@ export async function subscribeToNewsletter(
     return { ok: true, message: alreadySubscribedMessage };
   }
 
+  if (existing && existing.status !== "unsubscribed") {
+    return { ok: true, message: alreadySubscribedMessage };
+  }
+
   const now = new Date().toISOString();
   if (existing) {
-    const { error } = await supabase
+    const { data: reactivated, error } = await supabase
       .from("newsletter_subscribers")
       .update({
         status: "active",
@@ -93,23 +114,40 @@ export async function subscribeToNewsletter(
         unsubscribed_at: null,
         updated_at: now,
       })
-      .eq("id", existing.id);
+      .eq("id", existing.id)
+      .eq("status", "unsubscribed")
+      .select("id")
+      .maybeSingle();
 
     if (error) {
       console.error("[newsletter] Unable to reactivate subscriber", error.message);
       return { ok: false, message: serverErrorMessage };
     }
 
+    if (!reactivated) {
+      return { ok: true, message: alreadySubscribedMessage };
+    }
+
+    await safelySendWelcomeEmail(
+      String(reactivated.id),
+      email,
+      nullable(pagePath),
+    );
+
     return { ok: true, message: successMessage };
   }
 
-  const { error } = await supabase.from("newsletter_subscribers").insert({
-    email,
-    source: "footer",
-    locale: nullable(locale),
-    page_path: nullable(pagePath),
-    user_agent: nullable(userAgent),
-  });
+  const { data: subscriber, error } = await supabase
+    .from("newsletter_subscribers")
+    .insert({
+      email,
+      source: "footer",
+      locale: nullable(locale),
+      page_path: nullable(pagePath),
+      user_agent: nullable(userAgent),
+    })
+    .select("id")
+    .single();
 
   // A concurrent request may have inserted the same unique email first.
   if (error?.code === "23505") {
@@ -120,6 +158,12 @@ export async function subscribeToNewsletter(
     console.error("[newsletter] Unable to create subscriber", error.message);
     return { ok: false, message: serverErrorMessage };
   }
+
+  await safelySendWelcomeEmail(
+    String(subscriber.id),
+    email,
+    nullable(pagePath),
+  );
 
   return { ok: true, message: successMessage };
 }

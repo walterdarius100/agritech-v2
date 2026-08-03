@@ -27,7 +27,17 @@ RLS est activé sans aucune policy publique. Les rôles navigateur `anon` et `au
 
 ## Limites actuelles
 
-Cette première version collecte uniquement les abonnements du footer. Elle n’envoie aucun email et ne propose pas de désinscription publique. Une limitation distribuée par IP n’est pas ajoutée ; elle pourra être appliquée au niveau de l’hébergement si le trafic l’exige.
+Cette première version collecte uniquement les abonnements du footer et ne propose pas de désinscription publique. Une limitation distribuée par IP n’est pas ajoutée ; elle pourra être appliquée au niveau de l’hébergement si le trafic l’exige.
+
+## Email automatique Newsletter
+
+Un email transactionnel ayant pour sujet **Bienvenue dans la newsletter Agri-tech** est envoyé après la création effective d’un nouvel abonné. Le même email est envoyé une fois lorsqu’une adresse au statut `unsubscribed` est réactivée depuis le footer. Une adresse déjà `active`, y compris lorsqu’elle est soumise avec une casse différente, ne déclenche aucun nouvel envoi. Les statuts `bounced` et `complained` ne sont pas réactivés automatiquement.
+
+L’envoi réutilise le transport transactionnel Brevo existant, l’expéditeur global `EMAIL_FROM_NAME` / `EMAIL_FROM_ADDRESS` et le `Reply-To` global `EMAIL_REPLY_TO`, attendu à `support@agritech509ht.com`. Aucune variable Newsletter supplémentaire n’est nécessaire. Le bouton **Découvrir Agri-tech** utilise `NEXT_PUBLIC_SITE_URL`.
+
+La migration `20260804_add_newsletter_welcome_email_event.sql` étend sans remplacer la liste des événements existants. Chaque tentative crée un `email_events` de type `newsletter_welcome`, lié à l’identifiant `newsletter_subscriber`, avec le statut `sent`, `failed` ou `skipped` et un contexte minimal (`source` et `page_path`). Si Brevo ou sa configuration échoue, l’abonnement reste actif, l’échec est journalisé uniquement côté serveur et le visiteur conserve le message de succès normal.
+
+Ce flux ne fournit pas de double opt-in, de campagne marketing, de synchronisation Brevo Marketing, de page publique de désinscription ou de notification interne systématique.
 
 ## Admin Newsletter
 
@@ -43,7 +53,6 @@ L’admin ne permet actuellement aucun envoi de campagne, aucune synchronisation
 
 - synchronisation Brevo ;
 - double opt-in ;
-- email de bienvenue Newsletter ;
 - page de désinscription ;
 - export CSV ;
 - segmentation.
