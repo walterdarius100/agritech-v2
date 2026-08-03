@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 
 import { siteConfig } from "@/config/site";
 import { mainNavigation } from "@/data/navigation";
+import { LanguageSwitcher } from "@/components/layout/LanguageSwitcher";
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -36,13 +37,16 @@ export function Header() {
             <span className="text-sm font-medium text-emerald-950/65 sm:text-base">Solutions agricoles</span>
           </span>
         </Link>
-        <nav className="hidden flex-wrap items-center gap-3 text-sm font-semibold text-emerald-950/75 sm:gap-5 md:flex">
-          {mainNavigation.map((item) => (
-            <Link key={item.href} href={item.href} className="transition hover:text-emerald-800">
-              {item.label}
-            </Link>
-          ))}
-        </nav>
+        <div className="hidden flex-wrap items-center gap-4 md:flex">
+          <nav className="flex flex-wrap items-center gap-3 text-sm font-semibold text-emerald-950/75 sm:gap-5">
+            {mainNavigation.map((item) => (
+              <Link key={item.href} href={item.href} className="transition hover:text-emerald-800">
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+          <LanguageSwitcher />
+        </div>
         <button
           type="button"
           className="inline-flex h-10 w-10 shrink-0 items-center justify-center text-emerald-950 transition focus:outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-emerald-800 md:hidden"
@@ -60,7 +64,7 @@ export function Header() {
       </div>
       <nav
         id={mobileMenuId}
-        className={`overflow-hidden border-t border-emerald-950/10 bg-emerald-50 transition-all duration-300 md:hidden ${isMenuOpen ? "max-h-80 opacity-100" : "max-h-0 opacity-0"}`}
+        className={`overflow-hidden border-t border-emerald-950/10 bg-emerald-50 transition-all duration-300 md:hidden ${isMenuOpen ? "max-h-[34rem] opacity-100" : "max-h-0 opacity-0"}`}
         aria-label="Navigation mobile"
       >
         <div className="mx-auto flex max-w-6xl flex-col px-4 py-3 text-sm font-semibold text-emerald-950/80 sm:px-6">
@@ -74,6 +78,9 @@ export function Header() {
               {item.label}
             </Link>
           ))}
+          <div className="border-t border-emerald-950/10 px-2 py-3">
+            <LanguageSwitcher mobile />
+          </div>
         </div>
       </nav>
     </header>
