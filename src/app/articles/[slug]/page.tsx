@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { ArticleCard } from "@/components/articles/ArticleCard";
 import { ArticleShareActions } from "@/components/articles/ArticleShareActions";
+import { ReadingProgressBar } from "@/components/articles/ReadingProgressBar";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
 import { env } from "@/lib/env";
@@ -55,6 +56,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
 
   return (
     <>
+      <ReadingProgressBar />
       <section className="bg-emerald-950 py-14 text-white sm:py-18">
         <Container>
           <article className="mx-auto max-w-4xl">
