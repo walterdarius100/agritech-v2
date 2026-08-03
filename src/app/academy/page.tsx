@@ -7,6 +7,7 @@ import { formations } from "@/data/formations";
 import { getCurrentStudentUser } from "@/lib/academy/auth";
 import { getPublishedAcademyCourses } from "@/lib/academy/courses";
 import { createMetadata } from "@/lib/seo/metadata";
+import { getMessagesSync, type Locale } from "@/i18n";
 
 export const metadata: Metadata = createMetadata({
   title: "Agri-tech Academy | Formations agricoles",
@@ -15,16 +16,17 @@ export const metadata: Metadata = createMetadata({
   path: "/academy",
 });
 
-export default async function AcademyPage() {
+export default async function AcademyPage({ locale = "fr" }: { locale?: Locale }) {
+  const messages = getMessagesSync(locale);
   const [user, academyCourses] = await Promise.all([getCurrentStudentUser(), getPublishedAcademyCourses()]);
   const publicCourses = academyCourses.length
     ? academyCourses.map((course) => ({
         title: course.title,
         slug: course.slug,
         category: course.category,
-        shortDescription: course.short_description ?? "Formation Academy Agri-tech.",
-        duration: course.duration ?? "Durée non précisée",
-        level: course.level === "beginner" ? "Débutant" : course.level === "intermediate" ? "Intermédiaire" : course.level === "advanced" ? "Avancé" : "Niveau non précisé",
+        shortDescription: course.short_description ?? messages.academy.fallbackDescription,
+        duration: course.duration ?? messages.academy.unknownDuration,
+        level: course.level === "beginner" ? messages.academy.beginner : course.level === "intermediate" ? messages.academy.intermediate : course.level === "advanced" ? messages.academy.advanced : messages.academy.unknownLevel,
         coverImageUrl: course.cover_image_url,
       }))
     : formations.map((formation) => ({
@@ -42,19 +44,19 @@ export default async function AcademyPage() {
       <section className="bg-emerald-950 py-16 text-white sm:py-20">
         <Container>
           <div className="max-w-4xl">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">Agri-tech Academy</p>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">{messages.academy.eyebrow}</p>
             <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-6xl">
-              Formations agricoles pratiques, accès étudiant sécurisé.
+              {messages.academy.heroTitle}
             </h1>
             <p className="mt-6 text-lg leading-8 text-white/80">
-              Consultez les parcours disponibles, créez votre compte étudiant et accédez au contenu complet après validation de votre inscription.
+              {messages.academy.heroDescription}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={user ? "/academy/dashboard" : "/academy/register"}>
-                {user ? "Aller à mon dashboard" : "Créer un compte étudiant"}
+                {user ? messages.academy.dashboard : messages.academy.createAccount}
               </Link>
               <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15" href="/academy/login">
-                Connexion étudiant
+                {messages.academy.login}
               </Link>
             </div>
           </div>
@@ -63,10 +65,10 @@ export default async function AcademyPage() {
 
       <Container className="py-12 sm:py-16">
         <div className="max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">Catalogue public</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-emerald-950 sm:text-4xl">Cours disponibles</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">{messages.academy.catalogue}</p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-emerald-950 sm:text-4xl">{messages.academy.courses}</h2>
           <p className="mt-4 leading-7 text-slate-600">
-            Cette page est publique. La progression réelle, les ressources privées et les leçons complètes sont réservées à `/academy/dashboard` et `/academy/cours/[slug]/apprendre`.
+            {messages.academy.catalogueDescription}
           </p>
         </div>
 
@@ -81,11 +83,11 @@ export default async function AcademyPage() {
                 <h3 className="mt-3 text-xl font-bold text-emerald-950">{course.title}</h3>
                 <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{course.shortDescription}</p>
                 <div className="mt-5 grid gap-2 text-xs font-semibold text-emerald-800 sm:grid-cols-2">
-                  <span className="rounded-full bg-emerald-50 px-3 py-2">Durée : {course.duration}</span>
-                  <span className="rounded-full bg-emerald-50 px-3 py-2">Niveau : {course.level}</span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-2">{messages.academy.duration} : {course.duration}</span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-2">{messages.academy.level} : {course.level}</span>
                 </div>
                 <Link className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800" href={`/academy/cours/${course.slug}`}>
-                  Voir la formation →
+                  {messages.academy.viewCourse} →
                 </Link>
               </div>
             </article>
