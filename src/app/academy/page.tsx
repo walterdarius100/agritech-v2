@@ -5,7 +5,10 @@ import Link from "next/link";
 import { Container } from "@/components/ui/Container";
 import { formations } from "@/data/formations";
 import { getCurrentStudentUser } from "@/lib/academy/auth";
-import { getPublishedAcademyCourses } from "@/lib/academy/courses";
+import {
+  getLocalizedCourse,
+  getPublishedAcademyCourses,
+} from "@/lib/academy/courses";
 import { createMetadata } from "@/lib/seo/metadata";
 import { getLocalizedPath, getMessagesSync, type Locale } from "@/i18n";
 
@@ -27,23 +30,26 @@ export default async function AcademyPage({
     getPublishedAcademyCourses(),
   ]);
   const publicCourses = academyCourses.length
-    ? academyCourses.map((course) => ({
-        title: course.title,
-        slug: course.slug,
-        category: course.category,
-        shortDescription:
-          course.short_description ?? messages.academy.fallbackDescription,
-        duration: course.duration ?? messages.academy.unknownDuration,
-        level:
-          course.level === "beginner"
-            ? messages.academy.beginner
-            : course.level === "intermediate"
-              ? messages.academy.intermediate
-              : course.level === "advanced"
-                ? messages.academy.advanced
-                : messages.academy.unknownLevel,
-        coverImageUrl: course.cover_image_url,
-      }))
+    ? academyCourses.map((sourceCourse) => {
+        const course = getLocalizedCourse(sourceCourse, locale);
+        return {
+          title: course.title,
+          slug: course.slug,
+          category: course.category,
+          shortDescription:
+            course.short_description ?? messages.academy.fallbackDescription,
+          duration: course.duration ?? messages.academy.unknownDuration,
+          level:
+            course.level === "beginner"
+              ? messages.academy.beginner
+              : course.level === "intermediate"
+                ? messages.academy.intermediate
+                : course.level === "advanced"
+                  ? messages.academy.advanced
+                  : messages.academy.unknownLevel,
+          coverImageUrl: course.cover_image_url,
+        };
+      })
     : formations.map((formation) => ({
         title: formation.title,
         slug: formation.slug,

@@ -40,7 +40,7 @@ export function ArticleCard({
             {article.category ?? "Article"}
           </span>
           <span className="text-xs font-medium text-slate-500">
-            {formatArticleDate(getArticleDate(article))}
+            {formatArticleDate(getArticleDate(article), locale)}
           </span>
         </div>
         <h2 className="mt-4 text-xl font-bold text-emerald-950">

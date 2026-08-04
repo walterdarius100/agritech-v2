@@ -94,7 +94,7 @@ export default async function LocalizedActualitesPage({
             <div className="flex flex-col justify-center p-6 sm:p-7 lg:p-8">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-800">
                 {featuredArticle.category} ·{" "}
-                {formatArticleDate(getArticleDate(featuredArticle))}
+                {formatArticleDate(getArticleDate(featuredArticle), locale)}
               </p>
               <h2 className="mt-4 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">
                 {featuredArticle.title}

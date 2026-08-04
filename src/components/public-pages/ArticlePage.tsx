@@ -27,18 +27,23 @@ type ArticlePageProps = { params: Promise<{ slug: string }> };
 export const revalidate = 60;
 export const dynamicParams = true;
 
-export async function generateMetadata({
-  params,
-}: ArticlePageProps): Promise<Metadata> {
+export async function generateArticleMetadata(
+  { params }: ArticlePageProps,
+  locale: Locale = "fr",
+): Promise<Metadata> {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const sourceArticle = await getArticleBySlug(slug);
+  const article = sourceArticle ? localizeArticle(sourceArticle, locale) : null;
   return createMetadata({
     title: article?.title ?? "Article Agri-tech",
     description: article?.excerpt ?? undefined,
-    path: `/articles/${slug}`,
+    path: getLocalizedPath(`/articles/${slug}`, locale),
     image: article?.cover_image_url ?? undefined,
   });
 }
+
+export const generateMetadata = (props: ArticlePageProps) =>
+  generateArticleMetadata(props);
 
 export default async function LocalizedArticlePage({
   params,
@@ -93,11 +98,11 @@ export default async function LocalizedArticlePage({
             back: "Retour aux actualités",
             by: "Par",
             team: "Équipe Agri-tech",
-            share: "{copy.share}",
-            liked: "{copy.liked}",
-            shareHelp: "{copy.shareHelp}",
-            related: "{copy.related}",
-            latest: "{copy.latest}",
+            share: "Partager",
+            liked: "Cet article vous a plu ?",
+            shareHelp: "Partagez-le avec vos proches et vos collègues.",
+            related: "À lire aussi",
+            latest: "Dernières actualités",
             all: "Voir toutes les actualités",
             alt: "Photo principale de l’article",
           };
@@ -121,7 +126,8 @@ export default async function LocalizedArticlePage({
             </Button>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-yellow-400">
               {article.category ?? "Article"} ·{" "}
-              {formatArticleDate(getArticleDate(article))} · {readingTime}
+              {formatArticleDate(getArticleDate(article), locale)} ·{" "}
+              {readingTime}
             </p>
             <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               {article.title}

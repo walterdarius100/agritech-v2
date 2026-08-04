@@ -55,7 +55,7 @@ export async function HomeNewsSection({ locale = "fr" }: { locale?: Locale }) {
         <div className="flex flex-col justify-center p-6 sm:p-7 lg:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">
             {featuredArticle.category} ·{" "}
-            {formatArticleDate(getArticleDate(featuredArticle))}
+            {formatArticleDate(getArticleDate(featuredArticle), locale)}
           </p>
           <h2 className="mt-4 text-2xl font-bold tracking-tight text-emerald-950 sm:text-3xl">
             {featuredArticle.title}
@@ -98,7 +98,7 @@ export async function HomeNewsSection({ locale = "fr" }: { locale?: Locale }) {
                   {article.category}
                 </span>
                 <span className="text-xs font-medium text-slate-500">
-                  {formatArticleDate(getArticleDate(article))}
+                  {formatArticleDate(getArticleDate(article), locale)}
                 </span>
               </div>
               <h3 className="mt-4 text-xl font-bold leading-snug text-emerald-950">

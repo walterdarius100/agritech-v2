@@ -8,7 +8,7 @@ import {
 import type { SupabaseArticle } from "@/types/article";
 
 const ARTICLE_COLUMNS =
-  "id,title,slug,category,excerpt,cover_image_url,author,content,status,featured,reading_time,published_at,created_at,updated_at";
+  "id,title,slug,category,excerpt,cover_image_url,author,content,status,featured,reading_time,published_at,created_at,updated_at,translations";
 
 function normalizeSlug(slug: string) {
   return decodeURIComponent(slug).trim().toLowerCase();

@@ -15,6 +15,8 @@ export type SupabaseArticle = {
   published_at: string | null;
   created_at: string | null;
   updated_at: string | null;
+  translations?:
+    import("@/lib/i18n/localized-content").ContentTranslations | null;
 };
 
 export type Article = {
@@ -32,6 +34,8 @@ export type Article = {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  translations?:
+    import("@/lib/i18n/localized-content").ContentTranslations | null;
 };
 
 export type ArticleCardViewModel = {

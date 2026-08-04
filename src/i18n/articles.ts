@@ -1,5 +1,6 @@
 import type { Article } from "@/types/article";
 import type { Locale } from "@/i18n/locales";
+import { getLocalizedField } from "@/lib/i18n/localized-content";
 
 type EditorialTranslation = Pick<
   Article,
@@ -83,14 +84,33 @@ const translations: Record<
 
 /** Editorial translations are applied when available; Supabase-only content safely falls back to French. */
 export function localizeArticle(article: Article, locale: Locale): Article {
-  if (locale === "fr") return article;
-  const translation = translations[locale][article.slug];
-  return translation
-    ? {
-        ...article,
-        ...translation,
-        reading_time: locale === "en" ? "3 min read" : "3 min de lectura",
-        author: locale === "en" ? "Agri-tech team" : "Equipo Agri-tech",
-      }
-    : article;
+  const bundledTranslation =
+    locale === "fr" ? undefined : translations[locale][article.slug];
+  const field = (name: keyof EditorialTranslation, fallback: string) =>
+    getLocalizedField({
+      locale,
+      field: name,
+      translations: article.translations,
+      fallback: bundledTranslation?.[name] ?? fallback,
+    });
+
+  return {
+    ...article,
+    title: field("title", article.title),
+    category: field("category", article.category),
+    excerpt: field("excerpt", article.excerpt),
+    content: field("content", article.content),
+    reading_time:
+      locale === "en"
+        ? "3 min read"
+        : locale === "es"
+          ? "3 min de lectura"
+          : article.reading_time,
+    author: getLocalizedField({
+      locale,
+      field: "author",
+      translations: article.translations,
+      fallback: article.author,
+    }),
+  };
 }

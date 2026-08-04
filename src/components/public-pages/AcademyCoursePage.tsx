@@ -7,6 +7,8 @@ import { Container } from "@/components/ui/Container";
 import { getCurrentStudentUser } from "@/lib/academy/auth";
 import {
   getAcademyCourseBySlug,
+  getLocalizedCourse,
+  getLocalizedPublicProgram,
   getPublicCourseProgram,
   hasActiveEnrollment,
 } from "@/lib/academy/courses";
@@ -14,19 +16,24 @@ import { createMetadata } from "@/lib/seo/metadata";
 import type { Locale } from "@/i18n";
 import { getMessagesSync } from "@/i18n";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: Promise<{ slug: string }>;
-}): Promise<Metadata> {
+type AcademyCoursePageProps = { params: Promise<{ slug: string }> };
+
+export async function generateAcademyCourseMetadata(
+  { params }: AcademyCoursePageProps,
+  locale: Locale = "fr",
+): Promise<Metadata> {
   const { slug } = await params;
-  const course = await getAcademyCourseBySlug(slug);
+  const sourceCourse = await getAcademyCourseBySlug(slug);
+  const course = sourceCourse ? getLocalizedCourse(sourceCourse, locale) : null;
   return createMetadata({
     title: course ? `${course.title} | Agri-tech Academy` : "Cours introuvable",
     description: course?.short_description ?? "Formation Academy",
-    path: `/academy/cours/${slug}`,
+    path: `/${locale}/academy/cours/${slug}`,
   });
 }
+
+export const generateMetadata = (props: AcademyCoursePageProps) =>
+  generateAcademyCourseMetadata(props);
 
 export default async function LocalizedAcademyCoursePage({
   params,
@@ -58,32 +65,38 @@ export default async function LocalizedAcademyCoursePage({
             request: "Solicitar acceso",
           }
         : {
-            details: "{copy.details}",
-            help: "{copy.help}",
-            certification: "{copy.certification}",
+            details: "Détails de la formation",
+            help: "Besoin d’aide ? Contactez Agri-tech",
+            certification: "Certification Agri-tech",
             instructor: "Formateur",
-            program: "{copy.program}",
-            access: "{copy.access}",
+            program: "Programme de formation",
+            access: "Modalités d’accès",
             request: "Demander l’accès",
           };
   const { slug } = await params;
-  const course = await getAcademyCourseBySlug(slug);
-  if (!course) notFound();
+  const sourceCourse = await getAcademyCourseBySlug(slug);
+  if (!sourceCourse) notFound();
+  const course = getLocalizedCourse(sourceCourse, locale);
 
   const user = await getCurrentStudentUser();
   const hasAccess = user
     ? await hasActiveEnrollment(user.id, course.id)
     : false;
-  const { modules, lessons, resources } = await getPublicCourseProgram(
-    course.id,
+  const { modules, lessons, resources } = getLocalizedPublicProgram(
+    await getPublicCourseProgram(course.id),
+    locale,
   );
   const videoCount = lessons.filter((lesson) => lesson.video_url).length;
   const certificationText =
     course.certification_description ||
     "À la fin de cette formation, les participants ayant suivi le parcours et rempli les conditions définies par Agri-tech pourront recevoir une attestation ou un certificat Agri-tech. La délivrance du document reste soumise à la validation de l’équipe Agri-tech.";
   const priceLabel = course.is_free
-    ? "Gratuit"
-    : `${course.price_amount ?? "Sur devis"} ${course.price_currency ?? "HTG"}`;
+    ? locale === "en"
+      ? "Free"
+      : locale === "es"
+        ? "Gratis"
+        : "Gratuit"
+    : `${course.price_amount ?? (locale === "en" ? "Price on request" : locale === "es" ? "Precio a consultar" : "Sur devis")} ${course.price_currency ?? "HTG"}`;
   const academyAccessContactHref = `/contact?type=academy-access&course=${encodeURIComponent(course.slug)}`;
   const checkoutEnabled =
     process.env.NEXT_PUBLIC_ACADEMY_CHECKOUT_ENABLED === "true";
@@ -94,15 +107,35 @@ export default async function LocalizedAcademyCoursePage({
       ? checkoutHref
       : academyAccessContactHref;
   const accessLabel = hasAccess
-    ? "Continuer le cours"
+    ? locale === "en"
+      ? "Continue course"
+      : locale === "es"
+        ? "Continuar el curso"
+        : "Continuer le cours"
     : course.is_free
-      ? "Accéder gratuitement"
+      ? locale === "en"
+        ? "Access for free"
+        : locale === "es"
+          ? "Acceder gratis"
+          : "Accéder gratuitement"
       : checkoutEnabled
-        ? "S’inscrire / Payer cette formation"
-        : "Demander l’accès";
+        ? locale === "en"
+          ? "Enroll / Pay for this course"
+          : locale === "es"
+            ? "Inscribirse / Pagar esta formación"
+            : "S’inscrire / Payer cette formation"
+        : copy.request;
   const accessCopy = checkoutEnabled
-    ? "Le paiement en ligne peut être testé en mode sécurisé sans argent réel. Le workflow manuel reste disponible si besoin."
-    : "L’équipe Agri-tech vous contactera pour finaliser les modalités d’accès. L’accès à la formation sera activé manuellement après validation.";
+    ? locale === "en"
+      ? "Online payment can be tested securely without real money. Manual processing remains available if needed."
+      : locale === "es"
+        ? "El pago en línea puede probarse de forma segura sin dinero real. El proceso manual sigue disponible si es necesario."
+        : "Le paiement en ligne peut être testé en mode sécurisé sans argent réel. Le workflow manuel reste disponible si besoin."
+    : locale === "en"
+      ? "The Agri-tech team will contact you to finalize access. Course access is activated manually after approval."
+      : locale === "es"
+        ? "El equipo de Agri-tech te contactará para finalizar el acceso. El curso se activa manualmente tras la validación."
+        : "L’équipe Agri-tech vous contactera pour finaliser les modalités d’accès. L’accès à la formation sera activé manuellement après validation.";
 
   return (
     <main className="bg-[#f8faf7]">
@@ -180,6 +213,34 @@ export default async function LocalizedAcademyCoursePage({
                   course.short_description ??
                   "La description détaillée de cette formation sera complétée prochainement."}
               </p>
+              {course.objectives ? (
+                <div className="mt-6">
+                  <h3 className="font-black text-emerald-950">
+                    {locale === "en"
+                      ? "Objectives"
+                      : locale === "es"
+                        ? "Objetivos"
+                        : "Objectifs"}
+                  </h3>
+                  <p className="mt-2 whitespace-pre-line leading-7 text-slate-700">
+                    {course.objectives}
+                  </p>
+                </div>
+              ) : null}
+              {course.target_audience ? (
+                <div className="mt-6">
+                  <h3 className="font-black text-emerald-950">
+                    {locale === "en"
+                      ? "Who this course is for"
+                      : locale === "es"
+                        ? "Público destinatario"
+                        : "Public cible"}
+                  </h3>
+                  <p className="mt-2 whitespace-pre-line leading-7 text-slate-700">
+                    {course.target_audience}
+                  </p>
+                </div>
+              ) : null}
               <div className="mt-6 grid gap-3 sm:grid-cols-3">
                 <span className="rounded-2xl bg-emerald-50 p-4 font-semibold text-emerald-900">
                   1 certification ou attestation
@@ -258,6 +319,11 @@ export default async function LocalizedAcademyCoursePage({
               <h2 className="mt-3 text-3xl font-black text-emerald-950">
                 {copy.program}
               </h2>
+              {course.program_summary ? (
+                <p className="mt-4 whitespace-pre-line leading-7 text-slate-700">
+                  {course.program_summary}
+                </p>
+              ) : null}
               <div className="mt-6 space-y-4">
                 {modules.map((module, index) => {
                   const moduleLessons = lessons.filter(

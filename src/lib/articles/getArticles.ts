@@ -4,7 +4,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Article, SupabaseArticle } from "@/types/article";
 
 const ARTICLES_COLUMNS =
-  "id,title,slug,category,excerpt,cover_image_url,author,content,status,featured,reading_time,published_at,created_at,updated_at";
+  "id,title,slug,category,excerpt,cover_image_url,author,content,status,featured,reading_time,published_at,created_at,updated_at,translations";
 
 const ARTICLE_IMAGE_PLACEHOLDER = "/images/services/pepiniere.jpg";
 const DEFAULT_READING_TIME = "3 min de lecture";
@@ -42,6 +42,7 @@ export function mapArticleToViewModel(article: SupabaseArticle): Article {
     published_at: article.published_at ?? null,
     created_at: createdAt,
     updated_at: article.updated_at ?? createdAt,
+    translations: article.translations ?? null,
   };
 }
 
@@ -142,14 +143,17 @@ export function getArticleImage(article: Article) {
   return article.cover_image_url || ARTICLE_IMAGE_PLACEHOLDER;
 }
 
-export function formatArticleDate(date: string | null) {
+export function formatArticleDate(date: string | null, locale = "fr") {
   if (!date) return "Date à confirmer";
 
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(date));
+  return new Intl.DateTimeFormat(
+    locale === "en" ? "en-US" : locale === "es" ? "es-ES" : "fr-FR",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    },
+  ).format(new Date(date));
 }
 
 export function getArticleReadingTime(article: Article) {
