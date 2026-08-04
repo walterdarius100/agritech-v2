@@ -6,25 +6,65 @@ import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { partnerships } from "@/data/partnerships";
+import type { Locale } from "@/i18n";
+import { getLocalizedPath } from "@/i18n";
+import { publicContent } from "@/i18n/public-content";
 
-const carouselItems = [...partnerships, ...partnerships];
-
-export function HomePartnershipsSection() {
+export function HomePartnershipsSection({
+  locale = "fr",
+}: {
+  locale?: Locale;
+}) {
+  const content = publicContent[locale].partnerships;
+  const localizedPartnerships = partnerships.map((item, index) => {
+    if (locale === "fr") return item;
+    const en = [
+      [
+        "Local NGOs",
+        "High-impact agricultural projects for communities and local youth.",
+      ],
+      [
+        "Associations",
+        "Training and agricultural projects for local community initiatives.",
+      ],
+      [
+        "Businesses",
+        "Agricultural solutions tailored to businesses and private initiatives.",
+      ],
+    ];
+    const es = [
+      [
+        "ONG locales",
+        "Proyectos agrícolas de impacto social para comunidades y jóvenes.",
+      ],
+      [
+        "Asociaciones",
+        "Formaciones y proyectos agrícolas para iniciativas comunitarias.",
+      ],
+      [
+        "Empresas",
+        "Soluciones agrícolas adaptadas a empresas e iniciativas privadas.",
+      ],
+    ];
+    const [badge, title] = (locale === "en" ? en : es)[index];
+    return { ...item, badge, title };
+  });
+  const carouselItems = [...localizedPartnerships, ...localizedPartnerships];
   return (
     <Section className="overflow-hidden bg-transparent py-12 sm:py-16 lg:py-18">
       <SectionHeader
-        eyebrow="PARTENARIATS"
-        title="Construisons ensemble des projets agricoles à fort impact"
-        description="Agri-tech collabore avec des entreprises, ONG et associations souhaitant développer des initiatives agricoles concrètes, durables et adaptées aux réalités du terrain."
+        eyebrow={content.eyebrow}
+        title={content.title}
+        description={content.description}
       />
 
       <div className="relative mx-auto mt-8 max-w-6xl overflow-hidden py-2 [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)] sm:mt-9">
         <div
-          aria-label="Carousel en boucle des opportunités de partenariat"
+          aria-label={content.carousel}
           className="flex w-max gap-4 motion-safe:animate-[partnership-marquee_28s_linear_infinite] hover:[animation-play-state:paused] focus-within:[animation-play-state:paused] sm:gap-5"
         >
           {carouselItems.map((partnership, index) => {
-            const isDuplicate = index >= partnerships.length;
+            const isDuplicate = index >= localizedPartnerships.length;
 
             return (
               <article
@@ -58,8 +98,13 @@ export function HomePartnershipsSection() {
       </div>
 
       <div className="mt-7 flex justify-center">
-        <Button href="/contact" className="rounded-xl bg-emerald-800 px-6 hover:bg-emerald-900">
-          Discuter d’un partenariat →
+        <Button
+          href={
+            locale === "fr" ? "/contact" : getLocalizedPath("/contact", locale)
+          }
+          className="rounded-xl bg-emerald-800 px-6 hover:bg-emerald-900"
+        >
+          {content.action} →
         </Button>
       </div>
 

@@ -5,24 +5,36 @@ import { Leaf, Sprout, Tractor, UsersRound } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
-import { homeDomains, interventionPillars } from "@/data/home-domains";
+import { homeDomains } from "@/data/home-domains";
+import type { Locale } from "@/i18n";
+import { getLocalizedPath } from "@/i18n";
+import { publicContent } from "@/i18n/public-content";
 
 const pillarIcons = [Leaf, Sprout, Tractor, UsersRound];
 
-export function DomainesSection() {
+export function DomainesSection({ locale = "fr" }: { locale?: Locale }) {
+  const content = publicContent[locale];
+  const interventionPillars = content.pillars.map(([title, description]) => ({
+    title,
+    description,
+  }));
+  const domains = homeDomains.map((domain, index) => ({
+    ...domain,
+    title: content.domainCards[index][0],
+    category: content.domainCards[index][1],
+    description: content.domainCards[index][2],
+  }));
   return (
     <Section className="bg-[#f8faf7]">
       <div className="mx-auto max-w-3xl text-center">
         <p className="text-xs font-bold uppercase tracking-[0.28em] text-emerald-700">
-          Nos domaines d’intervention
+          {content.domains.eyebrow}
         </p>
         <h2 className="mt-4 text-3xl font-black tracking-tight text-emerald-950 sm:text-4xl lg:text-5xl">
-          Des solutions agricoles adaptées au terrain haïtien.
+          {content.domains.title}
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600">
-          Agri-tech accompagne les porteurs de projets agricoles à travers
-          plusieurs pôles d’intervention : élevage, production végétale,
-          technologies agricoles, formation et suivi technique.
+          {content.domains.description}
         </p>
       </div>
 
@@ -52,7 +64,7 @@ export function DomainesSection() {
       </div>
 
       <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {homeDomains.map((domain) => (
+        {domains.map((domain) => (
           <article
             key={domain.title}
             className="group flex h-full overflow-hidden rounded-xl border border-emerald-100 bg-white shadow-sm shadow-emerald-950/5 transition duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-950/10"
@@ -78,10 +90,14 @@ export function DomainesSection() {
                   {domain.description}
                 </p>
                 <Link
-                  href={domain.href}
+                  href={
+                    locale === "fr"
+                      ? domain.href
+                      : getLocalizedPath(domain.href, locale)
+                  }
                   className="mt-6 inline-flex min-h-10 w-fit items-center text-sm font-bold text-emerald-700 transition hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2"
                 >
-                  Découvrir ce domaine{" "}
+                  {content.domains.discover}{" "}
                   <span
                     aria-hidden="true"
                     className="ml-1 transition group-hover:translate-x-1"
@@ -96,8 +112,16 @@ export function DomainesSection() {
       </div>
 
       <div className="mt-10 flex justify-center">
-        <Button href="/services" size="lg" className="rounded-xl px-7">
-          Voir nos domaines{" "}
+        <Button
+          href={
+            locale === "fr"
+              ? "/services"
+              : getLocalizedPath("/services", locale)
+          }
+          size="lg"
+          className="rounded-xl px-7"
+        >
+          {content.domains.all}{" "}
           <span aria-hidden="true" className="ml-2">
             →
           </span>

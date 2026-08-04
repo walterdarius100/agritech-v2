@@ -6,19 +6,32 @@ import { ServiceCard } from "@/components/services/ServiceCard";
 import type { Service, ServiceFilterCategory } from "@/types/service";
 import { getMessagesSync, type Locale } from "@/i18n";
 
-type ServiceFilter = { label: "Tous" | ServiceFilterCategory; filterCategory?: ServiceFilterCategory };
+type ServiceFilter = {
+  label: "Tous" | ServiceFilterCategory;
+  filterCategory?: ServiceFilterCategory;
+};
 
 const FILTERS: ServiceFilter[] = [
   { label: "Tous" },
   { label: "Élevage", filterCategory: "Élevage" },
   { label: "Production végétale", filterCategory: "Production végétale" },
   { label: "Technologie agricole", filterCategory: "Technologie agricole" },
-  { label: "Accompagnement & formation", filterCategory: "Accompagnement & formation" },
+  {
+    label: "Accompagnement & formation",
+    filterCategory: "Accompagnement & formation",
+  },
 ];
 
-export function ServicesGridFilter({ services, locale = "fr" }: { services: Service[]; locale?: Locale }) {
+export function ServicesGridFilter({
+  services,
+  locale = "fr",
+}: {
+  services: Service[];
+  locale?: Locale;
+}) {
   const messages = getMessagesSync(locale);
-  const [activeFilter, setActiveFilter] = useState<ServiceFilter["label"]>("Tous");
+  const [activeFilter, setActiveFilter] =
+    useState<ServiceFilter["label"]>("Tous");
 
   const filteredServices = useMemo(() => {
     const filter = FILTERS.find((item) => item.label === activeFilter);
@@ -27,7 +40,9 @@ export function ServicesGridFilter({ services, locale = "fr" }: { services: Serv
       return services;
     }
 
-    return services.filter((service) => service.filterCategory === filter.filterCategory);
+    return services.filter(
+      (service) => service.filterCategory === filter.filterCategory,
+    );
   }, [activeFilter, services]);
 
   return (
@@ -44,10 +59,20 @@ export function ServicesGridFilter({ services, locale = "fr" }: { services: Serv
                 aria-pressed={isActive}
                 onClick={() => setActiveFilter(filter.label)}
                 className={`rounded-full px-5 py-3 text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-2 ${
-                  isActive ? "bg-emerald-950 text-white shadow-sm" : "text-emerald-950/70 hover:bg-emerald-50 hover:text-emerald-950"
+                  isActive
+                    ? "bg-emerald-950 text-white shadow-sm"
+                    : "text-emerald-950/70 hover:bg-emerald-50 hover:text-emerald-950"
                 }`}
               >
-                {{ "Tous": messages.services.all, "Élevage": messages.services.breeding, "Production végétale": messages.services.crops, "Technologie agricole": messages.services.technology, "Accompagnement & formation": messages.services.support }[filter.label]}
+                {
+                  {
+                    Tous: messages.services.all,
+                    Élevage: messages.services.breeding,
+                    "Production végétale": messages.services.crops,
+                    "Technologie agricole": messages.services.technology,
+                    "Accompagnement & formation": messages.services.support,
+                  }[filter.label]
+                }
               </button>
             );
           })}
@@ -55,7 +80,9 @@ export function ServicesGridFilter({ services, locale = "fr" }: { services: Serv
       </div>
 
       <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {filteredServices.map((service) => <ServiceCard key={service.slug} service={service} />)}
+        {filteredServices.map((service) => (
+          <ServiceCard key={service.slug} service={service} locale={locale} />
+        ))}
       </div>
     </div>
   );

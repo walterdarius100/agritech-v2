@@ -3,6 +3,10 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Section } from "@/components/ui/Section";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import type { Locale } from "@/i18n";
+import { getLocalizedPath } from "@/i18n";
+import { publicContent } from "@/i18n/public-content";
+import { localizeArticle } from "@/i18n/articles";
 import {
   formatArticleDate,
   getArticleDate,
@@ -10,8 +14,11 @@ import {
   getPublishedArticles,
 } from "@/lib/articles/getArticles";
 
-export async function HomeNewsSection() {
-  const articles = await getPublishedArticles();
+export async function HomeNewsSection({ locale = "fr" }: { locale?: Locale }) {
+  const content = publicContent[locale].news;
+  const articles = (await getPublishedArticles()).map((article) =>
+    localizeArticle(article, locale),
+  );
   const featuredArticle =
     articles.find((article) => article.featured) ?? articles[0] ?? null;
   const latestArticles = articles
@@ -25,9 +32,9 @@ export async function HomeNewsSection() {
   return (
     <Section className="bg-[#fbfcf7]">
       <SectionHeader
-        eyebrow="Actualités Agri-tech"
-        title="Conseils, analyses et nouvelles du secteur agricole."
-        description="Retrouvez nos articles, observations de terrain et contenus pratiques pour mieux comprendre les réalités agricoles en Haïti."
+        eyebrow={content.eyebrow}
+        title={content.title}
+        description={content.description}
       />
 
       <article className="mt-10 overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm ring-1 ring-slate-100 lg:grid lg:grid-cols-[1.05fr_0.95fr]">
@@ -41,7 +48,7 @@ export async function HomeNewsSection() {
             priority
           />
           <div className="absolute left-5 top-5 rounded-full bg-orange-500 px-4 py-2 text-xs font-bold uppercase tracking-[0.18em] text-white shadow-sm">
-            À la une
+            {content.featured}
           </div>
         </div>
 
@@ -57,11 +64,15 @@ export async function HomeNewsSection() {
             {featuredArticle.excerpt}
           </p>
           <Button
-            href={`/articles/${featuredArticle.slug}`}
+            href={
+              locale === "fr"
+                ? `/articles/${featuredArticle.slug}`
+                : getLocalizedPath(`/articles/${featuredArticle.slug}`, locale)
+            }
             variant="ghost"
             className="mt-6 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950"
           >
-            Lire l’article →
+            {content.read} →
           </Button>
         </div>
       </article>
@@ -97,11 +108,15 @@ export async function HomeNewsSection() {
                 {article.excerpt}
               </p>
               <Button
-                href={`/articles/${article.slug}`}
+                href={
+                  locale === "fr"
+                    ? `/articles/${article.slug}`
+                    : getLocalizedPath(`/articles/${article.slug}`, locale)
+                }
                 variant="ghost"
                 className="mt-5 justify-start rounded-none px-0 text-emerald-800 hover:bg-transparent hover:text-emerald-950"
               >
-                Lire l’article →
+                {content.read} →
               </Button>
             </div>
           </article>
@@ -110,10 +125,14 @@ export async function HomeNewsSection() {
 
       <div className="mt-10 flex justify-center">
         <Button
-          href="/actualites"
+          href={
+            locale === "fr"
+              ? "/actualites"
+              : getLocalizedPath("/actualites", locale)
+          }
           className="rounded-xl bg-emerald-800 hover:bg-emerald-900"
         >
-          Voir toutes les actualités →
+          {content.all} →
         </Button>
       </div>
     </Section>

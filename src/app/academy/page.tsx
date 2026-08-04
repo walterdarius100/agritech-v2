@@ -7,7 +7,7 @@ import { formations } from "@/data/formations";
 import { getCurrentStudentUser } from "@/lib/academy/auth";
 import { getPublishedAcademyCourses } from "@/lib/academy/courses";
 import { createMetadata } from "@/lib/seo/metadata";
-import { getMessagesSync, type Locale } from "@/i18n";
+import { getLocalizedPath, getMessagesSync, type Locale } from "@/i18n";
 
 export const metadata: Metadata = createMetadata({
   title: "Agri-tech Academy | Formations agricoles",
@@ -16,17 +16,32 @@ export const metadata: Metadata = createMetadata({
   path: "/academy",
 });
 
-export default async function AcademyPage({ locale = "fr" }: { locale?: Locale }) {
+export default async function AcademyPage({
+  locale = "fr",
+}: {
+  locale?: Locale;
+}) {
   const messages = getMessagesSync(locale);
-  const [user, academyCourses] = await Promise.all([getCurrentStudentUser(), getPublishedAcademyCourses()]);
+  const [user, academyCourses] = await Promise.all([
+    getCurrentStudentUser(),
+    getPublishedAcademyCourses(),
+  ]);
   const publicCourses = academyCourses.length
     ? academyCourses.map((course) => ({
         title: course.title,
         slug: course.slug,
         category: course.category,
-        shortDescription: course.short_description ?? messages.academy.fallbackDescription,
+        shortDescription:
+          course.short_description ?? messages.academy.fallbackDescription,
         duration: course.duration ?? messages.academy.unknownDuration,
-        level: course.level === "beginner" ? messages.academy.beginner : course.level === "intermediate" ? messages.academy.intermediate : course.level === "advanced" ? messages.academy.advanced : messages.academy.unknownLevel,
+        level:
+          course.level === "beginner"
+            ? messages.academy.beginner
+            : course.level === "intermediate"
+              ? messages.academy.intermediate
+              : course.level === "advanced"
+                ? messages.academy.advanced
+                : messages.academy.unknownLevel,
         coverImageUrl: course.cover_image_url,
       }))
     : formations.map((formation) => ({
@@ -44,7 +59,9 @@ export default async function AcademyPage({ locale = "fr" }: { locale?: Locale }
       <section className="bg-emerald-950 py-16 text-white sm:py-20">
         <Container>
           <div className="max-w-4xl">
-            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">{messages.academy.eyebrow}</p>
+            <p className="text-sm font-bold uppercase tracking-[0.18em] text-yellow-400">
+              {messages.academy.eyebrow}
+            </p>
             <h1 className="mt-5 text-4xl font-bold tracking-tight sm:text-6xl">
               {messages.academy.heroTitle}
             </h1>
@@ -52,10 +69,18 @@ export default async function AcademyPage({ locale = "fr" }: { locale?: Locale }
               {messages.academy.heroDescription}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950" href={user ? "/academy/dashboard" : "/academy/register"}>
-                {user ? messages.academy.dashboard : messages.academy.createAccount}
+              <Link
+                className="rounded-xl bg-yellow-400 px-5 py-3 font-bold text-emerald-950"
+                href={user ? "/academy/dashboard" : "/academy/register"}
+              >
+                {user
+                  ? messages.academy.dashboard
+                  : messages.academy.createAccount}
               </Link>
-              <Link className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15" href="/academy/login">
+              <Link
+                className="rounded-xl bg-white/10 px-5 py-3 font-semibold text-white ring-1 ring-white/15"
+                href="/academy/login"
+              >
                 {messages.academy.login}
               </Link>
             </div>
@@ -65,8 +90,12 @@ export default async function AcademyPage({ locale = "fr" }: { locale?: Locale }
 
       <Container className="py-12 sm:py-16">
         <div className="max-w-3xl">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">{messages.academy.catalogue}</p>
-          <h2 className="mt-3 text-3xl font-bold tracking-tight text-emerald-950 sm:text-4xl">{messages.academy.courses}</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-emerald-700">
+            {messages.academy.catalogue}
+          </p>
+          <h2 className="mt-3 text-3xl font-bold tracking-tight text-emerald-950 sm:text-4xl">
+            {messages.academy.courses}
+          </h2>
           <p className="mt-4 leading-7 text-slate-600">
             {messages.academy.catalogueDescription}
           </p>
@@ -74,19 +103,55 @@ export default async function AcademyPage({ locale = "fr" }: { locale?: Locale }
 
         <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {publicCourses.map((course) => (
-            <article key={course.slug} className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-emerald-100 transition hover:-translate-y-1 hover:shadow-md">
+            <article
+              key={course.slug}
+              className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-emerald-100 transition hover:-translate-y-1 hover:shadow-md"
+            >
               <div className="relative h-48 overflow-hidden bg-emerald-50">
-                {course.coverImageUrl ? <Image src={course.coverImageUrl} alt={course.title} fill unoptimized sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" /> : <div className="flex h-full items-center justify-center bg-emerald-900 text-sm font-bold uppercase tracking-[0.18em] text-yellow-300">Agri-tech Academy</div>}
+                {course.coverImageUrl ? (
+                  <Image
+                    src={course.coverImageUrl}
+                    alt={course.title}
+                    fill
+                    unoptimized
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+                    className="object-cover transition duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-emerald-900 text-sm font-bold uppercase tracking-[0.18em] text-yellow-300">
+                    Agri-tech Academy
+                  </div>
+                )}
               </div>
               <div className="p-6">
-                <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">{course.category}</p>
-                <h3 className="mt-3 text-xl font-bold text-emerald-950">{course.title}</h3>
-                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">{course.shortDescription}</p>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-orange-600">
+                  {course.category}
+                </p>
+                <h3 className="mt-3 text-xl font-bold text-emerald-950">
+                  {course.title}
+                </h3>
+                <p className="mt-3 line-clamp-3 text-sm leading-6 text-slate-600">
+                  {course.shortDescription}
+                </p>
                 <div className="mt-5 grid gap-2 text-xs font-semibold text-emerald-800 sm:grid-cols-2">
-                  <span className="rounded-full bg-emerald-50 px-3 py-2">{messages.academy.duration} : {course.duration}</span>
-                  <span className="rounded-full bg-emerald-50 px-3 py-2">{messages.academy.level} : {course.level}</span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-2">
+                    {messages.academy.duration} : {course.duration}
+                  </span>
+                  <span className="rounded-full bg-emerald-50 px-3 py-2">
+                    {messages.academy.level} : {course.level}
+                  </span>
                 </div>
-                <Link className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800" href={`/academy/cours/${course.slug}`}>
+                <Link
+                  className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-emerald-700 px-4 py-3 text-sm font-bold text-white transition hover:bg-emerald-800"
+                  href={
+                    locale === "fr"
+                      ? `/academy/cours/${course.slug}`
+                      : getLocalizedPath(
+                          `/academy/cours/${course.slug}`,
+                          locale,
+                        )
+                  }
+                >
                   {messages.academy.viewCourse} →
                 </Link>
               </div>
