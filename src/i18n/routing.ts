@@ -35,9 +35,10 @@ export function getLocalizedPath(path: string, locale: Locale): string {
   return `${localizedPathname}${trailingSlash}${suffix}`;
 }
 
-const localizedPublicPaths = new Set(["/", "/services", "/contact", "/consultation/reserver", "/academy"]);
+const localizedPublicPaths = new Set(["/", "/services", "/contact", "/consultation", "/consultation/reserver", "/academy", "/actualites"]);
 
 export function hasLocalizedPath(pathname: string): boolean {
   const withoutLocale = pathname.replace(/^\/(fr|en|es)(?=\/|$)/, "") || "/";
-  return localizedPublicPaths.has(withoutLocale.replace(/\/$/, "") || "/");
+  const normalized = withoutLocale.replace(/\/$/, "") || "/";
+  return localizedPublicPaths.has(normalized) || /^\/(services|articles|academy\/cours)\/.+/.test(normalized);
 }
