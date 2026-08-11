@@ -7,11 +7,11 @@ Le socle de données sépare deux responsabilités :
 - `event_resources` décrit les documents proposés pendant une conférence, une présentation ou un événement ;
 - `event_resource_leads` conserve les coordonnées d'une personne ayant demandé une ressource précise.
 
-Cette étape crée uniquement la migration et les types TypeScript. Elle ne crée aucune page publique, route API, interface admin, synchronisation CRM/Newsletter ou communication email.
+Le module expose maintenant une page publique non listée `/r/[slug]` et une Server Action de collecte. Il ne crée encore aucune interface admin, synchronisation CRM/Newsletter ou communication email.
 
 ## Table `event_resources`
 
-Une ressource possède un slug public, un titre, une description facultative, une référence de fichier, un contexte événementiel et des paramètres de publication. `is_active` permettra à la future route serveur de refuser une ressource désactivée. `requires_form` prépare le contrôle d'accès au téléchargement sans l'implémenter dans cette étape.
+Une ressource possède un slug public, un titre, une description facultative, une référence de fichier, un contexte événementiel et des paramètres de publication. `is_active` permet à la route serveur de refuser une ressource désactivée. `requires_form` reste disponible pour une évolution du contrôle d’accès.
 
 Les types autorisés sont `document`, `plan`, `guide`, `fiche_technique`, `presentation` et `autre`. Les langues autorisées sont `fr`, `en`, `es` et `ht` afin de prendre en charge les ressources en créole.
 
@@ -23,13 +23,13 @@ La contrainte unique crée déjà l'index PostgreSQL utilisé pour rechercher un
 
 ## Table `event_resource_leads`
 
-Chaque lead référence exactement une ressource. Le nom et l'email sont obligatoires ; le téléphone, l'organisation, le domaine d'intérêt, le nom de l'événement et le chemin de page sont facultatifs. Une contrainte SQL rejette les emails manifestement invalides, mais la future route serveur devra également nettoyer, borner et valider tous les champs.
+Chaque lead référence exactement une ressource. Le nom et l'email sont obligatoires ; le téléphone, l'organisation, le domaine d'intérêt, le nom de l'événement et le chemin de page sont facultatifs. Une contrainte SQL rejette les emails manifestement invalides ; la Server Action nettoie, borne et valide également tous les champs avant l’insertion.
 
 La suppression d'une ressource supprime ses leads avec `on delete cascade`. Cette opération devra donc rester réservée au serveur/admin et être confirmée explicitement ; la désactivation via `is_active` est préférable pour conserver l'historique.
 
 ### Règle anti-doublon
 
-L'index unique `(resource_id, lower(email))` autorise un même email à demander plusieurs ressources différentes, mais refuse une seconde ligne pour la même ressource, y compris si la casse de l'email change. Le futur endpoint devra normaliser l'adresse en minuscules et traiter le code PostgreSQL `23505` comme une soumission déjà prise en compte, sans révéler l'existence d'un contact.
+L'index unique `(resource_id, lower(email))` autorise un même email à demander plusieurs ressources différentes, mais refuse une seconde ligne pour la même ressource, y compris si la casse de l'email change. La Server Action normalise l’adresse en minuscules et traite le code PostgreSQL `23505` comme une soumission déjà prise en compte, sans révéler l’existence d’un contact.
 
 Les index supplémentaires couvrent `resource_id`, `email`, `created_at`, `source` et `event_name` pour les futurs écrans de recherche et de suivi.
 
@@ -37,7 +37,7 @@ Les index supplémentaires couvrent `resource_id`, `email`, `created_at`, `sourc
 
 RLS est activé sur les deux tables. Aucune policy publique n'est créée et tous les privilèges sont révoqués aux rôles `anon` et `authenticated` : le navigateur ne peut donc ni lister les ressources, ni insérer directement un lead, ni lire ou modifier les coordonnées collectées.
 
-Les futures pages devront passer par une Server Action ou une Route Handler utilisant le client service-role exclusivement côté serveur. Ce serveur devra valider le slug, charger uniquement une ressource active, normaliser la soumission et fixer lui-même les données de provenance. Toute future lecture admin de leads devra appeler `requireAuthorizedAdmin()`.
+La page `/r/[slug]` et sa Server Action utilisent le client service-role exclusivement côté serveur. L'action valide le slug, recharge uniquement une ressource active, normalise la soumission et fixe elle-même les données de provenance. Toute future lecture admin de leads devra appeler `requireAuthorizedAdmin()`.
 
 La clé service-role ne doit jamais être importée dans un Client Component ni transmise au navigateur.
 
@@ -51,9 +51,9 @@ La clé service-role ne doit jamais être importée dans un Client Component ni 
 ## Limites actuelles
 
 - aucune ressource ou donnée initiale n'est insérée par la migration ;
-- aucune route `/r/[slug]`, API de soumission ou interface admin n'existe encore ;
-- aucun bucket Storage, upload, URL signée ou téléchargement n'est créé ; `file_url` reste une référence pour une future étape serveur ;
-- aucun rate limiting, honeypot ou contrôle anti-automatisation n'est encore applicable sans endpoint ;
+- aucune interface admin n'existe encore ;
+- aucun bucket Storage, upload ou URL signée n'est créé ; après une soumission réussie, le bouton ouvre directement la référence `file_url` validée par le serveur ;
+- la collecte limite les données à 4 Kio et utilise un honeypot, mais ne dispose pas encore d'un rate limiting distribué ;
 - aucune synchronisation CRM ou Newsletter et aucun email automatique ne sont déclenchés ;
 - `consent_contact` vaut `true` par défaut conformément au modèle demandé, mais le futur formulaire et sa revue légale devront rendre le consentement explicite et traçable avant exploitation commerciale ;
 - la suppression en cascade est définitive : les opérations courantes doivent préférer `is_active = false`.

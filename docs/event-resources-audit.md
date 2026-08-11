@@ -11,7 +11,7 @@ Le nom technique recommandé est :
 
 Ce vocabulaire est préféré à `lead_magnets`, plus marketing et moins explicite dans une plateforme principalement francophone, et à `conference_resources`, trop restrictif pour les présentations, interventions et autres événements. Il suit aussi les noms descriptifs au pluriel déjà employés (`contact_requests`, `consultation_requests`, `newsletter_subscribers`, `client_pipeline_cases`).
 
-**Cet audit initial était exclusivement documentaire.** La migration et les types décidés ensuite sont décrits dans `docs/event-resources.md`; aucune route, aucun formulaire, bucket, traitement CRM, Newsletter ou email n’est toutefois branché.
+**Cet audit initial était exclusivement documentaire.** La migration, les types et la collecte publique décidés ensuite sont décrits dans `docs/event-resources.md`; aucun bucket, traitement CRM, Newsletter ou email n’est toutefois branché.
 
 ## 2. État réel de l'architecture auditée
 
@@ -284,4 +284,4 @@ Chaque PR doit avoir sa migration additive propre, ses tests, une procédure de 
 
 ## 12. Conclusion
 
-L'architecture recommandée isole la collecte dans `event_resources` et `event_resource_leads`, expose une URL courte `/r/[slug]`, persiste exclusivement côté serveur, et ne libère le téléchargement qu'après succès. Elle s'aligne sur les conventions Supabase/admin actuelles tout en gardant CRM, Newsletter et email comme intégrations opt-in, idempotentes et non bloquantes. La migration issue de cet audit ajoute uniquement les deux nouvelles tables. Elle ne change aucun comportement de Contact, Consultation, Newsletter, Academy, CRM ou email.
+L'architecture retenue isole la collecte dans `event_resources` et `event_resource_leads`, expose une URL courte `/r/[slug]`, persiste exclusivement côté serveur, et ne libère le téléchargement qu'après succès. Elle s'aligne sur les conventions Supabase/admin actuelles tout en gardant CRM, Newsletter et email comme intégrations opt-in, idempotentes et non bloquantes. Le module ne change aucun comportement de Contact, Consultation, Newsletter, Academy, CRM ou email.
