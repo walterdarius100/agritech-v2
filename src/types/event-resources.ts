@@ -9,8 +9,12 @@ export type EventResource = {
   title: string;
   description: string | null;
   resource_type: EventResourceType;
-  file_url: string;
+  file_url: string | null;
   file_name: string | null;
+  storage_bucket: string | null;
+  storage_path: string | null;
+  file_mime_type: string | null;
+  file_size: number | null;
   event_name: string | null;
   topic: string | null;
   language: EventResourceLanguage;

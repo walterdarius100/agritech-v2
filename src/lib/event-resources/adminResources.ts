@@ -28,7 +28,7 @@ const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const resourceColumns =
-  "id,slug,title,description,resource_type,file_url,file_name,event_name,topic,language,is_active,requires_form,download_button_label,created_at,updated_at,metadata";
+  "id,slug,title,description,resource_type,file_url,file_name,storage_bucket,storage_path,file_mime_type,file_size,event_name,topic,language,is_active,requires_form,download_button_label,created_at,updated_at,metadata";
 const leadColumns =
   "id,resource_id,full_name,phone,email,organization,interest_area,consent_newsletter,consent_contact,source,event_name,page_path,created_at,metadata";
 
@@ -79,7 +79,7 @@ function parseResourceForm(formData: FormData) {
     slug: text(formData, "slug", 160).toLowerCase(),
     description: nullable(text(formData, "description", 2_000)),
     resource_type: resourceType,
-    file_url: text(formData, "file_url", 2_000),
+    file_url: nullable(text(formData, "file_url", 2_000)),
     file_name: nullable(text(formData, "file_name", 255)),
     event_name: nullable(text(formData, "event_name", 255)),
     topic: nullable(text(formData, "topic", 255)),
@@ -100,7 +100,7 @@ function parseResourceForm(formData: FormData) {
     return { error: "Type de ressource invalide." };
   if (!resourceLanguages.includes(language))
     return { error: "Langue invalide." };
-  if (!payload.file_url || !isSafeFileUrl(payload.file_url)) {
+  if (payload.file_url && !isSafeFileUrl(payload.file_url)) {
     return {
       error:
         "L’URL du fichier doit être une URL HTTP(S) ou un chemin local valide.",
@@ -110,6 +110,87 @@ function parseResourceForm(formData: FormData) {
     return { error: "Le libellé du bouton est obligatoire." };
 
   return { payload };
+}
+
+const storageBucket = "event-resources";
+const maxFileSize = 10 * 1024 * 1024;
+
+function uploadedFile(formData: FormData) {
+  const value = formData.get("resource_file");
+  return value instanceof File && value.size > 0 ? value : null;
+}
+
+function safeFileName(name: string) {
+  const base = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\.[^.]+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return `${base || "ressource"}.pdf`;
+}
+
+async function validatePdf(file: File) {
+  if (
+    file.type !== "application/pdf" ||
+    !file.name.toLowerCase().endsWith(".pdf")
+  ) {
+    return "Format invalide. Sélectionnez un fichier PDF.";
+  }
+  if (file.size > maxFileSize)
+    return "Le PDF dépasse la taille maximale de 10 Mo.";
+  const signature = new Uint8Array(await file.slice(0, 5).arrayBuffer());
+  if (new TextDecoder().decode(signature) !== "%PDF-") {
+    return "Le fichier sélectionné n’est pas un PDF valide.";
+  }
+  return null;
+}
+
+async function uploadPdf(resourceId: string, file: File) {
+  const validationError = await validatePdf(file);
+  if (validationError) return { error: validationError } as const;
+  const path = `${resourceId}/${Date.now()}-${crypto.randomUUID()}-${safeFileName(file.name)}`;
+  const supabase = getAdminClientOrThrow();
+  const { error } = await supabase.storage
+    .from(storageBucket)
+    .upload(path, Buffer.from(await file.arrayBuffer()), {
+      contentType: "application/pdf",
+      upsert: false,
+    });
+  if (error) {
+    console.error("[event-resources] Storage upload failed", {
+      message: error.message,
+    });
+    return {
+      error:
+        "Impossible d’uploader le PDF. Vérifiez la configuration du bucket event-resources.",
+    } as const;
+  }
+  return {
+    metadata: {
+      storage_bucket: storageBucket,
+      storage_path: path,
+      file_name: file.name.slice(0, 255),
+      file_mime_type: "application/pdf",
+      file_size: file.size,
+    },
+  } as const;
+}
+
+async function removeStorageObject(
+  bucket?: string | null,
+  path?: string | null,
+) {
+  if (!bucket || !path) return;
+  const { error } = await getAdminClientOrThrow()
+    .storage.from(bucket)
+    .remove([path]);
+  if (error)
+    console.error("[event-resources] Unable to remove replaced file", {
+      message: error.message,
+    });
 }
 
 export async function getAdminEventResources() {
@@ -217,10 +298,22 @@ export async function createEventResource(
   await requireAuthorizedAdmin();
   const parsed = parseResourceForm(formData);
   if ("error" in parsed) return { error: parsed.error };
+  const file = uploadedFile(formData);
+  if (!file && !parsed.payload.file_url) {
+    return { error: "Ajoutez un PDF ou une URL externe de fallback." };
+  }
+  const id = crypto.randomUUID();
+  const upload = file ? await uploadPdf(id, file) : null;
+  if (upload && "error" in upload) return { error: upload.error };
   const { error } = await getAdminClientOrThrow()
     .from("event_resources")
-    .insert(parsed.payload);
+    .insert({ id, ...parsed.payload, ...(upload?.metadata ?? {}) });
   if (error) {
+    if (upload?.metadata)
+      await removeStorageObject(
+        upload.metadata.storage_bucket,
+        upload.metadata.storage_path,
+      );
     return {
       error:
         error.code === "23505"
@@ -243,11 +336,29 @@ export async function updateEventResource(
     return { error: "Identifiant de ressource invalide." };
   const parsed = parseResourceForm(formData);
   if ("error" in parsed) return { error: parsed.error };
+  const supabase = getAdminClientOrThrow();
+  const { data: current, error: readError } = await supabase
+    .from("event_resources")
+    .select("storage_bucket,storage_path")
+    .eq("id", id)
+    .maybeSingle();
+  if (readError || !current) return { error: "La ressource est introuvable." };
+  const file = uploadedFile(formData);
+  if (!file && !current.storage_path && !parsed.payload.file_url) {
+    return { error: "Ajoutez un PDF ou une URL externe de fallback." };
+  }
+  const upload = file ? await uploadPdf(id, file) : null;
+  if (upload && "error" in upload) return { error: upload.error };
   const { error } = await getAdminClientOrThrow()
     .from("event_resources")
-    .update(parsed.payload)
+    .update({ ...parsed.payload, ...(upload?.metadata ?? {}) })
     .eq("id", id);
   if (error) {
+    if (upload?.metadata)
+      await removeStorageObject(
+        upload.metadata.storage_bucket,
+        upload.metadata.storage_path,
+      );
     return {
       error:
         error.code === "23505"
@@ -255,6 +366,8 @@ export async function updateEventResource(
           : "La ressource n’a pas pu être modifiée.",
     };
   }
+  if (upload?.metadata)
+    await removeStorageObject(current.storage_bucket, current.storage_path);
   revalidatePath("/admin/resources");
   revalidatePath(`/admin/resources/${id}`);
   revalidatePath(`/r/${parsed.payload.slug}`);
@@ -286,6 +399,10 @@ export function getEventResourceFormDefaults(resource?: EventResource | null) {
     resource_type: resource?.resource_type ?? ("document" as EventResourceType),
     file_url: resource?.file_url ?? "",
     file_name: resource?.file_name ?? "",
+    storage_bucket: resource?.storage_bucket ?? "",
+    storage_path: resource?.storage_path ?? "",
+    file_mime_type: resource?.file_mime_type ?? "",
+    file_size: resource?.file_size ?? null,
     event_name: resource?.event_name ?? "",
     topic: resource?.topic ?? "",
     language: resource?.language ?? ("fr" as EventResourceLanguage),

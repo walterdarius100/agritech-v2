@@ -25,6 +25,10 @@ type Defaults = {
   resource_type: EventResourceType;
   file_url: string;
   file_name: string;
+  storage_bucket: string;
+  storage_path: string;
+  file_mime_type: string;
+  file_size: number | null;
   event_name: string;
   topic: string;
   language: EventResourceLanguage;
@@ -97,14 +101,49 @@ export function EventResourceForm({
           name="language"
           options={resourceLanguages}
         />
+        <label className="grid gap-2 text-sm font-semibold text-slate-700 md:col-span-2">
+          {defaults.storage_path ? "Remplacer le fichier" : "Fichier PDF"}
+          <input
+            accept="application/pdf,.pdf"
+            className="min-h-11 rounded-xl border border-slate-300 px-4 py-2 font-normal file:mr-4 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-3 file:py-2 file:font-semibold file:text-emerald-800"
+            name="resource_file"
+            type="file"
+          />
+          <span className="text-xs font-normal text-slate-500">
+            PDF uniquement, 10 Mo maximum. Laissez vide pour conserver le
+            fichier actuel.
+          </span>
+        </label>
+        <div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700 md:col-span-2">
+          <p className="font-semibold">Fichier actuel</p>
+          {defaults.storage_path ? (
+            <dl className="mt-2 grid gap-1 sm:grid-cols-3">
+              <div>
+                <dt className="text-xs text-slate-500">Nom</dt>
+                <dd>{defaults.file_name || "PDF"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Type</dt>
+                <dd>{defaults.file_mime_type || "application/pdf"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-slate-500">Taille</dt>
+                <dd>{formatFileSize(defaults.file_size)}</dd>
+              </div>
+            </dl>
+          ) : defaults.file_url ? (
+            <p className="mt-2 break-all">Lien externe : {defaults.file_url}</p>
+          ) : (
+            <p className="mt-2 text-amber-800">Aucun fichier n’est associé.</p>
+          )}
+        </div>
         <Field
           className="md:col-span-2"
           defaultValue={defaults.file_url}
-          help="URL HTTP(S) ou chemin local commençant par /."
-          label="URL du fichier"
+          help="Fallback optionnel pour les anciennes ressources (URL HTTP(S) ou chemin local commençant par /)."
+          label="URL externe de fallback"
           maxLength={2000}
           name="file_url"
-          required
         />
         <Field
           defaultValue={defaults.file_name}
@@ -163,6 +202,11 @@ export function EventResourceForm({
       </button>
     </form>
   );
+}
+
+function formatFileSize(size: number | null) {
+  if (!size) return "Taille inconnue";
+  return `${(size / 1024 / 1024).toFixed(2)} Mo`;
 }
 
 function Field({

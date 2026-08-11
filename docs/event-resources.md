@@ -11,7 +11,7 @@ Le module expose maintenant une page publique non listée `/r/[slug]` et une Ser
 
 ## Table `event_resources`
 
-Une ressource possède un slug public, un titre, une description facultative, une référence de fichier, un contexte événementiel et des paramètres de publication. `is_active` permet à la route serveur de refuser une ressource désactivée. `requires_form` reste disponible pour une évolution du contrôle d’accès.
+Une ressource possède un slug public, un titre, une description facultative, une référence de fichier, un contexte événementiel et des paramètres de publication. Le fichier recommandé est un objet privé du bucket `event-resources`, référencé par `storage_bucket` et `storage_path`. `file_name`, `file_mime_type` et `file_size` conservent ses métadonnées. L'ancien champ `file_url`, désormais facultatif, reste disponible comme fallback non destructif. `is_active` permet à la route serveur de refuser une ressource désactivée. `requires_form` reste disponible pour une évolution du contrôle d’accès.
 
 Les types autorisés sont `document`, `plan`, `guide`, `fiche_technique`, `presentation` et `autre`. Les langues autorisées sont `fr`, `en`, `es` et `ht` afin de prendre en charge les ressources en créole.
 
@@ -37,7 +37,9 @@ Les index supplémentaires couvrent `resource_id`, `email`, `created_at`, `sourc
 
 RLS est activé sur les deux tables. Aucune policy publique n'est créée et tous les privilèges sont révoqués aux rôles `anon` et `authenticated` : le navigateur ne peut donc ni lister les ressources, ni insérer directement un lead, ni lire ou modifier les coordonnées collectées.
 
-La page `/r/[slug]` et sa Server Action utilisent le client service-role exclusivement côté serveur. L'action valide le slug, recharge uniquement une ressource active, normalise la soumission et fixe elle-même les données de provenance. Toute future lecture admin de leads devra appeler `requireAuthorizedAdmin()`.
+La page `/r/[slug]` et sa Server Action utilisent le client service-role exclusivement côté serveur. L'action valide le slug, recharge uniquement une ressource active, normalise la soumission et fixe elle-même les données de provenance. Après une soumission valide, elle signe le fichier Storage privé pour 24 heures. Si la référence Storage est absente ou si sa signature échoue, elle utilise le `file_url` sûr existant. Toute lecture admin de leads appelle `requireAuthorizedAdmin()`.
+
+Le bucket privé ne possède volontairement aucune policy `storage.objects` publique : un visiteur ne peut ni uploader, ni lister, ni télécharger un objet sans URL signée. La clé service-role reste limitée aux fonctions serveur.
 
 La clé service-role ne doit jamais être importée dans un Client Component ni transmise au navigateur.
 
@@ -50,11 +52,11 @@ La clé service-role ne doit jamais être importée dans un Client Component ni 
 
 ## Administration
 
-La route protégée `/admin/resources` présente les ressources, leur statut, leur nombre de leads et les statistiques globales. L’entrée **Ressources** de la navigation admin permet d’y accéder. Le bouton **Nouvelle ressource** ouvre `/admin/resources/new` : renseignez le titre, un slug unique, l’URL du fichier et les autres informations, puis conservez **Ressource active** cochée pour rendre le lien public accessible.
+La route protégée `/admin/resources` présente les ressources, leur statut, leur nombre de leads et les statistiques globales. L’entrée **Ressources** de la navigation admin permet d’y accéder. Le bouton **Nouvelle ressource** ouvre `/admin/resources/new` : renseignez le titre, un slug unique, sélectionnez un PDF (10 Mo maximum) et conservez **Ressource active** cochée pour rendre le lien public accessible. L'upload est exécuté par la Server Action après contrôle admin, du MIME, de l'extension, de la signature PDF et de la taille. Le chemin isolé prend la forme `[resource-id]/[timestamp]-[uuid]-nom-nettoye.pdf`, sans écrasement.
 
 Le lien officiel est construit à partir de `NEXT_PUBLIC_SITE_URL` sous la forme `/r/[slug]`. **Copier le lien** place cette URL dans le presse-papiers afin de la convertir avec l’outil QR choisi et de l’insérer dans une présentation PowerPoint. L’admin ne génère pas encore de fichier QR directement.
 
-Depuis la liste, **Modifier** ouvre `/admin/resources/[id]`. Cette fiche permet de mettre à jour la ressource et affiche les leads associés. La recherche couvre nom, email, téléphone et organisation. **Désactiver** rend immédiatement le slug inaccessible sur la page publique sans supprimer la ressource ni ses leads ; **Activer** le republie.
+Depuis la liste, **Modifier** ouvre `/admin/resources/[id]`. Cette fiche affiche le nom, le type et la taille du fichier actuel. Sélectionner un autre PDF le remplace après réussite de la mise à jour ; laisser le sélecteur vide conserve l'objet actuel. La recherche couvre nom, email, téléphone et organisation. **Désactiver** rend immédiatement le slug inaccessible sur la page publique sans supprimer la ressource ni ses leads ; **Activer** le republie.
 
 Toutes les lectures et mutations appellent `requireAuthorizedAdmin()` et utilisent le client service-role côté serveur. Aucun lead n’est rendu par une route publique.
 
@@ -62,7 +64,7 @@ Toutes les lectures et mutations appellent `requireAuthorizedAdmin()` et utilise
 
 - aucune ressource ou donnée initiale n'est insérée par la migration ;
 - aucun export CSV, pagination au-delà des 500 leads les plus récents ou génération graphique du QR code n’est encore disponible ;
-- aucun bucket Storage, upload ou URL signée n'est créé ; après une soumission réussie, le bouton ouvre directement la référence `file_url` validée par le serveur ;
+- le premier format uploadable est volontairement limité au PDF et à 10 Mo ;
 - la collecte limite les données à 4 Kio et utilise un honeypot, mais ne dispose pas encore d'un rate limiting distribué ;
 - aucune synchronisation CRM ou Newsletter et aucun email automatique ne sont déclenchés ;
 - `consent_contact` vaut `true` par défaut conformément au modèle demandé, mais le futur formulaire et sa revue légale devront rendre le consentement explicite et traçable avant exploitation commerciale ;

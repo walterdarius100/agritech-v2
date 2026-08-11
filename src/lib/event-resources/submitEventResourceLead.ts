@@ -126,7 +126,9 @@ export async function submitEventResourceLead(
 
   const { data: resource, error: resourceError } = await supabase
     .from("event_resources")
-    .select("id,file_url,file_name,event_name,download_button_label")
+    .select(
+      "id,file_url,file_name,storage_bucket,storage_path,event_name,download_button_label",
+    )
     .eq("slug", slug)
     .eq("is_active", true)
     .maybeSingle();
@@ -138,9 +140,31 @@ export async function submitEventResourceLead(
     });
   }
 
-  const downloadUrl = getSafeDownloadUrl(resource?.file_url);
-  if (resourceError || !resource || !downloadUrl) {
+  if (resourceError || !resource) {
     return { message: publicErrorMessage };
+  }
+
+  let downloadUrl: string | null = null;
+  if (resource.storage_bucket && resource.storage_path) {
+    const { data, error } = await supabase.storage
+      .from(resource.storage_bucket)
+      .createSignedUrl(resource.storage_path, 24 * 60 * 60, {
+        download: resource.file_name || true,
+      });
+    if (error) {
+      console.error("[event-resources] Unable to sign resource file", {
+        resourceId: resource.id,
+        message: error.message,
+      });
+    } else {
+      downloadUrl = data.signedUrl;
+    }
+  }
+  downloadUrl ??= getSafeDownloadUrl(resource.file_url);
+  if (!downloadUrl) {
+    return {
+      message: "Aucun fichier n’est actuellement associé à cette ressource.",
+    };
   }
 
   const { error: insertError } = await supabase
