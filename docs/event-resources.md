@@ -1,0 +1,59 @@
+# Ressources événementielles
+
+## Rôle du module
+
+Le socle de données sépare deux responsabilités :
+
+- `event_resources` décrit les documents proposés pendant une conférence, une présentation ou un événement ;
+- `event_resource_leads` conserve les coordonnées d'une personne ayant demandé une ressource précise.
+
+Cette étape crée uniquement la migration et les types TypeScript. Elle ne crée aucune page publique, route API, interface admin, synchronisation CRM/Newsletter ou communication email.
+
+## Table `event_resources`
+
+Une ressource possède un slug public, un titre, une description facultative, une référence de fichier, un contexte événementiel et des paramètres de publication. `is_active` permettra à la future route serveur de refuser une ressource désactivée. `requires_form` prépare le contrôle d'accès au téléchargement sans l'implémenter dans cette étape.
+
+Les types autorisés sont `document`, `plan`, `guide`, `fiche_technique`, `presentation` et `autre`. Les langues autorisées sont `fr`, `en`, `es` et `ht` afin de prendre en charge les ressources en créole.
+
+### Règle de slug
+
+`slug` est obligatoire et unique. La contrainte SQL accepte uniquement des minuscules ASCII, des chiffres et des tirets simples entre les segments, par exemple `plan-ruche-2026`. Les espaces, accents, majuscules, tirets initiaux/finaux et tirets consécutifs sont refusés.
+
+La contrainte unique crée déjà l'index PostgreSQL utilisé pour rechercher une ressource par slug. Des index séparés couvrent `is_active` et `topic`.
+
+## Table `event_resource_leads`
+
+Chaque lead référence exactement une ressource. Le nom et l'email sont obligatoires ; le téléphone, l'organisation, le domaine d'intérêt, le nom de l'événement et le chemin de page sont facultatifs. Une contrainte SQL rejette les emails manifestement invalides, mais la future route serveur devra également nettoyer, borner et valider tous les champs.
+
+La suppression d'une ressource supprime ses leads avec `on delete cascade`. Cette opération devra donc rester réservée au serveur/admin et être confirmée explicitement ; la désactivation via `is_active` est préférable pour conserver l'historique.
+
+### Règle anti-doublon
+
+L'index unique `(resource_id, lower(email))` autorise un même email à demander plusieurs ressources différentes, mais refuse une seconde ligne pour la même ressource, y compris si la casse de l'email change. Le futur endpoint devra normaliser l'adresse en minuscules et traiter le code PostgreSQL `23505` comme une soumission déjà prise en compte, sans révéler l'existence d'un contact.
+
+Les index supplémentaires couvrent `resource_id`, `email`, `created_at`, `source` et `event_name` pour les futurs écrans de recherche et de suivi.
+
+## RLS et accès
+
+RLS est activé sur les deux tables. Aucune policy publique n'est créée et tous les privilèges sont révoqués aux rôles `anon` et `authenticated` : le navigateur ne peut donc ni lister les ressources, ni insérer directement un lead, ni lire ou modifier les coordonnées collectées.
+
+Les futures pages devront passer par une Server Action ou une Route Handler utilisant le client service-role exclusivement côté serveur. Ce serveur devra valider le slug, charger uniquement une ressource active, normaliser la soumission et fixer lui-même les données de provenance. Toute future lecture admin de leads devra appeler `requireAuthorizedAdmin()`.
+
+La clé service-role ne doit jamais être importée dans un Client Component ni transmise au navigateur.
+
+## Contraintes complémentaires
+
+- les titres, URLs de fichier, libellés de téléchargement, noms de leads et sources ne peuvent pas être vides ;
+- `metadata` doit toujours être un objet JSON, jamais un tableau ou une valeur scalaire ;
+- `updated_at` est actualisé automatiquement sur `event_resources` par un trigger dédié avec un `search_path` vide ;
+- le format email SQL reprend l'approche simple déjà employée par le CRM, sans prétendre vérifier qu'une boîte existe.
+
+## Limites actuelles
+
+- aucune ressource ou donnée initiale n'est insérée par la migration ;
+- aucune route `/r/[slug]`, API de soumission ou interface admin n'existe encore ;
+- aucun bucket Storage, upload, URL signée ou téléchargement n'est créé ; `file_url` reste une référence pour une future étape serveur ;
+- aucun rate limiting, honeypot ou contrôle anti-automatisation n'est encore applicable sans endpoint ;
+- aucune synchronisation CRM ou Newsletter et aucun email automatique ne sont déclenchés ;
+- `consent_contact` vaut `true` par défaut conformément au modèle demandé, mais le futur formulaire et sa revue légale devront rendre le consentement explicite et traçable avant exploitation commerciale ;
+- la suppression en cascade est définitive : les opérations courantes doivent préférer `is_active = false`.

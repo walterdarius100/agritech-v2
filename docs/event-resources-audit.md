@@ -11,7 +11,7 @@ Le nom technique recommandé est :
 
 Ce vocabulaire est préféré à `lead_magnets`, plus marketing et moins explicite dans une plateforme principalement francophone, et à `conference_resources`, trop restrictif pour les présentations, interventions et autres événements. Il suit aussi les noms descriptifs au pluriel déjà employés (`contact_requests`, `consultation_requests`, `newsletter_subscribers`, `client_pipeline_cases`).
 
-**Cette PR est exclusivement documentaire.** Elle ne crée ni route, ni table, ni bucket, ni formulaire, et ne branche aucun traitement CRM, Newsletter ou email.
+**Cet audit initial était exclusivement documentaire.** La migration et les types décidés ensuite sont décrits dans `docs/event-resources.md`; aucune route, aucun formulaire, bucket, traitement CRM, Newsletter ou email n’est toutefois branché.
 
 ## 2. État réel de l'architecture auditée
 
@@ -88,49 +88,49 @@ Ces pages restent accessibles par lien ou QR code, mais ne figurent ni dans la n
 
 ### 4.1 Table `event_resources`
 
-| Champ                   | Type/convention proposé                        | Rôle                                                                      |
-| ----------------------- | ---------------------------------------------- | ------------------------------------------------------------------------- |
-| `id`                    | `uuid primary key default gen_random_uuid()`   | Identifiant interne.                                                      |
-| `slug`                  | `text not null unique`                         | Segment court de `/r/[slug]`, normalisé en minuscules.                    |
-| `title`                 | `text not null`                                | Titre visible.                                                            |
-| `description`           | `text`                                         | Présentation courte.                                                      |
-| `resource_type`         | `text not null` + `check`                      | Par exemple `pdf`, `plan`, `technical_sheet`, `external_link`.            |
-| `file_url`              | `text not null`                                | Référence de téléchargement ; voir la recommandation Storage ci-dessous.  |
-| `file_name`             | `text not null`                                | Nom proposé au téléchargement, sans chemin.                               |
-| `event_name`            | `text`                                         | Conférence/intervention associée.                                         |
-| `topic`                 | `text`                                         | Sujet utilisé notamment pour le futur mapping CRM.                        |
-| `language`              | `text not null default 'fr'` + `check`         | `fr`, `en` ou `es`.                                                       |
-| `is_active`             | `boolean not null default true`                | Publication logique et révocation rapide du QR code.                      |
-| `requires_form`         | `boolean not null default true`                | Prépare une éventuelle ressource libre ; le MVP doit le laisser à `true`. |
-| `download_button_label` | `text`                                         | Libellé personnalisable dans la langue de la ressource.                   |
-| `created_at`            | `timestamptz not null default now()`           | Audit.                                                                    |
-| `updated_at`            | `timestamptz not null default now()` + trigger | Audit des modifications.                                                  |
-| `metadata`              | `jsonb not null default '{}'::jsonb`           | Extension non critique (édition, campagne, paramètres QR).                |
+| Champ                   | Type/convention proposé                            | Rôle                                                                       |
+| ----------------------- | -------------------------------------------------- | -------------------------------------------------------------------------- |
+| `id`                    | `uuid primary key default gen_random_uuid()`       | Identifiant interne.                                                       |
+| `slug`                  | `text not null unique`                             | Segment court de `/r/[slug]`, normalisé en minuscules.                     |
+| `title`                 | `text not null`                                    | Titre visible.                                                             |
+| `description`           | `text`                                             | Présentation courte.                                                       |
+| `resource_type`         | `text not null default 'document'` + `check`       | `document`, `plan`, `guide`, `fiche_technique`, `presentation` ou `autre`. |
+| `file_url`              | `text not null`                                    | Référence de téléchargement ; voir la recommandation Storage ci-dessous.   |
+| `file_name`             | `text`                                             | Nom proposé au téléchargement, sans chemin.                                |
+| `event_name`            | `text`                                             | Conférence/intervention associée.                                          |
+| `topic`                 | `text`                                             | Sujet utilisé notamment pour le futur mapping CRM.                         |
+| `language`              | `text not null default 'fr'` + `check`             | `fr`, `en`, `es` ou `ht`.                                                  |
+| `is_active`             | `boolean not null default true`                    | Publication logique et révocation rapide du QR code.                       |
+| `requires_form`         | `boolean not null default true`                    | Prépare une éventuelle ressource libre ; le MVP doit le laisser à `true`.  |
+| `download_button_label` | `text not null default 'Télécharger la ressource'` | Libellé personnalisable dans la langue de la ressource.                    |
+| `created_at`            | `timestamptz not null default now()`               | Audit.                                                                     |
+| `updated_at`            | `timestamptz not null default now()` + trigger     | Audit des modifications.                                                   |
+| `metadata`              | `jsonb not null default '{}'::jsonb`               | Extension non critique (édition, campagne, paramètres QR).                 |
 
-Contraintes/index recommandés : slug non vide et conforme à `^[a-z0-9]+(?:-[a-z0-9]+)*$`, longueurs applicatives et SQL raisonnables, index `(is_active, created_at desc)`, trigger `updated_at`, RLS activé sans écriture publique. Une lecture anonyme directe de toute la table n'est pas nécessaire : le serveur peut sélectionner uniquement la ressource active demandée.
+Contraintes/index recommandés : slug non vide et conforme à `^[a-z0-9]+(-[a-z0-9]+)*$`, longueurs applicatives et SQL raisonnables, index `(is_active, created_at desc)`, trigger `updated_at`, RLS activé sans écriture publique. Une lecture anonyme directe de toute la table n'est pas nécessaire : le serveur peut sélectionner uniquement la ressource active demandée.
 
 **Stockage recommandé :** malgré le nom demandé `file_url`, stocker idéalement un chemin d'objet opaque (`bucket/path`) plutôt qu'une URL signée périssable. Créer dans une PR ultérieure un bucket privé dédié, par exemple `event-resources`, autoriser les uploads admin côté serveur, puis générer après soumission une URL signée à courte durée. Un bucket public ou un fichier dans `public/` est plus simple, mais l'URL serait récupérable avant le formulaire ou partageable sans contrôle. Si une URL externe est nécessaire, valider son protocole et ses hôtes autorisés côté serveur. Ne jamais accepter une URL fournie par le visiteur.
 
 ### 4.2 Table `event_resource_leads`
 
-| Champ                | Type/convention proposé                                           | Rôle                                                        |
-| -------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------- |
-| `id`                 | `uuid primary key default gen_random_uuid()`                      | Identifiant du lead.                                        |
-| `resource_id`        | `uuid not null references event_resources(id) on delete restrict` | Ressource demandée ; `restrict` conserve l'historique.      |
-| `full_name`          | `text not null`                                                   | Nom nettoyé.                                                |
-| `phone`              | `text not null`                                                   | Téléphone/WhatsApp conservé comme texte.                    |
-| `email`              | `text not null`                                                   | Email normalisé en minuscules.                              |
-| `organization`       | `text`                                                            | Organisation facultative.                                   |
-| `interest_area`      | `text`                                                            | Intérêt déclaré facultatif.                                 |
-| `consent_newsletter` | `boolean not null default false`                                  | Consentement marketing Newsletter explicite, non précoché.  |
-| `consent_contact`    | `boolean not null default false`                                  | Autorisation distincte de suivi commercial, non précochée.  |
-| `source`             | `text not null default 'qr_code'`                                 | Canal d'acquisition fixé par le serveur.                    |
-| `event_name`         | `text`                                                            | Snapshot de l'événement au moment de la soumission.         |
-| `page_path`          | `text not null`                                                   | Chemin source fixé/validé par le serveur.                   |
-| `created_at`         | `timestamptz not null default now()`                              | Date de collecte.                                           |
-| `metadata`           | `jsonb not null default '{}'::jsonb`                              | Contexte technique minimal (campagne, locale), sans secret. |
+| Champ                | Type/convention proposé                                          | Rôle                                                        |
+| -------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------- |
+| `id`                 | `uuid primary key default gen_random_uuid()`                     | Identifiant du lead.                                        |
+| `resource_id`        | `uuid not null references event_resources(id) on delete cascade` | Ressource demandée ; sa suppression purge ses leads.        |
+| `full_name`          | `text not null`                                                  | Nom nettoyé.                                                |
+| `phone`              | `text`                                                           | Téléphone/WhatsApp facultatif conservé comme texte.         |
+| `email`              | `text not null`                                                  | Email normalisé en minuscules.                              |
+| `organization`       | `text`                                                           | Organisation facultative.                                   |
+| `interest_area`      | `text`                                                           | Intérêt déclaré facultatif.                                 |
+| `consent_newsletter` | `boolean not null default false`                                 | Consentement marketing Newsletter explicite, non précoché.  |
+| `consent_contact`    | `boolean not null default true`                                  | Valeur initiale demandée, à expliciter dans la future UI.   |
+| `source`             | `text not null default 'qr_code'`                                | Canal d'acquisition fixé par le serveur.                    |
+| `event_name`         | `text`                                                           | Snapshot de l'événement au moment de la soumission.         |
+| `page_path`          | `text`                                                           | Chemin source facultatif fixé/validé par le serveur.        |
+| `created_at`         | `timestamptz not null default now()`                             | Date de collecte.                                           |
+| `metadata`           | `jsonb not null default '{}'::jsonb`                             | Contexte technique minimal (campagne, locale), sans secret. |
 
-Contraintes/index recommandés : champs obligatoires non vides, contrôle email, index `(resource_id, created_at desc)`, `(created_at desc)`, email et téléphone pour la recherche admin. La politique exacte de doublon doit être décidée avant migration : une contrainte unique `(resource_id, lower(email))` évite les répétitions mais empêche de mesurer un nouveau scan du même participant ; une stratégie d'upsert avec `last_downloaded_at`/`download_count` demanderait des champs supplémentaires. Pour un MVP, accepter plusieurs événements mais dédupliquer les soumissions concurrentes identiques sur une même ressource est un compromis explicite à tester.
+Contraintes/index recommandés : champs obligatoires non vides, contrôle email, index `(resource_id, created_at desc)`, `(created_at desc)`, email et téléphone pour la recherche admin. La migration retient un index unique `(resource_id, lower(email))` : un email peut demander plusieurs ressources, mais une seule ligne est conservée pour une même ressource, indépendamment de la casse. Le futur serveur devra normaliser l'email et traiter les conflits concurrents comme une soumission déjà enregistrée.
 
 RLS doit être activé sans policy publique, comme pour la Newsletter. La Route Handler utilise le service-role côté serveur ; aucune lecture de leads ne doit être exposée au navigateur. Les suppressions de ressources physiques et les rétentions de données personnelles doivent être formalisées avant production.
 
@@ -284,4 +284,4 @@ Chaque PR doit avoir sa migration additive propre, ses tests, une procédure de 
 
 ## 12. Conclusion
 
-L'architecture recommandée isole la collecte dans `event_resources` et `event_resource_leads`, expose une URL courte `/r/[slug]`, persiste exclusivement côté serveur, et ne libère le téléchargement qu'après succès. Elle s'aligne sur les conventions Supabase/admin actuelles tout en gardant CRM, Newsletter et email comme intégrations opt-in, idempotentes et non bloquantes. La présente PR ne change volontairement aucun comportement de Contact, Consultation, Newsletter, Academy, CRM, email ou Supabase.
+L'architecture recommandée isole la collecte dans `event_resources` et `event_resource_leads`, expose une URL courte `/r/[slug]`, persiste exclusivement côté serveur, et ne libère le téléchargement qu'après succès. Elle s'aligne sur les conventions Supabase/admin actuelles tout en gardant CRM, Newsletter et email comme intégrations opt-in, idempotentes et non bloquantes. La migration issue de cet audit ajoute uniquement les deux nouvelles tables. Elle ne change aucun comportement de Contact, Consultation, Newsletter, Academy, CRM ou email.
