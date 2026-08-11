@@ -9,8 +9,9 @@ import { Header } from "@/components/layout/Header";
 export function PublicChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isEventResourceRoute = pathname.startsWith("/r/");
 
-  if (isAdminRoute) {
+  if (isAdminRoute || isEventResourceRoute) {
     return <>{children}</>;
   }
 
