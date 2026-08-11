@@ -26,6 +26,7 @@ const adminLinks = [
   { href: "/admin/academy", label: "Academy" },
   { href: "/admin/email-events", label: "Emails" },
   { href: "/admin/newsletter", label: "Newsletter" },
+  { href: "/admin/resources", label: "Ressources" },
   { href: "/admin/articles/new", label: "Nouvel article" },
   { href: "/", label: "Voir le site" },
 ];

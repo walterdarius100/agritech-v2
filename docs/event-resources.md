@@ -48,10 +48,20 @@ La clé service-role ne doit jamais être importée dans un Client Component ni 
 - `updated_at` est actualisé automatiquement sur `event_resources` par un trigger dédié avec un `search_path` vide ;
 - le format email SQL reprend l'approche simple déjà employée par le CRM, sans prétendre vérifier qu'une boîte existe.
 
+## Administration
+
+La route protégée `/admin/resources` présente les ressources, leur statut, leur nombre de leads et les statistiques globales. L’entrée **Ressources** de la navigation admin permet d’y accéder. Le bouton **Nouvelle ressource** ouvre `/admin/resources/new` : renseignez le titre, un slug unique, l’URL du fichier et les autres informations, puis conservez **Ressource active** cochée pour rendre le lien public accessible.
+
+Le lien officiel est construit à partir de `NEXT_PUBLIC_SITE_URL` sous la forme `/r/[slug]`. **Copier le lien** place cette URL dans le presse-papiers afin de la convertir avec l’outil QR choisi et de l’insérer dans une présentation PowerPoint. L’admin ne génère pas encore de fichier QR directement.
+
+Depuis la liste, **Modifier** ouvre `/admin/resources/[id]`. Cette fiche permet de mettre à jour la ressource et affiche les leads associés. La recherche couvre nom, email, téléphone et organisation. **Désactiver** rend immédiatement le slug inaccessible sur la page publique sans supprimer la ressource ni ses leads ; **Activer** le republie.
+
+Toutes les lectures et mutations appellent `requireAuthorizedAdmin()` et utilisent le client service-role côté serveur. Aucun lead n’est rendu par une route publique.
+
 ## Limites actuelles
 
 - aucune ressource ou donnée initiale n'est insérée par la migration ;
-- aucune interface admin n'existe encore ;
+- aucun export CSV, pagination au-delà des 500 leads les plus récents ou génération graphique du QR code n’est encore disponible ;
 - aucun bucket Storage, upload ou URL signée n'est créé ; après une soumission réussie, le bouton ouvre directement la référence `file_url` validée par le serveur ;
 - la collecte limite les données à 4 Kio et utilise un honeypot, mais ne dispose pas encore d'un rate limiting distribué ;
 - aucune synchronisation CRM ou Newsletter et aucun email automatique ne sont déclenchés ;
